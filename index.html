@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Lễ Hội Ném Còn - Trò Chơi Dân Gian Việt Nam</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="game-container">
+    <!-- Top HUD Bar -->
+    <header id="hud-top">
+      <div class="hud-group">
+        <div class="hud-card">
+          <span class="hud-label">ĐIỂM SỐ</span>
+          <span id="score-val" class="hud-num">0</span>
+        </div>
+        <div class="hud-card">
+          <span class="hud-label">KỶ LỤC</span>
+          <span id="highscore-val" class="hud-num">0</span>
+        </div>
+        <div class="hud-card" id="streak-card">
+          <span class="hud-label">CHUỖI TRÚNG</span>
+          <span id="streak-val" class="hud-num">0</span>
+        </div>
+      </div>
+
+      <div class="title-banner">
+        <h1>NÉM CÒN DÂN TỘC</h1>
+        <p class="subtitle">Lễ Hội Lồng Tồng Vùng Cao</p>
+      </div>
+
+      <div class="hud-group hud-controls">
+        <button id="btn-audio" class="btn-tool" title="Bật/Tắt âm thanh">
+          <span class="icon" id="audio-icon">🔊</span> Âm Thanh
+        </button>
+        <button id="btn-help" class="btn-tool" title="Hướng dẫn cách chơi">
+          <span class="icon">❓</span> Trợ Giúp
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Canvas Viewport -->
+    <div id="canvas-wrapper">
+      <canvas id="gameCanvas" width="1672" height="941"></canvas>
+
+      <!-- Floating Score Announcement Popup -->
+      <div id="announcement-banner">
+        <div id="announce-title">XUYÊN TÂM VÒNG CÒN!</div>
+        <div id="announce-score">+100 ĐIỂM</div>
+      </div>
+    </div>
+
+    <!-- Bottom Status / Guide Footer -->
+    <footer id="hud-bottom">
+      <div class="tip-box">
+        <span class="tip-badge">👉 MẸO CHƠI:</span>
+        <span class="tip-text"><strong>Giữ chuột</strong> để xoay quả còn tích lực. Căn đúng lực vừa phải (<strong>60% - 70%</strong>) và <strong>thả chuột</strong> khi tay vung hất lên phía trước để ném trúng vòng! Ném quá mạnh (>70%) quả còn sẽ bay qua cột, quá yếu (<60%) sẽ rơi hụt.</span>
+      </div>
+      <div class="footer-stats">
+        <span>Lượt ném: <strong id="throws-count">0</strong></span>
+        <span>|</span>
+        <span>Tỉ lệ trúng: <strong id="accuracy-val">0%</strong></span>
+        <button id="btn-reset" class="btn-small" title="Chơi lại từ đầu">↺ Chơi lại</button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Help & Rules Modal -->
+  <div id="modal-help" class="modal-overlay hidden">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2>HƯỚNG DẪN CHƠI NÉM CÒN</h2>
+        <button id="btn-close-modal" class="modal-close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="guide-item">
+          <div class="guide-icon">🖱️</div>
+          <div class="guide-desc">
+            <h4>1. Giữ chuột để xoay quả còn</h4>
+            <p>Nhấn giữ chuột trái (hoặc chạm giữ màn hình) để nhân vật bắt đầu xoay quả còn lấy đà. Nhìn nhịp xoay và lắng nghe tiếng vung gió để cảm nhận lực.</p>
+          </div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-icon">🎯</div>
+          <div class="guide-desc">
+            <h4>2. Căn lực 60% - 70% & Thả chuột đúng nhịp</h4>
+            <p>Chỉ khi ném ở <strong>lực vừa phải (60% - 70%)</strong> quả còn mới lọt qua vòng. Nếu giữ quá lâu (lực quá mạnh >70%), quả còn sẽ <strong>bay vượt qua cột</strong>; nếu thả quá sớm (lực yếu <60%), quả còn sẽ <strong>rơi hụt</strong> phía trước.</p>
+          </div>
+        </div>
+        <div class="guide-item">
+          <div class="guide-icon">🎉</div>
+          <div class="guide-desc">
+            <h4>3. Xuyên qua tâm vòng còn để ghi điểm</h4>
+            <p>Thả chuột ngay khi tay vung hất lên phía trước hướng về đỉnh cột. Quả còn bay xuất phát chuẩn xác từ chính bàn tay nhân vật, chui lọt qua vòng búp còn bạn sẽ nhận được <strong>100 điểm</strong>!</p>
+          </div>
+        </div>
+        <div class="culture-note">
+          <strong>Ý nghĩa văn hóa:</strong> Trò chơi Ném Còn là nét đẹp văn hóa truyền thống đặc sắc trong các dịp lễ hội đầu xuân (Lễ hội Lồng Tồng) của đồng bào các dân tộc Tày, Nùng, Thái... Cây còn tượng trưng cho trục trời đất, ném trúng vòng còn mang lại may mắn, mưa thuận gió hòa và mùa màng bội thu.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-modal-ok" class="btn-primary">Đã Hiểu - Bắt Đầu Chơi!</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
