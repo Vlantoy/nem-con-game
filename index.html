@@ -31,11 +31,14 @@
       </div>
 
       <div class="hud-group hud-controls">
-        <button id="btn-audio" class="btn-tool" title="Bật/Tắt âm thanh">
-          <span class="icon" id="audio-icon">🔊</span> Âm Thanh
+        <button id="btn-culture" class="btn-tool btn-culture" title="Khám phá nét đẹp văn hóa Ném Còn">
+          <span class="icon">🌾</span> Văn Hóa
         </button>
         <button id="btn-help" class="btn-tool" title="Hướng dẫn cách chơi">
-          <span class="icon">❓</span> Trợ Giúp
+          <span class="icon">🎯</span> Luật Chơi
+        </button>
+        <button id="btn-audio" class="btn-tool" title="Bật/Tắt âm thanh">
+          <span class="icon" id="audio-icon">🔊</span> Âm Thanh
         </button>
       </div>
     </header>
@@ -47,15 +50,15 @@
       <!-- Floating Score Announcement Popup -->
       <div id="announcement-banner">
         <div id="announce-title">XUYÊN TÂM VÒNG CÒN!</div>
-        <div id="announce-score">+100 ĐIỂM</div>
+        <div id="announce-score">+100 ĐIỂM • MƯA THUẬN GIÓ HÒA!</div>
       </div>
     </div>
 
-    <!-- Bottom Status / Guide Footer -->
+    <!-- Bottom Status / Dynamic Culture Ticker Footer -->
     <footer id="hud-bottom">
-      <div class="tip-box">
-        <span class="tip-badge">👉 MẸO CHƠI:</span>
-        <span class="tip-text"><strong>Giữ chuột</strong> để xoay quả còn tích lực. Căn đúng lực vừa phải (<strong>60% - 70%</strong>) và <strong>thả chuột</strong> khi tay vung hất lên phía trước để ném trúng vòng! Ném quá mạnh (>70%) quả còn sẽ bay qua cột, quá yếu (<60%) sẽ rơi hụt.</span>
+      <div class="tip-box" id="culture-ticker" title="Nhấp để khám phá nét đẹp văn hóa lễ hội">
+        <span class="tip-badge" id="ticker-badge">🌾 GÓC VĂN HÓA:</span>
+        <span class="tip-text" id="ticker-text">Cột còn cao từ 15 - 30m bằng thân tre già vươn thẳng, tượng trưng cho trục vũ trụ nối Đất với Trời.</span>
       </div>
       <div class="footer-stats">
         <span>Lượt ném: <strong id="throws-count">0</strong></span>
@@ -66,41 +69,107 @@
     </footer>
   </div>
 
-  <!-- Help & Rules Modal -->
+  <!-- Help & Cultural Heritage Modal -->
   <div id="modal-help" class="modal-overlay hidden">
-    <div class="modal-box">
+    <div class="modal-box modal-culture-box">
       <div class="modal-header">
-        <h2>HƯỚNG DẪN CHƠI NÉM CÒN</h2>
-        <button id="btn-close-modal" class="modal-close">&times;</button>
+        <div class="modal-tabs">
+          <button id="tab-btn-culture" class="modal-tab active">🌾 Nét Đẹp Văn Hóa</button>
+          <button id="tab-btn-gameplay" class="modal-tab">🎯 Hướng Dẫn Chơi</button>
+        </div>
+        <button id="btn-close-modal" class="modal-close" title="Đóng">&times;</button>
       </div>
-      <div class="modal-body">
+
+      <!-- Tab 1: Cultural Heritage Content -->
+      <div id="tab-content-culture" class="modal-body tab-pane active">
+        <div class="culture-intro">
+          <div class="culture-intro-icon">🌄</div>
+          <div class="culture-intro-text">
+            <h3>LỄ HỘI LỒNG TỒNG VÙNG CAO</h3>
+            <p>Trò chơi <strong>Ném Còn (Phóng Còn)</strong> là linh hồn trong Lễ hội Lồng Tồng (Hội Xuống Đồng) đầu xuân của đồng bào các dân tộc Tày, Nùng, Thái, Mường... Cây còn vút cao giữa đất trời tượng trưng cho trục vũ trụ, mỗi đường ném mang theo ước vọng mưa thuận gió hòa, mùa màng bội thu và hạnh phúc ấm no.</p>
+          </div>
+        </div>
+
+        <div class="culture-grid">
+          <!-- Card 1: Cột Còn -->
+          <div class="culture-card">
+            <div class="culture-card-header">
+              <span class="card-icon">🎋</span>
+              <h4>Cột Còn — Trục Nối Đất Trời</h4>
+            </div>
+            <p>Thân cây mai, bương già cao vút từ <strong>15 đến 30 mét</strong> dựng sừng sững giữa thung lũng bằng phẳng. Cột còn là biểu tượng chiếc thang vũ trụ nối cõi nhân gian với thần linh, dẫn dắt sinh khí trời đất về bản làng.</p>
+          </div>
+
+          <!-- Card 2: Vòng Còn -->
+          <div class="culture-card">
+            <div class="culture-card-header">
+              <span class="card-icon">🌞</span>
+              <h4>Vòng Còn — Nhật Nguyệt Giao Hòa</h4>
+            </div>
+            <p>Đỉnh cột uốn vòng tre đường kính 40 - 50cm bọc giấy bản: một mặt đỏ là <strong>Mặt Trời (Dương)</strong>, một mặt vàng/trắng là <strong>Mặt Trăng (Âm)</strong>. Quả còn phóng thủng tâm giấy là lúc <em>"Cổng trời khai mở"</em>, âm dương hòa hợp, xua tan tai ương, đón vạn sự lành.</p>
+          </div>
+
+          <!-- Card 3: Quả Còn -->
+          <div class="culture-card">
+            <div class="culture-card-header">
+              <span class="card-icon">🎁</span>
+              <h4>Quả Còn — Túi Hạt Mầm Sinh Sôi</h4>
+            </div>
+            <p>Khâu tay tỉ mẩn từ thổ cẩm ngũ sắc tượng trưng cho ngũ hành. Ruột quả còn không nhồi cát đá mà nhồi <strong>hạt thóc nương, ngô, vừng, bông vải...</strong> gửi gắm ước nguyện no ấm. Các dải tua rua mềm mại phất phơ như những đám mây ngũ sắc mang mưa lành tưới mát nương rẫy.</p>
+          </div>
+
+          <!-- Card 4: Tục Giao Duyên -->
+          <div class="culture-card">
+            <div class="culture-card-header">
+              <span class="card-icon">🌸</span>
+              <h4>Tơ Duyên Bản Làng — Ném Còn Trao Tình</h4>
+            </div>
+            <p>Bên cạnh ý nghĩa cầu mùa, ném còn là ngày hội giao duyên náo nức nhất của lứa đôi vùng cao. Nam thanh nữ tú đứng đối diện tung còn qua lại; bắt trúng quả còn là đón lấy mối duyên lành, trao nhau khăn piêu, vòng bạc hẹn ước trăm năm.</p>
+          </div>
+        </div>
+
+        <div class="culture-quote">
+          💬 <em>"Còn bay vút qua cổng trời, lúa ngô trĩu hạt, lứa đôi nên duyên."</em>
+        </div>
+      </div>
+
+      <!-- Tab 2: Gameplay Instructions Content -->
+      <div id="tab-content-gameplay" class="modal-body tab-pane">
         <div class="guide-item">
           <div class="guide-icon">🖱️</div>
           <div class="guide-desc">
-            <h4>1. Giữ chuột để xoay quả còn</h4>
-            <p>Nhấn giữ chuột trái (hoặc chạm giữ màn hình) để nhân vật bắt đầu xoay quả còn lấy đà. Nhìn nhịp xoay và lắng nghe tiếng vung gió để cảm nhận lực.</p>
+            <h4>1. Giữ chuột để xoay quả còn lấy đà</h4>
+            <p>Nhấn giữ chuột trái (hoặc chạm giữ màn hình / phím Space). Nhân vật bắt đầu xoay quả còn lấy đà. Lắng nghe tiếng gió rít và quan sát tốc độ quay để cảm nhận lực.</p>
           </div>
         </div>
+
         <div class="guide-item">
           <div class="guide-icon">🎯</div>
           <div class="guide-desc">
-            <h4>2. Căn lực 60% - 70% & Thả chuột đúng nhịp</h4>
-            <p>Chỉ khi ném ở <strong>lực vừa phải (60% - 70%)</strong> quả còn mới lọt qua vòng. Nếu giữ quá lâu (lực quá mạnh >70%), quả còn sẽ <strong>bay vượt qua cột</strong>; nếu thả quá sớm (lực yếu <60%), quả còn sẽ <strong>rơi hụt</strong> phía trước.</p>
+            <h4>2. Căn lực chuẩn 60% - 70% & Thả đúng nhịp</h4>
+            <p>Quả còn chỉ chui lọt qua vòng khi ném ở <strong>lực vừa phải (khoảng vòng xoay thứ 2, 60% - 70%)</strong>. Ném quá mạnh (>70%) quả còn sẽ bay vọt qua cột; ném quá yếu (<60%) sẽ rơi hụt phía trước.</p>
           </div>
         </div>
+
+        <div class="guide-item">
+          <div class="guide-icon">🚀</div>
+          <div class="guide-desc">
+            <h4>3. Thả chuột khi tay vung hất về phía trước</h4>
+            <p>Thả chuột ngay khi tay nhân vật vung hất lên phía trước hướng về đỉnh cột. Quả còn bay xuất phát chuẩn xác từ chính bàn tay nhân vật theo góc tiếp tuyến tự nhiên.</p>
+          </div>
+        </div>
+
         <div class="guide-item">
           <div class="guide-icon">🎉</div>
           <div class="guide-desc">
-            <h4>3. Xuyên qua tâm vòng còn để ghi điểm</h4>
-            <p>Thả chuột ngay khi tay vung hất lên phía trước hướng về đỉnh cột. Quả còn bay xuất phát chuẩn xác từ chính bàn tay nhân vật, chui lọt qua vòng búp còn bạn sẽ nhận được <strong>100 điểm</strong>!</p>
+            <h4>4. Xuyên tâm vòng còn — Nhận phúc lộc đầu xuân</h4>
+            <p>Quả còn chui lọt qua vòng búp còn: <strong>+100 điểm</strong>, vòng còn bừng sáng, pháo giấy mừng hội và đón nhận lời chúc phúc lành truyền thống!</p>
           </div>
         </div>
-        <div class="culture-note">
-          <strong>Ý nghĩa văn hóa:</strong> Trò chơi Ném Còn là nét đẹp văn hóa truyền thống đặc sắc trong các dịp lễ hội đầu xuân (Lễ hội Lồng Tồng) của đồng bào các dân tộc Tày, Nùng, Thái... Cây còn tượng trưng cho trục trời đất, ném trúng vòng còn mang lại may mắn, mưa thuận gió hòa và mùa màng bội thu.
-        </div>
       </div>
+
       <div class="modal-footer">
-        <button id="btn-modal-ok" class="btn-primary">Đã Hiểu - Bắt Đầu Chơi!</button>
+        <button id="btn-modal-ok" class="btn-primary">Đã Hiểu — Bắt Đầu Chơi!</button>
       </div>
     </div>
   </div>

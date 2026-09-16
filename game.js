@@ -226,33 +226,36 @@
       if (!this.enabled || !this.ctx) return;
       try {
         const now = this.ctx.currentTime;
-        // 1. Traditional Festival Drum (Trống Hội)
-        const drumOsc = this.ctx.createOscillator();
-        const drumGain = this.ctx.createGain();
-        drumOsc.type = 'sine';
-        drumOsc.frequency.setValueAtTime(180, now);
-        drumOsc.frequency.exponentialRampToValueAtTime(50, now + 0.45);
-        drumGain.gain.setValueAtTime(0.55, now);
-        drumGain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
-        drumOsc.connect(drumGain);
-        drumGain.connect(this.ctx.destination);
-        drumOsc.start(now);
-        drumOsc.stop(now + 0.5);
+        // 1. Traditional Festival Drum Beat (Tiếng Trống Hội: Tùng - Cắc!)
+        [0, 0.15].forEach((offset, idx) => {
+          const t = now + offset;
+          const drumOsc = this.ctx.createOscillator();
+          const drumGain = this.ctx.createGain();
+          drumOsc.type = 'sine';
+          drumOsc.frequency.setValueAtTime(idx === 0 ? 190 : 150, t);
+          drumOsc.frequency.exponentialRampToValueAtTime(45, t + 0.35);
+          drumGain.gain.setValueAtTime(idx === 0 ? 0.65 : 0.50, t);
+          drumGain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+          drumOsc.connect(drumGain);
+          drumGain.connect(this.ctx.destination);
+          drumOsc.start(t);
+          drumOsc.stop(t + 0.4);
+        });
 
-        // 2. Victorious chime arpeggio: C5, E5, G5, C6
-        const notes = [523.25, 659.25, 783.99, 1046.50];
+        // 2. Victorious Highland Pentatonic Chime (Âm điệu Ngũ Cung Tây Bắc: G4, A4, C5, D5, E5, G5)
+        const notes = [392.00, 440.00, 523.25, 587.33, 659.25, 783.99];
         notes.forEach((freq, idx) => {
-          const t = now + 0.08 * idx;
+          const t = now + 0.07 * idx;
           const osc = this.ctx.createOscillator();
           const gain = this.ctx.createGain();
-          osc.type = 'sine';
+          osc.type = 'triangle'; // warmer, folk instrument tone like Đàn Tính
           osc.frequency.setValueAtTime(freq, t);
-          gain.gain.setValueAtTime(0.22, t);
-          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+          gain.gain.setValueAtTime(0.24, t);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
           osc.connect(gain);
           gain.connect(this.ctx.destination);
           osc.start(t);
-          osc.stop(t + 0.35);
+          osc.stop(t + 0.45);
         });
       } catch (e) {}
     }
@@ -403,9 +406,17 @@
         accuracy: document.getElementById('accuracy-val'),
         btnAudio: document.getElementById('btn-audio'),
         audioIcon: document.getElementById('audio-icon'),
+        btnCulture: document.getElementById('btn-culture'),
         btnHelp: document.getElementById('btn-help'),
         btnReset: document.getElementById('btn-reset'),
         modalHelp: document.getElementById('modal-help'),
+        tabBtnCulture: document.getElementById('tab-btn-culture'),
+        tabBtnGameplay: document.getElementById('tab-btn-gameplay'),
+        tabContentCulture: document.getElementById('tab-content-culture'),
+        tabContentGameplay: document.getElementById('tab-content-gameplay'),
+        cultureTicker: document.getElementById('culture-ticker'),
+        tickerBadge: document.getElementById('ticker-badge'),
+        tickerText: document.getElementById('ticker-text'),
         btnCloseModal: document.getElementById('btn-close-modal'),
         btnModalOk: document.getElementById('btn-modal-ok'),
         banner: document.getElementById('announcement-banner'),
@@ -476,12 +487,69 @@
         this.resetGame();
       });
 
-      // Help Modal
-      const openModal = () => this.ui.modalHelp.classList.remove('hidden');
+      // Modal tab switching
+      const switchTab = (tab) => {
+        if (tab === 'culture') {
+          if (this.ui.tabBtnCulture) this.ui.tabBtnCulture.classList.add('active');
+          if (this.ui.tabBtnGameplay) this.ui.tabBtnGameplay.classList.remove('active');
+          if (this.ui.tabContentCulture) this.ui.tabContentCulture.classList.add('active');
+          if (this.ui.tabContentGameplay) this.ui.tabContentGameplay.classList.remove('active');
+        } else {
+          if (this.ui.tabBtnGameplay) this.ui.tabBtnGameplay.classList.add('active');
+          if (this.ui.tabBtnCulture) this.ui.tabBtnCulture.classList.remove('active');
+          if (this.ui.tabContentGameplay) this.ui.tabContentGameplay.classList.add('active');
+          if (this.ui.tabContentCulture) this.ui.tabContentCulture.classList.remove('active');
+        }
+      };
+
+      if (this.ui.tabBtnCulture) {
+        this.ui.tabBtnCulture.addEventListener('click', () => switchTab('culture'));
+      }
+      if (this.ui.tabBtnGameplay) {
+        this.ui.tabBtnGameplay.addEventListener('click', () => switchTab('gameplay'));
+      }
+
+      const openModalWithTab = (tab) => {
+        switchTab(tab);
+        this.ui.modalHelp.classList.remove('hidden');
+      };
       const closeModal = () => this.ui.modalHelp.classList.add('hidden');
-      this.ui.btnHelp.addEventListener('click', openModal);
+
+      if (this.ui.btnCulture) {
+        this.ui.btnCulture.addEventListener('click', () => openModalWithTab('culture'));
+      }
+      if (this.ui.btnHelp) {
+        this.ui.btnHelp.addEventListener('click', () => openModalWithTab('gameplay'));
+      }
+      if (this.ui.cultureTicker) {
+        this.ui.cultureTicker.addEventListener('click', () => openModalWithTab('culture'));
+      }
       this.ui.btnCloseModal.addEventListener('click', closeModal);
       this.ui.btnModalOk.addEventListener('click', closeModal);
+
+      // Rotating Cultural Knowledge Ticker
+      const CULTURAL_FACTS = [
+        { badge: '🌾 GÓC VĂN HÓA:', text: 'Cột còn cao 15 - 30m bằng thân tre già vươn thẳng, tượng trưng cho trục vũ trụ nối Đất với Trời.' },
+        { badge: '🌞 NHẬT NGUYỆT:', text: 'Vòng còn dán giấy 2 mặt biểu trưng cho Mặt Trời (Dương) & Mặt Trăng (Âm) soi sáng vạn vật.' },
+        { badge: '🎁 TÚI HẠT MẦM:', text: 'Ruột quả còn nhồi hạt thóc nương, ngô, vừng, bông vải... gửi gắm ước vọng sinh sôi, ấm no.' },
+        { badge: '✨ KHAI CỔNG TRỜI:', text: 'Khoảnh khắc quả còn phóng thủng tâm giấy là lúc âm dương hòa hợp, bản làng đón phúc lộc đầu năm.' },
+        { badge: '🌸 TƠ DUYÊN VÙNG CAO:', text: 'Ném còn là dịp giao duyên của các chàng trai cô gái dân tộc trong trang phục thổ cẩm rực rỡ.' },
+        { badge: '🎉 HỘI LỒNG TỒNG:', text: 'Lễ hội Xuống Đồng của người Tày, Nùng, Thái mở đầu bằng nghi thức ném quả còn đầu tiên của các bậc bô lão.' },
+        { badge: '👉 MẸO NÉM CÒN:', text: 'Giữ chuột xoay quả còn, căn đúng lực vừa phải (60% - 70%) và thả khi tay hất lên phía trước!' }
+      ];
+
+      let factIdx = 0;
+      setInterval(() => {
+        if (!this.ui.tickerText || !this.ui.tickerBadge) return;
+        this.ui.tickerText.style.opacity = '0';
+        setTimeout(() => {
+          factIdx = (factIdx + 1) % CULTURAL_FACTS.length;
+          const fact = CULTURAL_FACTS[factIdx];
+          this.ui.tickerBadge.textContent = fact.badge;
+          this.ui.tickerText.textContent = fact.text;
+          this.ui.tickerText.style.opacity = '1';
+        }, 300);
+      }, 7000);
 
       // Input Actions (Mouse, Touch, Spacebar)
       const startAction = (e) => {
@@ -558,7 +626,7 @@
       this.ui.banner.classList.add('show');
       setTimeout(() => {
         this.ui.banner.classList.remove('show');
-      }, 1600);
+      }, 2200);
     }
 
     loadAssets() {
@@ -840,9 +908,27 @@
           this.sound.playScoreCelebration();
           this.particles.addConfetti(RING_CENTER_X, RING_CENTER_Y, 75);
 
+          // Traditional Festive Blessings (Lời chúc may mắn Lễ hội Lồng Tồng)
+          const BLESSINGS = [
+            'MƯA THUẬN GIÓ HÒA!',
+            'MÙA MÀNG BỘI THU!',
+            'ÂM DƯƠNG GIAO HÒA!',
+            'BẢN LÀNG NO ẤM!',
+            'KHAI MỞ CỔNG TRỜI!',
+            'PHÚC LỘC ĐẦY NHÀ!',
+            'DUYÊN THẮM ĐẦU XUÂN!'
+          ];
+
+          // Festival Milestone Honor Titles (Danh hiệu lễ hội vùng cao)
           let msg = 'XUYÊN TÂM VÒNG CÒN!';
-          if (this.streak >= 3) msg = `CHUỖI ${this.streak} LẦN TRÚNG!`;
-          this.showAnnouncement(msg, '+100 ĐIỂM');
+          if (this.streak === 1) msg = 'TÂN THỦ KHAI HỘI!';
+          else if (this.streak === 2) msg = 'XUYÊN TÂM VÒNG CÒN!';
+          else if (this.streak === 3) msg = 'TAY NÉM BẢN LÀNG!';
+          else if (this.streak === 5) msg = 'KHAI MỞ CỔNG TRỜI!';
+          else if (this.streak >= 8) msg = `CHUỖI ${this.streak} LẦN TRÚNG!`;
+
+          const blessing = BLESSINGS[Math.floor(Math.random() * BLESSINGS.length)];
+          this.showAnnouncement(msg, `+100 ĐIỂM • ${blessing}`);
           return;
         }
 
