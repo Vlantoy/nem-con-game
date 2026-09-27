@@ -631,21 +631,21 @@
 
     loadAssets() {
       const assetList = [
-        { key: 'bg', src: 'Background.png' },
-        { key: 'pole', src: 'Pole_transparent.png' },
-        { key: 'quacon', src: 'quacon.png' },
-        { key: 'quacon_fly', src: 'quacon_flying.png' },
-        { key: 'idle', src: 'Throw (3).png' },
+        { key: 'bg', src: 'assets/background/Background.png' },
+        { key: 'pole', src: 'assets/items/Pole_transparent.png' },
+        { key: 'quacon', src: 'assets/items/quacon.png' },
+        { key: 'quacon_fly', src: 'assets/items/quacon_flying.png' },
+        { key: 'idle', src: 'assets/character/throw/Throw (3).png' },
         // Spin frames 1..9
-        ...Array.from({ length: 9 }, (_, i) => ({ key: `spin_${i + 1}`, src: `Spin (${i + 1}).png` })),
+        ...Array.from({ length: 9 }, (_, i) => ({ key: `spin_${i + 1}`, src: `assets/character/spin/Spin (${i + 1}).png` })),
         // Throw frames
-        { key: 'throw_2', src: 'Throw (2).png' },
-        { key: 'throw_3', src: 'Throw (3).png' },
-        { key: 'throw_4', src: 'Throw (4).png' },
-        { key: 'throw_5', src: 'Throw (5).png' },
-        { key: 'throw_7', src: 'Throw (7).png' },
-        { key: 'throw_8', src: 'Throw (8).png' },
-        { key: 'throw_10', src: 'Throw (10).png' }
+        { key: 'throw_2', src: 'assets/character/throw/Throw (2).png' },
+        { key: 'throw_3', src: 'assets/character/throw/Throw (3).png' },
+        { key: 'throw_4', src: 'assets/character/throw/Throw (4).png' },
+        { key: 'throw_5', src: 'assets/character/throw/Throw (5).png' },
+        { key: 'throw_7', src: 'assets/character/throw/Throw (7).png' },
+        { key: 'throw_8', src: 'assets/character/throw/Throw (8).png' },
+        { key: 'throw_10', src: 'assets/character/throw/Throw (10).png' }
       ];
 
       this.totalAssets = assetList.length;

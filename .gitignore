@@ -1,6 +1,7 @@
-﻿# Development & analysis scripts
+# Development & analysis scripts
 *.py
 __pycache__/
+tools/
 
 # Node
 node_modules/

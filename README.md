@@ -1,4 +1,4 @@
-﻿# 🎯 Ném Còn Dân Tộc — Lễ Hội Lồng Tồng Vùng Cao
+# 🎯 Ném Còn Dân Tộc — Lễ Hội Lồng Tồng Vùng Cao
 > **Trò chơi dân gian Việt Nam tái hiện văn hóa truyền thống Tây Bắc trên nền web (HTML5 Canvas & Web Audio API)**
 
 [![Play Online](https://img.shields.io/badge/Trải_Nghiệm-Chơi_Ngay-success?style=for-the-badge&logo=githubpages)](https://vlantoy.github.io/nem-con-game/)
@@ -11,7 +11,7 @@
 
 **Ném Còn (Phóng Còn)** là một trong những nét sinh hoạt văn hóa tinh thần đặc sắc và thiêng liêng nhất của đồng bào các dân tộc vùng cao Tây Bắc, Đông Bắc (Tày, Nùng, Thái, Mường...) mỗi độ xuân về trong **Lễ hội Lồng Tồng (Hội Xuống Đồng)**.
 
-![Khám phá nét đẹp văn hóa Ném Còn](shot_culture_modal.png)
+![Khám phá nét đẹp văn hóa Ném Còn](assets/screenshots/shot_culture_modal.png)
 
 ### 1. 🎋 Cột Còn — Trục Vũ Trụ Nối Liền Đất Trời
 Cột còn được làm từ thân một cây mai, bương già thẳng tắp, cao từ **15 đến 30 mét**, dựng sừng sững giữa thung lũng bằng phẳng và rộng lớn nhất bản. Cột còn tượng trưng cho **trục vũ trụ** (cây cầu nối tâm linh nối cõi trần gian với cõi thần linh), dẫn dắt sinh khí đất trời giao hòa, xua tan mây mù tai ương và mang phước lành về bản làng.
@@ -36,7 +36,7 @@ Bên cạnh ý nghĩa nông nghiệp tâm linh, ném còn là ngày hội giao d
 
 ## 🎮 Cách Chơi & Cơ Chế Vật Lý Chuẩn Xác
 
-![Khoảnh khắc quả còn xuyên tâm vòng](shot_victory_score.png)
+![Khoảnh khắc quả còn xuyên tâm vòng](assets/screenshots/shot_victory_score.png)
 
 1. **Giữ chuột (hoặc chạm giữ màn hình / phím Space):**
    * Nhân vật bắt đầu xoay quả còn lấy đà.
