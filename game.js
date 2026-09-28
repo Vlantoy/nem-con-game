@@ -25,11 +25,11 @@
 
   // Target Ring (on top of pole)
   const RING_CENTER_X = POLE_ANCHOR_X; // 1476
-  const RING_CENTER_Y = GROUND_Y - (2067 - 233.5) * POLE_SCALE; // ≈ 188.8px
-  const RING_INNER_RX = 22; // Original authentic dimensions
-  const RING_INNER_RY = 50;
-  const RING_OUTER_RX = 38;
-  const RING_OUTER_RY = 66;
+  const RING_CENTER_Y = GROUND_Y - (2067 - 250) * POLE_SCALE; // ≈ 194.2px
+  const RING_INNER_RX = 9;  // Exact authentic inner hole semi-minor axis (width)
+  const RING_INNER_RY = 38; // Exact authentic inner hole semi-major axis (height)
+  const RING_OUTER_RX = 22; // Outer bamboo hoop rim
+  const RING_OUTER_RY = 64; // Outer bamboo hoop rim
 
   // Physics constants
   const GRAVITY = 580;      // px/s^2 (calibrated for high, floaty ceremonial silk arcs)
@@ -1818,24 +1818,18 @@
     checkCollisions(p) {
       if (p.scored) return;
 
-      // Subtle aerodynamic assistance as quả còn approaches the ring
-      const distToRing = Math.hypot(p.x - RING_CENTER_X, p.y - RING_CENTER_Y);
-      if (distToRing < 100 && p.vx > 0) {
-        // Gently guide trajectory towards the ring vertical center
-        p.vy += (RING_CENTER_Y - p.y) * 1.2 * 0.016;
-      }
+      // 1. Precise continuous line-segment crossing of the Ring plane at X = RING_CENTER_X
+      const crossingX = (p.prevX < RING_CENTER_X && p.x >= RING_CENTER_X) || 
+                        (p.prevX > RING_CENTER_X && p.x <= RING_CENTER_X);
 
-      // 1. Continuous segment collision with the Ring Aperture
-      const dx = p.x - p.prevX;
-      const crossingX = (p.prevX <= RING_CENTER_X && p.x >= RING_CENTER_X) || (p.prevX >= RING_CENTER_X && p.x <= RING_CENTER_X);
-      const isNearCenter = distToRing <= RING_INNER_RY;
-
-      if ((dx !== 0 && crossingX) || isNearCenter) {
+      if (crossingX) {
+        const dx = p.x - p.prevX;
         const t = dx !== 0 ? Math.max(0, Math.min(1, (RING_CENTER_X - p.prevX) / dx)) : 0.5;
         const intersectY = p.prevY + t * (p.y - p.prevY);
         const dyHole = Math.abs(intersectY - RING_CENTER_Y);
 
-        // Inner Hole Pass-Through (GOAL!)
+        // A. INNER HOLE PASS-THROUGH (True "Xuyên Tâm Vòng Còn" GOAL!)
+        // Only scores when the projectile trajectory cleanly threads through the authentic inner hole aperture
         if (dyHole <= RING_INNER_RY) {
           p.scored = true;
           this.ringGlowTimer = 1.0;
@@ -1870,28 +1864,27 @@
           return;
         }
 
-        // Rim Collision (Bamboo hoop impact)
-        if (dyHole <= RING_OUTER_RY + 6) {
+        // B. RIM IMPACT (Hits the circular bamboo hoop rim outside the hole)
+        if (dyHole <= RING_OUTER_RY) {
           this.sound.playRimClack();
-          this.particles.addDust(RING_CENTER_X, intersectY, 8);
-          p.vx = -Math.abs(p.vx) * 0.4;
-          p.vy = p.vy * 0.35 + (Math.random() - 0.5) * 60;
-          p.x = RING_CENTER_X - 12;
+          this.particles.addDust(RING_CENTER_X, intersectY, 10);
+          p.vx = -Math.abs(p.vx) * 0.42;
+          p.vy = p.vy * 0.35 + (intersectY < RING_CENTER_Y ? -70 : 70);
+          p.x = RING_CENTER_X - 10;
           this.streak = 0;
           this.updateStatsUI();
           return;
         }
-      }
 
-      // 2. Bamboo Pole Shaft Collision (below the ring)
-      const poleTopY = RING_CENTER_Y + RING_OUTER_RY + 10;
-      if (p.y > poleTopY && p.y < GROUND_Y) {
-        if (p.x >= RING_CENTER_X - 16 && p.x <= RING_CENTER_X + 16) {
+        // C. BAMBOO POLE SHAFT IMPACT (Below the hoop down to the ground)
+        if (intersectY > RING_CENTER_Y + RING_OUTER_RY && intersectY < GROUND_Y) {
           this.sound.playRimClack();
+          this.particles.addDust(RING_CENTER_X, intersectY, 8);
           p.vx = -Math.abs(p.vx) * 0.45;
-          p.x = RING_CENTER_X - 18;
+          p.x = RING_CENTER_X - 14;
           this.streak = 0;
           this.updateStatsUI();
+          return;
         }
       }
     }
