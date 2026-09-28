@@ -1,6 +1,6 @@
 /**
  * LỄ HỘI NÉM CÒN - Traditional Vietnamese Con Throwing Game
- * High-performance HTML5 Canvas physics game with authentic frame-by-frame aligned animations.
+ * Getting Over It Physics Controls • Modular Rigged Character • Procedural Braided Cord • 5 Dynamic Streamers
  */
 
 (() => {
@@ -14,52 +14,8 @@
   const GROUND_Y = 830;
 
   // Character scale and world standing position on the field
-  const CHAR_SCALE = 0.42;
+  const CHAR_SCALE = 0.21; // Halved to 1/2 scale per user request
   const CHAR_ANCHOR_X = 220; // Standing back-heel anchor position
-
-  // Exact per-frame plant-foot (back heel & ground contact) coordinates
-  // Measured from individual sprite pixel analysis to eliminate frame jitter
-  const FRAME_ANCHORS = {
-    'idle':     { x: 647, y: 1067 }, // Throw (3) - Ready idle stance
-    'throw_2':  { x: 668, y: 1069 }, // Throw (2) - Follow-through
-    'throw_3':  { x: 647, y: 1067 }, // Throw (3) - Ready
-    'throw_4':  { x: 693, y: 1062 }, // Throw (4) - Wind down back
-    'throw_5':  { x: 682, y: 1053 }, // Throw (5) - Swing up back
-    'throw_7':  { x: 660, y: 1061 }, // Throw (7) - Cock back
-    'throw_8':  { x: 503, y: 1067 }, // Throw (8) - Whip forward (corrected +144px offset)
-    'throw_10': { x: 457, y: 1059 }, // Throw (10) - Release con (corrected +190px offset)
-    'spin_1':   { x: 639, y: 1056 },
-    'spin_2':   { x: 623, y: 1046 },
-    'spin_3':   { x: 678, y: 1052 },
-    'spin_4':   { x: 661, y: 1056 },
-    'spin_5':   { x: 724, y: 1046 }, // Corrected -77px offset
-    'spin_6':   { x: 646, y: 1062 },
-    'spin_7':   { x: 643, y: 1060 },
-    'spin_8':   { x: 630, y: 1068 },
-    'spin_9':   { x: 636, y: 1046 }
-  };
-
-  // Exact per-frame right-hand (force launch center) coordinates
-  // Measured from sprite pixel analysis to anchor ball release directly at the character's hand
-  const HAND_COORDS = {
-    'idle':     { x: 858, y: 441 },
-    'throw_2':  { x: 902, y: 486 },
-    'throw_3':  { x: 858, y: 441 },
-    'throw_4':  { x: 707, y: 391 },
-    'throw_5':  { x: 564, y: 423 },
-    'throw_7':  { x: 498, y: 104 },
-    'throw_8':  { x: 922, y: 213 },
-    'throw_10': { x: 805, y: 411 },
-    'spin_1':   { x: 876, y: 340 },
-    'spin_2':   { x: 854, y: 348 },
-    'spin_3':   { x: 503, y: 241 },
-    'spin_4':   { x: 707, y: 391 },
-    'spin_5':   { x: 564, y: 423 },
-    'spin_6':   { x: 766, y: 475 },
-    'spin_7':   { x: 869, y: 388 },
-    'spin_8':   { x: 855, y: 375 },
-    'spin_9':   { x: 852, y: 356 }
-  };
 
   // Pole anchor and dimensions
   const POLE_SCALE = 760 / 2172; // ≈ 0.3499
@@ -70,40 +26,41 @@
   // Target Ring (on top of pole)
   const RING_CENTER_X = POLE_ANCHOR_X; // 1476
   const RING_CENTER_Y = GROUND_Y - (2067 - 233.5) * POLE_SCALE; // ≈ 188.8px
-  const RING_INNER_RX = 22;
+  const RING_INNER_RX = 22; // Original authentic dimensions
   const RING_INNER_RY = 50;
   const RING_OUTER_RX = 38;
   const RING_OUTER_RY = 66;
 
   // Physics constants
-  const GRAVITY = 920;      // px/s^2
-  const AIR_DRAG = 0.00025; // aerodynamic drag
+  const GRAVITY = 580;      // px/s^2 (calibrated for high, floaty ceremonial silk arcs)
+  const AIR_DRAG = 0.00008; // aerodynamic drag
+  const CORD_LENGTH = 68;   // px (proportionate to 1/2 character arm reach)
+  const CORD_SEGMENTS = 8;
+  const BALL_DIAMETER = 26; // px (proportionate to 1/2 character hand)
 
-  // Ordered spin frames for smooth counter-clockwise whirl:
-  const SPIN_FRAMES = [3, 5, 4, 6, 7, 8, 9, 1, 2];
-
-  // Exact tangential release angles for each frame in the whirl cycle
-  const FRAME_TANGENTS = {
-    3: { deg: -135, sweet: false, hint: 'Bay ngược (Quá muộn)' },
-    5: { deg: 120,  sweet: false, hint: 'Cắm đất phía sau' },
-    4: { deg: 65,   sweet: false, hint: 'Cắm xuống đất' },
-    6: { deg: 15,   sweet: false, hint: 'Bắn thấp phía trước' },
-    7: { deg: -25,  sweet: false, hint: 'Góc thấp' },
-    8: { deg: -47,  sweet: true,  hint: 'GÓC TỐT (Nâng cao)!' },
-    9: { deg: -50,  sweet: true,  hint: '⭐ GÓC HOÀN HẢO - THẢ NGAY! ⭐' },
-    1: { deg: -53,  sweet: true,  hint: 'GÓC VỒNG CAO!' },
-    2: { deg: -82,  sweet: false, hint: 'Quá bổng (Gần thẳng đứng)' }
+  // Cord Grip Configurations (Vị trí cầm dây còn: Đuôi dây, Giữa dây, Gần quả)
+  const GRIP_CONFIGS = {
+    long:  { length: 68, label: 'Đuôi Dây', icon: '🎋', fullLabel: 'Đuôi Dây (Sải Dài)' },
+    mid:   { length: 48, label: 'Giữa Dây', icon: '🌾', fullLabel: 'Giữa Dây (Sải Vừa)' },
+    short: { length: 30, label: 'Gần Quả',  icon: '✨', fullLabel: 'Gần Quả Còn (Sải Ngắn)' }
   };
 
   // Game States
   const STATE = {
     LOADING: 0,
     IDLE: 1,
-    SPINNING: 2,
-    THROWING: 3,
-    FLYING: 4,
-    LANDED: 5
+    SWINGING: 2,
+    FLYING: 3,
+    LANDED: 4
   };
+
+  // Helper for smooth shortest-path angular interpolation
+  function lerpAngle(a, b, t) {
+    let diff = (b - a) % (Math.PI * 2);
+    if (diff > Math.PI) diff -= Math.PI * 2;
+    if (diff < -Math.PI) diff += Math.PI * 2;
+    return a + diff * Math.min(Math.max(t, 0), 1);
+  }
 
   // ==========================================
   // WEB AUDIO SOUND SYNTHESIZER
@@ -112,6 +69,7 @@
     constructor() {
       this.ctx = null;
       this.enabled = true;
+      this.lastWhooshTime = 0;
     }
 
     init() {
@@ -128,8 +86,11 @@
 
     playWhoosh(pitch = 1.0) {
       if (!this.enabled || !this.ctx) return;
+      const now = this.ctx.currentTime;
+      if (now - this.lastWhooshTime < 0.12) return;
+      this.lastWhooshTime = now;
+
       try {
-        const now = this.ctx.currentTime;
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         const filter = this.ctx.createBiquadFilter();
@@ -248,7 +209,7 @@
           const t = now + 0.07 * idx;
           const osc = this.ctx.createOscillator();
           const gain = this.ctx.createGain();
-          osc.type = 'triangle'; // warmer, folk instrument tone like Đàn Tính
+          osc.type = 'triangle';
           osc.frequency.setValueAtTime(freq, t);
           gain.gain.setValueAtTime(0.24, t);
           gain.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
@@ -267,7 +228,6 @@
   class ParticleSystem {
     constructor() {
       this.particles = [];
-      this.ribbonTrail = [];
     }
 
     addConfetti(x, y, count = 75) {
@@ -309,17 +269,6 @@
       }
     }
 
-    addTrailPoint(x, y, angle) {
-      this.ribbonTrail.unshift({ x, y, angle, age: 0 });
-      if (this.ribbonTrail.length > 25) {
-        this.ribbonTrail.pop();
-      }
-    }
-
-    clearTrail() {
-      this.ribbonTrail = [];
-    }
-
     update(dt) {
       for (let i = this.particles.length - 1; i >= 0; i--) {
         const p = this.particles[i];
@@ -332,58 +281,599 @@
           this.particles.splice(i, 1);
         }
       }
+    }
 
-      for (let i = this.ribbonTrail.length - 1; i >= 0; i--) {
-        this.ribbonTrail[i].age += dt;
-        if (this.ribbonTrail[i].age > 0.45) {
-          this.ribbonTrail.splice(i, 1);
+    drawParticles(ctx) {
+      this.particles.forEach(p => {
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, p.life);
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rotation);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+        ctx.restore();
+      });
+    }
+  }
+
+  // ==========================================
+  // PROCEDURAL VERLET CORD (DÂY CÒN TRUYỀN THỐNG)
+  // ==========================================
+  class VerletCord {
+    constructor(numNodes = CORD_SEGMENTS, totalLength = CORD_LENGTH) {
+      this.numNodes = numNodes;
+      this.totalLength = totalLength;
+      this.segmentLength = totalLength / (numNodes - 1);
+      this.nodes = [];
+      this.isPinned = true;
+
+      for (let i = 0; i < numNodes; i++) {
+        this.nodes.push({
+          x: 0,
+          y: 0,
+          oldX: 0,
+          oldY: 0
+        });
+      }
+      this.flutterTimer = 0;
+    }
+
+    setLength(newLength) {
+      this.totalLength = newLength;
+      this.segmentLength = newLength / (this.numNodes - 1);
+    }
+
+    reset(startX, startY, angle = Math.PI / 2) {
+      for (let i = 0; i < this.numNodes; i++) {
+        const dist = i * this.segmentLength;
+        const nx = startX + Math.cos(angle) * dist;
+        const ny = startY + Math.sin(angle) * dist;
+        this.nodes[i].x = nx;
+        this.nodes[i].y = ny;
+        this.nodes[i].oldX = nx;
+        this.nodes[i].oldY = ny;
+      }
+    }
+
+    // Initialize cord trailing behind the ball at release
+    initFlight(attachX, attachY, vx, vy) {
+      const speed = Math.hypot(vx, vy);
+      const trailAngle = speed > 30 ? Math.atan2(-vy, -vx) : Math.PI;
+
+      for (let i = 0; i < this.numNodes; i++) {
+        // Node numNodes - 1 is pinned to ball attachment (distance = 0)
+        // Node 0 is free tail end (distance = totalLength)
+        const distFromAttach = (this.numNodes - 1 - i) * this.segmentLength;
+        const nx = attachX + Math.cos(trailAngle) * distFromAttach;
+        const ny = attachY + Math.sin(trailAngle) * distFromAttach;
+
+        this.nodes[i].x = nx;
+        this.nodes[i].y = ny;
+        this.nodes[i].oldX = nx - vx * 0.016;
+        this.nodes[i].oldY = ny - vy * 0.016;
+      }
+    }
+
+    // Aerodynamic flight simulation: cord trails behind the projectile in the slipstream
+    updateFlight(attachX, attachY, vx, vy, dt) {
+      this.isPinned = false;
+      this.lastDt = dt;
+      this.flutterTimer += dt;
+
+      const speed = Math.hypot(vx, vy);
+      const trailAngle = speed > 40 ? Math.atan2(-vy, -vx) : Math.PI;
+      const effectiveDt = Math.min(dt, 0.025);
+      const damping = 0.95;
+
+      // 1. Verlet step for free trailing nodes (0 to numNodes - 2)
+      for (let i = 0; i < this.numNodes - 1; i++) {
+        const n = this.nodes[i];
+        let curVx = (n.x - n.oldX) * damping;
+        let curVy = (n.y - n.oldY) * damping;
+
+        n.oldX = n.x;
+        n.oldY = n.y;
+
+        // Aerodynamic trailing alignment: slipstream pulls cord along trailAngle
+        const distRatio = (this.numNodes - 1 - i) / (this.numNodes - 1);
+        const trailPull = Math.min(speed * 0.65, 550) * distRatio;
+        const flutter = Math.sin(this.flutterTimer * 26 + i * 1.2) * 2.2 * Math.min(speed / 300, 1.0);
+
+        const perpAngle = trailAngle + Math.PI / 2;
+        const ax = Math.cos(trailAngle) * trailPull + Math.cos(perpAngle) * flutter;
+        const ay = Math.sin(trailAngle) * trailPull + Math.sin(perpAngle) * flutter;
+
+        n.x += curVx + (ax + GRAVITY * 0.25) * effectiveDt * effectiveDt;
+        n.y += curVy + (ay + GRAVITY * 0.25) * effectiveDt * effectiveDt;
+      }
+
+      // Pin the attached end (numNodes - 1) strictly to the ball attachment point
+      const last = this.nodes[this.numNodes - 1];
+      last.x = attachX;
+      last.y = attachY;
+      last.oldX = attachX;
+      last.oldY = attachY;
+
+      // 2. Relaxation constraints with attached end firmly locked
+      const iterations = 8;
+      for (let iter = 0; iter < iterations; iter++) {
+        last.x = attachX;
+        last.y = attachY;
+
+        for (let i = this.numNodes - 2; i >= 0; i--) {
+          const n1 = this.nodes[i];
+          const n2 = this.nodes[i + 1];
+          const dx = n1.x - n2.x;
+          const dy = n1.y - n2.y;
+          const dist = Math.hypot(dx, dy);
+
+          if (dist > 1e-4) {
+            const diff = (dist - this.segmentLength) / dist;
+            if (i + 1 === this.numNodes - 1) {
+              // Attached node is locked; only adjust n1
+              n1.x -= dx * diff;
+              n1.y -= dy * diff;
+            } else {
+              n1.x -= dx * diff * 0.5;
+              n1.y -= dy * diff * 0.5;
+              n2.x += dx * diff * 0.5;
+              n2.y += dy * diff * 0.5;
+            }
+          }
         }
       }
     }
 
-    drawTrail(ctx) {
-      if (this.ribbonTrail.length > 1) {
-        ctx.save();
-        const colors = ['#e74c3c', '#2ecc71', '#f1c40f', '#fd79a8'];
-        colors.forEach((color, idx) => {
-          ctx.beginPath();
-          ctx.strokeStyle = color;
-          ctx.lineWidth = 2.5;
-          ctx.lineCap = 'round';
-          const offset = (idx - 1.5) * 3.5;
-          for (let i = 0; i < this.ribbonTrail.length; i++) {
-            const pt = this.ribbonTrail[i];
-            const perpX = -Math.sin(pt.angle) * offset;
-            const perpY = Math.cos(pt.angle) * offset;
-            const px = pt.x + perpX;
-            const py = pt.y + perpY;
-            if (i === 0) ctx.moveTo(px, py);
-            else ctx.lineTo(px, py);
+    getFreeEnd() {
+      return this.nodes[0];
+    }
+
+    update(pinX, pinY, dt, pinned = true) {
+      this.isPinned = pinned;
+      this.lastDt = dt;
+      const damping = 0.991;
+      const effectiveDt = Math.min(dt, 0.025);
+
+      // Verlet step for all free nodes
+      const startIdx = pinned ? 1 : 0;
+      for (let i = startIdx; i < this.numNodes; i++) {
+        const n = this.nodes[i];
+        const vx = (n.x - n.oldX) * damping;
+        const vy = (n.y - n.oldY) * damping;
+        n.oldX = n.x;
+        n.oldY = n.y;
+        n.x += vx;
+        n.y += vy + GRAVITY * effectiveDt * effectiveDt;
+      }
+
+      if (pinned) {
+        this.nodes[0].x = pinX;
+        this.nodes[0].y = pinY;
+        this.nodes[0].oldX = pinX;
+        this.nodes[0].oldY = pinY;
+      }
+
+      // Relaxation constraints (8 iterations for tight, responsive cord)
+      const iterations = 8;
+      for (let iter = 0; iter < iterations; iter++) {
+        if (pinned) {
+          this.nodes[0].x = pinX;
+          this.nodes[0].y = pinY;
+        }
+
+        for (let i = 0; i < this.numNodes - 1; i++) {
+          const n1 = this.nodes[i];
+          const n2 = this.nodes[i + 1];
+          const dx = n2.x - n1.x;
+          const dy = n2.y - n1.y;
+          const dist = Math.hypot(dx, dy);
+
+          if (dist > 1e-4) {
+            const diff = (dist - this.segmentLength) / dist;
+            if (i === 0 && pinned) {
+              n2.x -= dx * diff;
+              n2.y -= dy * diff;
+            } else {
+              n1.x += dx * diff * 0.5;
+              n1.y += dy * diff * 0.5;
+              n2.x -= dx * diff * 0.5;
+              n2.y -= dy * diff * 0.5;
+            }
           }
-          ctx.globalAlpha = 0.60;
-          ctx.stroke();
-        });
-        ctx.restore();
+        }
       }
     }
 
-    drawParticles(ctx) {
+    // Attach end node to a specific position (e.g. projectile in flight)
+    attachEnd(endX, endY) {
+      const last = this.nodes[this.numNodes - 1];
+      last.x = endX;
+      last.y = endY;
+      last.oldX = endX;
+      last.oldY = endY;
+    }
+
+    getEndVelocity(customDt) {
+      const last = this.nodes[this.numNodes - 1];
+      const safeDt = Math.max(customDt || this.lastDt || 0.016, 0.001);
+      return {
+        vx: (last.x - last.oldX) / safeDt,
+        vy: (last.y - last.oldY) / safeDt
+      };
+    }
+
+    getEndPosition() {
+      return this.nodes[this.numNodes - 1];
+    }
+
+    // High quality procedural silk cord rendering
+    draw(ctx) {
+      if (this.nodes.length < 2) return;
+
       ctx.save();
-      for (const p of this.particles) {
-        ctx.save();
-        ctx.translate(p.x, p.y);
-        ctx.rotate(p.rotation);
-        ctx.fillStyle = p.color;
-        ctx.globalAlpha = Math.max(0, p.life);
-        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
-        ctx.restore();
+
+      // Outer braided red cord
+      ctx.beginPath();
+      ctx.moveTo(this.nodes[0].x, this.nodes[0].y);
+      for (let i = 1; i < this.numNodes - 1; i++) {
+        const xc = (this.nodes[i].x + this.nodes[i + 1].x) / 2;
+        const yc = (this.nodes[i].y + this.nodes[i + 1].y) / 2;
+        ctx.quadraticCurveTo(this.nodes[i].x, this.nodes[i].y, xc, yc);
       }
+      ctx.quadraticCurveTo(
+        this.nodes[this.numNodes - 2].x,
+        this.nodes[this.numNodes - 2].y,
+        this.nodes[this.numNodes - 1].x,
+        this.nodes[this.numNodes - 1].y
+      );
+
+      ctx.strokeStyle = '#b32415'; // Traditional vermilion red silk
+      ctx.lineWidth = 2.0;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.stroke();
+
+      // Inner golden twist thread (xe sợi chỉ vàng óng)
+      ctx.setLineDash([3, 3]);
+      ctx.strokeStyle = '#f1c40f'; // Bright festival gold
+      ctx.lineWidth = 1.0;
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Top brass attachment ring at quả còn connection
+      const end = this.nodes[this.numNodes - 1];
+      ctx.beginPath();
+      ctx.arc(end.x, end.y, 2.0, 0, Math.PI * 2);
+      ctx.fillStyle = '#f39c12';
+      ctx.fill();
+      ctx.strokeStyle = '#7f4f06';
+      ctx.lineWidth = 0.8;
+      ctx.stroke();
+
       ctx.restore();
     }
+  }
 
-    draw(ctx) {
-      this.drawTrail(ctx);
-      this.drawParticles(ctx);
+  // ==========================================
+  // QUẢ CÒN ASSEMBLY & DYNAMIC STREAMERS
+  // ==========================================
+  class QuaconAssembly {
+    constructor() {
+      // 5 Streamers configuration
+      this.streamerConfigs = [
+        { key: 'streamer_pink',        spreadDeg: -22, pivX: 36, pivY: 31, baseRot: 45 },
+        { key: 'streamer_green_up',    spreadDeg: -11, pivX: 29, pivY: 26, baseRot: 45 },
+        { key: 'streamer_yellow_1',    spreadDeg:   0, pivX: 31, pivY: 27, baseRot: 45 },
+        { key: 'streamer_yellow_2',    spreadDeg:  11, pivX: 33, pivY: 26, baseRot: 45 },
+        { key: 'streamer_green_down',  spreadDeg:  22, pivX: 31, pivY: 24, baseRot: 45 }
+      ];
+
+      // Dynamic streamer angles
+      this.streamerAngles = [0, 0, 0, 0, 0];
+      this.flutterTimer = 0;
+
+      // Ball geometry
+      this.ballScale = BALL_DIAMETER / 308;
+      this.topAttachOffset = { x: -7 * this.ballScale, y: -171 * this.ballScale };
+      this.botAttachOffset = { x:  4 * this.ballScale, y:  168 * this.ballScale };
+    }
+
+    update(dt, vx, vy) {
+      this.flutterTimer += dt;
+      const speed = Math.hypot(vx, vy);
+      const isFast = speed > 50;
+
+      // Desired flight trailing angle
+      const trailAngle = isFast ? Math.atan2(-vy, -vx) : Math.PI / 2;
+      const blend = Math.min(speed / 400, 1.0);
+
+      for (let i = 0; i < this.streamerConfigs.length; i++) {
+        const cfg = this.streamerConfigs[i];
+        const spreadRad = (cfg.spreadDeg * Math.PI) / 180;
+
+        // Idle rest angle: hangs downward with spread
+        const restAngle = Math.PI / 2 + spreadRad;
+
+        // Target angle blends from rest to trailing angle
+        let targetAngle = restAngle * (1 - blend) + (trailAngle + spreadRad * 0.4) * blend;
+
+        // Aerodynamic silk flutter wave
+        const flutter = Math.sin(this.flutterTimer * 22 + i * 1.3) * 0.14 * blend;
+        targetAngle += flutter;
+
+        // Smooth angular spring towards target
+        let diff = targetAngle - this.streamerAngles[i];
+        while (diff > Math.PI) diff -= Math.PI * 2;
+        while (diff < -Math.PI) diff += Math.PI * 2;
+
+        this.streamerAngles[i] += diff * Math.min(dt * 15, 1.0);
+      }
+    }
+
+    draw(ctx, x, y, assets) {
+      if (!assets.quacon_ball) return;
+
+      const s = this.ballScale;
+      const botX = x + this.botAttachOffset.x;
+      const botY = y + this.botAttachOffset.y;
+
+      // 1. Draw 5 Streamers first (anchored to bottom cap)
+      for (let i = 0; i < this.streamerConfigs.length; i++) {
+        const cfg = this.streamerConfigs[i];
+        const img = assets[cfg.key];
+        if (!img) continue;
+
+        ctx.save();
+        ctx.translate(botX, botY);
+        // Rotate along simulated physical angle
+        // Subtract baseRot (45 deg) because streamer sprites are originally angled at ~45 deg
+        ctx.rotate(this.streamerAngles[i] - (cfg.baseRot * Math.PI) / 180);
+
+        const sw = img.width * s;
+        const sh = img.height * s;
+        const spivX = cfg.pivX * s;
+        const spivY = cfg.pivY * s;
+
+        ctx.drawImage(img, -spivX, -spivY, sw, sh);
+        ctx.restore();
+      }
+
+      // 2. Draw Ball on top so red bottom collar covers the streamer joints cleanly!
+      const ballImg = assets.quacon_ball;
+      const bw = ballImg.width * s;
+      const bh = ballImg.height * s;
+
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.drawImage(ballImg, -bw / 2, -bh / 2, bw, bh);
+      ctx.restore();
+    }
+  }
+
+  // ==========================================
+  // CHARACTER RIG & ARTICULATED IK SYSTEM
+  // ==========================================
+  class CharacterRig {
+    constructor() {
+      // Body foot anchor and circular shoulder socket joint
+      this.footAnchor = { x: 565, y: 1510 };
+      this.shoulderJoint = { x: 429, y: 360 };
+
+      // Scaled kinematics parameters
+      this.sBody = CHAR_SCALE;
+      this.sUpper = 0.53 * CHAR_SCALE;
+      this.sFore = 1.15 * CHAR_SCALE;
+      this.sHand = 0.35 * CHAR_SCALE;
+
+      // Pivots and vectors:
+      // upper_arm_unified.png (322x648): shoulder pivot at (206, 208), elbow at (228, 603)
+      this.uPiv = { x: 206 * this.sUpper, y: 208 * this.sUpper };
+      this.uElb = { x: 228 * this.sUpper, y: 603 * this.sUpper };
+      const uVec = { x: this.uElb.x - this.uPiv.x, y: this.uElb.y - this.uPiv.y };
+      this.L1 = Math.hypot(uVec.x, uVec.y); // ≈ 209.7 * CHAR_SCALE ≈ 44.0px
+      this.uBaseAng = Math.atan2(uVec.y, uVec.x);
+
+      // forearm.png (69x221): elbow pivot at (29, 20), wrist joint at (49, 200)
+      this.fPiv = { x: 29 * this.sFore, y: 20 * this.sFore };
+      this.fWri = { x: 49 * this.sFore, y: 200 * this.sFore };
+      const fVec = { x: this.fWri.x - this.fPiv.x, y: this.fWri.y - this.fPiv.y };
+      this.L2 = Math.hypot(fVec.x, fVec.y); // ≈ 208.3 * CHAR_SCALE ≈ 43.7px
+      this.fBaseAng = Math.atan2(fVec.y, fVec.x);
+
+      // Hand sprite (325x270): wrist socket at (25, 180), fist curled tunnel at (165, 135)
+      this.hPiv = { x: 25 * this.sHand, y: 180 * this.sHand };
+      this.hGrip = { x: 165 * this.sHand, y: 135 * this.sHand };
+      const hVec = { x: this.hGrip.x - this.hPiv.x, y: this.hGrip.y - this.hPiv.y };
+      this.hDist = Math.hypot(hVec.x, hVec.y);
+      this.hBaseAng = Math.atan2(hVec.y, hVec.x);
+
+      // World positions
+      this.bodyDrawX = CHAR_ANCHOR_X - this.footAnchor.x * this.sBody;
+      this.bodyDrawY = GROUND_Y - this.footAnchor.y * this.sBody;
+
+      // Dynamic body bobbing & knee flexion (nhún nhẹ tự nhiên)
+      this.animTimer = 0;
+      this.bodyDip = 0;
+      this.throwBounce = 0;
+      this.throwVel = 0;
+
+      this.shoulderX = this.bodyDrawX + this.shoulderJoint.x * this.sBody;
+      this.shoulderY = this.bodyDrawY + this.shoulderJoint.y * this.sBody;
+
+      // Current joint angles
+      this.th1 = Math.PI / 2;
+      this.th2 = Math.PI / 2;
+      this.wristAngle = Math.PI / 2;
+
+      // Current joint positions
+      this.elbowX = this.shoulderX + this.L1 * Math.cos(this.th1);
+      this.elbowY = this.shoulderY + this.L1 * Math.sin(this.th1);
+      this.wristX = this.elbowX + this.L2 * Math.cos(this.th2);
+      this.wristY = this.elbowY + this.L2 * Math.sin(this.th2);
+
+      this.handGripX = this.wristX + Math.cos(this.wristAngle) * this.hDist;
+      this.handGripY = this.wristY + Math.sin(this.wristAngle) * this.hDist;
+
+      // Target hand position (smoothly driven by mouse or idle)
+      this.targetHandX = this.shoulderX + 1;
+      this.targetHandY = this.shoulderY + 86;
+    }
+
+    triggerThrowBounce() {
+      // Dynamic upward spring follow-through when releasing the con
+      this.throwVel = -14;
+    }
+
+    solveIK(targetX, targetY) {
+      const dx = targetX - this.shoulderX;
+      const dy = targetY - this.shoulderY;
+      let d = Math.hypot(dx, dy);
+
+      // Clamp distance within physical reach
+      const minD = Math.abs(this.L1 - this.L2) + 2;
+      const maxD = this.L1 + this.L2 - 1.5;
+      d = Math.max(minD, Math.min(maxD, d));
+
+      const cosA = Math.max(-1, Math.min(1, (this.L1 * this.L1 + d * d - this.L2 * this.L2) / (2 * this.L1 * d)));
+      const alpha = Math.acos(cosA);
+
+      const cosB = Math.max(-1, Math.min(1, (this.L1 * this.L1 + this.L2 * this.L2 - d * d) / (2 * this.L1 * this.L2)));
+      const beta = Math.acos(cosB);
+
+      const theta = Math.atan2(dy, dx);
+
+      // Continuous, smooth 2-bone IK (no discontinuous angle flipping / zero snapping!)
+      const targetTh1 = theta + alpha;
+      const targetTh2 = targetTh1 - (Math.PI - beta);
+
+      // Angular interpolation for fluid organic feel
+      this.th1 = lerpAngle(this.th1, targetTh1, 0.45);
+      this.th2 = lerpAngle(this.th2, targetTh2, 0.45);
+
+      // Elbow in world
+      this.elbowX = this.shoulderX + this.L1 * Math.cos(this.th1);
+      this.elbowY = this.shoulderY + this.L1 * Math.sin(this.th1);
+
+      // Wrist in world
+      this.wristX = this.elbowX + this.L2 * Math.cos(this.th2);
+      this.wristY = this.elbowY + this.L2 * Math.sin(this.th2);
+    }
+
+    update(dt, isInteracting, mouseWorldX, mouseWorldY, pullTargetX, pullTargetY) {
+      this.animTimer += dt;
+
+      // 1. Dynamic knee flexion & breathing bob ("nhún nhẹ để cảm giác chuyển động")
+      let targetDip = 0;
+      const breathDip = Math.sin(this.animTimer * 2.2) * 1.5;
+
+      if (isInteracting) {
+        // Direct responsive tracking of mouse position
+        this.targetHandX = mouseWorldX;
+        this.targetHandY = mouseWorldY;
+
+        // Knee flex follows arm swing momentum:
+        // When arm pulls down/back, knees flex and body crouches slightly (down by 3-5px)
+        // When arm swings up, body extends/springs up
+        const armPhase = (this.wristY - this.shoulderY) / (this.L1 + this.L2);
+        const swingDip = Math.max(-2.5, Math.min(5.5, armPhase * 4.0));
+        targetDip = swingDip + Math.sin(this.animTimer * 4.0) * 0.8;
+      } else {
+        // Relaxed standing ready stance
+        const defaultX = this.shoulderX + 1;
+        const defaultY = this.shoulderY + 86;
+        this.targetHandX += (defaultX - this.targetHandX) * Math.min(dt * 8, 1.0);
+        this.targetHandY += (defaultY - this.targetHandY) * Math.min(dt * 8, 1.0);
+        targetDip = breathDip;
+      }
+
+      // Throw follow-through spring bounce
+      this.throwBounce += this.throwVel * dt;
+      this.throwVel += (-this.throwBounce * 40 - this.throwVel * 10) * dt;
+      targetDip += this.throwBounce;
+
+      // Smoothly update bodyDip
+      this.bodyDip += (targetDip - this.bodyDip) * Math.min(dt * 14, 1.0);
+
+      // Update world shoulder with dynamic body dip (exact foot-anchored squash ratio)
+      const shoulderDip = this.bodyDip * (this.footAnchor.y - this.shoulderJoint.y) / 1536;
+      this.shoulderX = this.bodyDrawX + this.shoulderJoint.x * this.sBody;
+      this.shoulderY = this.bodyDrawY + shoulderDip + this.shoulderJoint.y * this.sBody;
+
+      this.solveIK(this.targetHandX, this.targetHandY);
+
+      // Dynamic wrist articulation: rotate wrist towards cord tension within anatomical limits
+      let targetWristAngle = this.th2;
+      if (pullTargetX !== undefined && pullTargetY !== undefined) {
+        const pullAngle = Math.atan2(pullTargetY - this.wristY, pullTargetX - this.wristX);
+        let diff = (pullAngle - this.th2) % (Math.PI * 2);
+        if (diff > Math.PI) diff -= Math.PI * 2;
+        if (diff < -Math.PI) diff += Math.PI * 2;
+
+        // Human wrist flexion limit (~60 degrees = ~1.05 rad)
+        const maxFlex = 1.05;
+        const clampedFlex = Math.max(-maxFlex, Math.min(maxFlex, diff));
+        // Rotate hand with cord pull while keeping strong forearm connection
+        targetWristAngle = this.th2 + clampedFlex * 0.75;
+      } else {
+        targetWristAngle = this.th2 + 0.15;
+      }
+
+      this.wristAngle = lerpAngle(this.wristAngle, targetWristAngle, Math.min(dt * 20, 1.0));
+
+      // Hand grip point in world: exactly at the curled fingers tunnel
+      this.handGripX = this.wristX + Math.cos(this.wristAngle) * this.hDist;
+      this.handGripY = this.wristY + Math.sin(this.wristAngle) * this.hDist;
+    }
+
+    draw(ctx, assets) {
+      if (!assets.body) return;
+
+      // 1. Draw Body with knee-flex squash anchored at feet on the ground
+      const bw = assets.body.width * this.sBody;
+      const bh = assets.body.height * this.sBody;
+
+      ctx.save();
+      ctx.translate(CHAR_ANCHOR_X, GROUND_Y);
+      const squashY = Math.max(0.92, (bh - this.bodyDip) / bh);
+      ctx.scale(1.0, squashY);
+      ctx.drawImage(
+        assets.body,
+        -this.footAnchor.x * this.sBody,
+        -this.footAnchor.y * this.sBody,
+        bw,
+        bh
+      );
+      ctx.restore();
+
+      // 2. Draw Upper Arm with Unified Puffed Sleeve (vai áo gắn liền cánh tay, xoay tự nhiên tại khớp vai)
+      if (assets.upper_arm) {
+        const img = assets.upper_arm;
+        ctx.save();
+        ctx.translate(this.shoulderX, this.shoulderY);
+        ctx.rotate(this.th1 - this.uBaseAng);
+        ctx.drawImage(img, -this.uPiv.x, -this.uPiv.y, img.width * this.sUpper, img.height * this.sUpper);
+        ctx.restore();
+      }
+
+      // 3. Draw Forearm (pivoting at elbow)
+      if (assets.forearm) {
+        const img = assets.forearm;
+        ctx.save();
+        ctx.translate(this.elbowX, this.elbowY);
+        ctx.rotate(this.th2 - this.fBaseAng);
+        ctx.drawImage(img, -this.fPiv.x, -this.fPiv.y, img.width * this.sFore, img.height * this.sFore);
+        ctx.restore();
+      }
+
+      // 4. Draw Hand (pivoting at wrist, rotating with dynamic wrist angle)
+      if (assets.hand) {
+        const img = assets.hand;
+        ctx.save();
+        ctx.translate(this.wristX, this.wristY);
+        ctx.rotate(this.wristAngle - this.hBaseAng);
+        ctx.drawImage(img, -this.hPiv.x, -this.hPiv.y, img.width * this.sHand, img.height * this.sHand);
+        ctx.restore();
+      }
     }
   }
 
@@ -394,8 +884,12 @@
     constructor() {
       this.canvas = document.getElementById('gameCanvas');
       this.ctx = this.canvas.getContext('2d');
+
       this.sound = new SoundManager();
       this.particles = new ParticleSystem();
+      this.cord = new VerletCord();
+      this.quacon = new QuaconAssembly();
+      this.rig = new CharacterRig();
 
       // UI Elements
       this.ui = {
@@ -406,6 +900,18 @@
         accuracy: document.getElementById('accuracy-val'),
         btnAudio: document.getElementById('btn-audio'),
         audioIcon: document.getElementById('audio-icon'),
+        btnMode: document.getElementById('btn-mode'),
+        modeLabel: document.getElementById('mode-label'),
+        modeIcon: document.getElementById('mode-icon'),
+        btnGrip: document.getElementById('btn-grip'),
+        gripLabel: document.getElementById('grip-label'),
+        btnMobileSpin: document.getElementById('btn-mobile-spin'),
+        modalMode: document.getElementById('modal-mode'),
+        btnCloseMode: document.getElementById('btn-close-mode'),
+        btnStartGame: document.getElementById('btn-start-game'),
+        cardModeAuto: document.getElementById('card-mode-auto'),
+        cardModeManual: document.getElementById('card-mode-manual'),
+        gripOptions: document.querySelectorAll('.btn-grip-opt'),
         btnCulture: document.getElementById('btn-culture'),
         btnHelp: document.getElementById('btn-help'),
         btnReset: document.getElementById('btn-reset'),
@@ -421,7 +927,9 @@
         btnModalOk: document.getElementById('btn-modal-ok'),
         banner: document.getElementById('announcement-banner'),
         announceTitle: document.getElementById('announce-title'),
-        announceScore: document.getElementById('announce-score')
+        announceScore: document.getElementById('announce-score'),
+        mobileRotateHint: document.getElementById('mobile-rotate-hint'),
+        btnDismissHint: document.getElementById('btn-dismiss-hint')
       };
 
       // State variables
@@ -432,20 +940,32 @@
       this.totalThrows = 0;
       this.successfulThrows = 0;
 
-      // Spinning & Throwing variables
-      this.isActionActive = false;
-      this.spinTimer = 0;
-      this.spinPower = 0; // 0.0 to 1.0
-      this.spinFrameTimer = 0;
-      this.spinFrameIdx = 0;
+      // Control & Grip Modes
+      // 'auto' (Mode 1: Hold mouse/touch to whirl smoothly, accelerates, release to throw)
+      // 'manual' (Mode 2: Getting Over It 1:1 circular whirl physics)
+      this.controlMode = localStorage.getItem('nemcon_control_mode') || 'auto';
+      this.gripMode = localStorage.getItem('nemcon_grip_mode') || 'long';
+      this.autoSpinTime = 0;
+      this.autoSpinAngle = Math.PI / 2; // Starts pointing downward naturally
 
-      // Current active sprite key for drawing
-      this.currentFrameKey = 'idle';
+      // Mouse & Swing interaction
+      this.isMouseDown = false;
+      this.mouseWorldX = this.rig.shoulderX + 1;
+      this.mouseWorldY = this.rig.shoulderY + 86;
+      this.prevMouseX = this.mouseWorldX;
+      this.prevMouseY = this.mouseWorldY;
+      this.mouseVelocity = { x: 0, y: 0 };
 
-      // Throw animation
-      this.throwAnimTimer = 0;
+      // Accumulated Kinetic Energy from continuous spinning (Động năng tích luỹ khi xoay)
+      this.spinCharge = 0; // 0.0 to 1.0 (charges up with active circular revolutions)
+      this.recentSpinCharge = 0;
+      this.continuousRotation = 0;
+      this.prevBallAngle = 0;
+      this.totalRotations = 0;
+      this.lastSpinDirection = 0;
+      this.whooshCooldown = 0;
 
-      // Projectile state
+      // Projectile state (when in flight or landed)
       this.projectile = {
         x: 0,
         y: 0,
@@ -453,8 +973,6 @@
         prevY: 0,
         vx: 0,
         vy: 0,
-        angle: 0,
-        scale: 1.0,
         scored: false,
         hitPole: false,
         restTimer: 0
@@ -535,7 +1053,7 @@
         { badge: '✨ KHAI CỔNG TRỜI:', text: 'Khoảnh khắc quả còn phóng thủng tâm giấy là lúc âm dương hòa hợp, bản làng đón phúc lộc đầu năm.' },
         { badge: '🌸 TƠ DUYÊN VÙNG CAO:', text: 'Ném còn là dịp giao duyên của các chàng trai cô gái dân tộc trong trang phục thổ cẩm rực rỡ.' },
         { badge: '🎉 HỘI LỒNG TỒNG:', text: 'Lễ hội Xuống Đồng của người Tày, Nùng, Thái mở đầu bằng nghi thức ném quả còn đầu tiên của các bậc bô lão.' },
-        { badge: '👉 MẸO NÉM CÒN:', text: 'Giữ chuột xoay quả còn, căn đúng lực vừa phải (60% - 70%) và thả khi tay hất lên phía trước!' }
+        { badge: '👉 ĐIỀU KHIỂN:', text: 'Giữ chuột xoay vòng lấy đà như Getting Over It; buông chuột đúng hướng phóng để bay vào vòng!' }
       ];
 
       let factIdx = 0;
@@ -551,48 +1069,331 @@
         }, 300);
       }, 7000);
 
-      // Input Actions (Mouse, Touch, Spacebar)
-      const startAction = (e) => {
-        if (e) e.preventDefault();
+      // Helper to convert screen coordinates to canvas world coordinates
+      const getCanvasPos = (clientX, clientY) => {
+        const rect = this.canvas.getBoundingClientRect();
+        return {
+          x: (clientX - rect.left) * (CANVAS_WIDTH / rect.width),
+          y: (clientY - rect.top) * (CANVAS_HEIGHT / rect.height)
+        };
+      };
+
+      // Apply initial control mode and grip configuration
+      this.applyControlMode(this.controlMode);
+      this.applyGripMode(this.gripMode, false);
+
+      // Mode Selection Modal Buttons & Cards
+      if (this.ui.btnMode) {
+        this.ui.btnMode.addEventListener('click', () => {
+          this.openModeModal();
+        });
+      }
+
+      if (this.ui.btnGrip) {
+        this.ui.btnGrip.addEventListener('click', () => {
+          this.cycleGripMode();
+        });
+      }
+
+      if (this.ui.cardModeAuto) {
+        this.ui.cardModeAuto.addEventListener('click', () => {
+          this.applyControlMode('auto');
+          this.sound.init();
+          this.sound.playWhoosh(1.1);
+        });
+      }
+
+      if (this.ui.cardModeManual) {
+        this.ui.cardModeManual.addEventListener('click', () => {
+          this.applyControlMode('manual');
+          this.sound.init();
+          this.sound.playWhoosh(0.9);
+        });
+      }
+
+      if (this.ui.gripOptions) {
+        this.ui.gripOptions.forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const g = btn.getAttribute('data-grip');
+            this.applyGripMode(g, true);
+            this.sound.init();
+            this.sound.playWhoosh(1.3);
+          });
+        });
+      }
+
+      if (this.ui.btnCloseMode) {
+        this.ui.btnCloseMode.addEventListener('click', () => {
+          this.closeModeModal();
+        });
+      }
+
+      if (this.ui.btnStartGame) {
+        this.ui.btnStartGame.addEventListener('click', () => {
+          this.closeModeModal();
+          this.sound.init();
+          this.sound.playWhoosh(1.0);
+        });
+      }
+
+      if (this.ui.btnDismissHint && this.ui.mobileRotateHint) {
+        this.ui.btnDismissHint.addEventListener('click', () => {
+          this.ui.mobileRotateHint.classList.add('hidden');
+        });
+      }
+
+      // Check mobile orientation
+      const checkOrientation = () => {
+        if (!this.ui.mobileRotateHint) return;
+        const isMobile = window.innerWidth <= 850 || ('ontouchstart' in window);
+        const isPortrait = window.innerHeight > window.innerWidth;
+        if (isMobile && isPortrait) {
+          this.ui.mobileRotateHint.classList.remove('hidden');
+        }
+      };
+      window.addEventListener('resize', checkOrientation);
+      window.addEventListener('orientationchange', checkOrientation);
+      checkOrientation();
+
+      // Open Mode Modal on start: "mỗi khi vào sẽ được chọn 2 chế độ..."
+      this.openModeModal();
+
+      // Helper to convert screen coordinates to canvas world coordinates
+      this.getCanvasPos = (clientX, clientY) => {
+        const rect = this.canvas.getBoundingClientRect();
+        return {
+          x: (clientX - rect.left) * (CANVAS_WIDTH / rect.width),
+          y: (clientY - rect.top) * (CANVAS_HEIGHT / rect.height)
+        };
+      };
+
+      this.handlePointerDown = (clientX, clientY, pointerId = null) => {
         this.sound.init();
         if (this.state === STATE.IDLE) {
-          this.isActionActive = true;
-          this.state = STATE.SPINNING;
-          this.spinTimer = 0;
-          this.spinPower = 0;
-          this.spinFrameTimer = 0;
-          this.spinFrameIdx = 0;
+          this.isMouseDown = true;
+          this.state = STATE.SWINGING;
+          const wrapper = document.getElementById('canvas-wrapper');
+          if (wrapper) wrapper.classList.add('grabbing');
+          const pos = this.getCanvasPos(clientX, clientY);
+          this.mouseWorldX = pos.x;
+          this.mouseWorldY = pos.y;
+          this.prevMouseX = pos.x;
+          this.prevMouseY = pos.y;
+
+          // Reset spin momentum tracking for the new wind-up
+          this.spinCharge = 0;
+          this.recentSpinCharge = 0;
+          this.continuousRotation = 0;
+          this.totalRotations = 0;
+          this.lastSpinDirection = 0;
+          this.whooshCooldown = 0.25;
+
+          this.autoSpinTime = 0;
+          this.autoSpinAngle = Math.PI / 2; // Hanging down initially
+
+          const ballPos = this.cord.getEndPosition();
+          this.prevBallAngle = Math.atan2(ballPos.y - this.rig.shoulderY, ballPos.x - this.rig.shoulderX);
         }
       };
 
-      const endAction = (e) => {
-        if (e) e.preventDefault();
-        if (this.state === STATE.SPINNING && this.isActionActive) {
-          this.isActionActive = false;
+      this.handlePointerMove = (clientX, clientY) => {
+        if (!this.isMouseDown) return;
+        const pos = this.getCanvasPos(clientX, clientY);
+        // In manual mode, mouse or touch position directly controls the hand target
+        if (this.controlMode === 'manual') {
+          this.mouseWorldX = pos.x;
+          this.mouseWorldY = pos.y;
+        }
+      };
+
+      this.handlePointerUp = () => {
+        if (this.state === STATE.SWINGING && this.isMouseDown) {
+          const wrapper = document.getElementById('canvas-wrapper');
+          if (wrapper) wrapper.classList.remove('grabbing');
+          this.isMouseDown = false;
           this.performThrow();
         }
       };
 
-      // Mouse events
+      // Universal Input Events (Pointer, Touch, Mouse)
       const wrapper = document.getElementById('canvas-wrapper');
-      wrapper.addEventListener('mousedown', startAction);
-      window.addEventListener('mouseup', endAction);
 
-      // Touch events
-      wrapper.addEventListener('touchstart', startAction, { passive: false });
-      window.addEventListener('touchend', endAction, { passive: false });
+      // 1. Pointer Events
+      const onPointerUp = (e) => {
+        if (e && e.pointerId !== undefined) {
+          try { wrapper.releasePointerCapture(e.pointerId); } catch (err) {}
+        }
+        this.handlePointerUp();
+      };
 
-      // Keyboard (Spacebar)
-      window.addEventListener('keydown', (e) => {
-        if (e.code === 'Space' && !e.repeat && this.state === STATE.IDLE) {
-          startAction(e);
-        }
+      wrapper.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        try { wrapper.setPointerCapture(e.pointerId); } catch (err) {}
+        this.handlePointerDown(e.clientX, e.clientY, e.pointerId);
       });
-      window.addEventListener('keyup', (e) => {
-        if (e.code === 'Space' && this.state === STATE.SPINNING) {
-          endAction(e);
-        }
+
+      wrapper.addEventListener('pointermove', (e) => {
+        if (this.isMouseDown) this.handlePointerMove(e.clientX, e.clientY);
       });
+      window.addEventListener('pointermove', (e) => {
+        if (this.isMouseDown) this.handlePointerMove(e.clientX, e.clientY);
+      });
+
+      wrapper.addEventListener('pointerup', onPointerUp);
+      wrapper.addEventListener('pointercancel', onPointerUp);
+      window.addEventListener('pointerup', onPointerUp);
+      window.addEventListener('pointercancel', onPointerUp);
+
+      // 2. Mouse Events (Desktop & Testing Framework Fallback)
+      wrapper.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        this.handlePointerDown(e.clientX, e.clientY);
+      });
+      window.addEventListener('mousemove', (e) => {
+        if (this.isMouseDown) this.handlePointerMove(e.clientX, e.clientY);
+      });
+      wrapper.addEventListener('mouseup', () => this.handlePointerUp());
+      window.addEventListener('mouseup', () => this.handlePointerUp());
+
+      // 3. Touch Events (Mobile Safari / Chrome Gestures Fallback)
+      wrapper.addEventListener('touchstart', (e) => {
+        if (e.touches.length > 0) {
+          e.preventDefault();
+          this.handlePointerDown(e.touches[0].clientX, e.touches[0].clientY);
+        }
+      }, { passive: false });
+
+      window.addEventListener('touchmove', (e) => {
+        if (this.isMouseDown && e.touches.length > 0) {
+          e.preventDefault();
+          this.handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
+        }
+      }, { passive: false });
+
+      wrapper.addEventListener('touchend', () => this.handlePointerUp());
+      window.addEventListener('touchend', () => this.handlePointerUp());
+      window.addEventListener('touchcancel', () => this.handlePointerUp());
+
+      // 4. Mobile On-Screen Spin Button (Touch Hold)
+      if (this.ui.btnMobileSpin) {
+        const handleBtnDown = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          try { this.ui.btnMobileSpin.setPointerCapture(e.pointerId); } catch (err) {}
+          this.handlePointerDown(window.innerWidth / 2, window.innerHeight / 2, e.pointerId);
+        };
+        const handleBtnUp = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          try { this.ui.btnMobileSpin.releasePointerCapture(e.pointerId); } catch (err) {}
+          this.handlePointerUp();
+        };
+
+        this.ui.btnMobileSpin.addEventListener('pointerdown', handleBtnDown);
+        this.ui.btnMobileSpin.addEventListener('pointerup', handleBtnUp);
+        this.ui.btnMobileSpin.addEventListener('pointercancel', handleBtnUp);
+
+        this.ui.btnMobileSpin.addEventListener('touchstart', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          this.handlePointerDown(window.innerWidth / 2, window.innerHeight / 2);
+        }, { passive: false });
+        this.ui.btnMobileSpin.addEventListener('touchend', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          this.handlePointerUp();
+        });
+        this.ui.btnMobileSpin.addEventListener('mousedown', handleBtnDown);
+        this.ui.btnMobileSpin.addEventListener('mouseup', handleBtnUp);
+      }
+    }
+
+    applyControlMode(mode) {
+      if (mode !== 'auto' && mode !== 'manual') mode = 'auto';
+      this.controlMode = mode;
+      localStorage.setItem('nemcon_control_mode', mode);
+
+      if (this.ui.modeLabel) {
+        this.ui.modeLabel.textContent = mode === 'auto' ? 'Tự Xoay' : 'Thủ Công';
+      }
+      if (this.ui.modeIcon) {
+        this.ui.modeIcon.textContent = mode === 'auto' ? '⚡' : '🔄';
+      }
+
+      // Update modal cards
+      if (this.ui.cardModeAuto && this.ui.cardModeManual) {
+        if (mode === 'auto') {
+          this.ui.cardModeAuto.classList.add('active');
+          this.ui.cardModeManual.classList.remove('active');
+          const bAuto = this.ui.cardModeAuto.querySelector('.btn-mode-choice');
+          const bMan = this.ui.cardModeManual.querySelector('.btn-mode-choice');
+          if (bAuto) bAuto.textContent = 'ĐANG CHỌN';
+          if (bMan) bMan.textContent = 'CHỌN CHẾ ĐỘ NÀY';
+        } else {
+          this.ui.cardModeManual.classList.add('active');
+          this.ui.cardModeAuto.classList.remove('active');
+          const bAuto = this.ui.cardModeAuto.querySelector('.btn-mode-choice');
+          const bMan = this.ui.cardModeManual.querySelector('.btn-mode-choice');
+          if (bAuto) bAuto.textContent = 'CHỌN CHẾ ĐỘ NÀY';
+          if (bMan) bMan.textContent = 'ĐANG CHỌN';
+        }
+      }
+
+      // Show on-screen spin button on touch devices or when mobile viewport
+      const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth <= 850);
+      if (this.ui.btnMobileSpin) {
+        if (mode === 'auto' && isTouch) {
+          this.ui.btnMobileSpin.classList.remove('hidden');
+        } else {
+          this.ui.btnMobileSpin.classList.add('hidden');
+        }
+      }
+    }
+
+    applyGripMode(gripKey, resetCord = true) {
+      if (!GRIP_CONFIGS[gripKey]) gripKey = 'long';
+      this.gripMode = gripKey;
+      localStorage.setItem('nemcon_grip_mode', gripKey);
+
+      const conf = GRIP_CONFIGS[gripKey];
+      this.cord.setLength(conf.length);
+
+      if (this.ui.gripLabel) {
+        this.ui.gripLabel.textContent = conf.label;
+      }
+      if (this.ui.gripOptions) {
+        this.ui.gripOptions.forEach(btn => {
+          if (btn.getAttribute('data-grip') === gripKey) {
+            btn.classList.add('active');
+          } else {
+            btn.classList.remove('active');
+          }
+        });
+      }
+      if (resetCord && (this.state === STATE.IDLE || this.state === STATE.LOADING)) {
+        this.cord.reset(this.rig.handGripX, this.rig.handGripY);
+      }
+    }
+
+    cycleGripMode() {
+      const keys = ['long', 'mid', 'short'];
+      const nextIdx = (keys.indexOf(this.gripMode) + 1) % keys.length;
+      this.applyGripMode(keys[nextIdx], true);
+      this.sound.init();
+      this.sound.playWhoosh(1.2);
+    }
+
+    openModeModal() {
+      if (this.ui.modalMode) {
+        this.ui.modalMode.classList.remove('hidden');
+      }
+    }
+
+    closeModeModal() {
+      if (this.ui.modalMode) {
+        this.ui.modalMode.classList.add('hidden');
+      }
     }
 
     resetGame() {
@@ -600,10 +1401,14 @@
       this.streak = 0;
       this.totalThrows = 0;
       this.successfulThrows = 0;
+      this.spinCharge = 0;
+      this.recentSpinCharge = 0;
+      this.continuousRotation = 0;
+      this.totalRotations = 0;
+      this.autoSpinTime = 0;
       this.updateStatsUI();
       this.state = STATE.IDLE;
-      this.currentFrameKey = 'idle';
-      this.particles.clearTrail();
+      this.cord.reset(this.rig.handGripX, this.rig.handGripY);
     }
 
     updateStatsUI() {
@@ -631,21 +1436,18 @@
 
     loadAssets() {
       const assetList = [
-        { key: 'bg', src: 'assets/background/Background.png' },
-        { key: 'pole', src: 'assets/items/Pole_transparent.png' },
-        { key: 'quacon', src: 'assets/items/quacon.png' },
-        { key: 'quacon_fly', src: 'assets/items/quacon_flying.png' },
-        { key: 'idle', src: 'assets/character/throw/Throw (3).png' },
-        // Spin frames 1..9
-        ...Array.from({ length: 9 }, (_, i) => ({ key: `spin_${i + 1}`, src: `assets/character/spin/Spin (${i + 1}).png` })),
-        // Throw frames
-        { key: 'throw_2', src: 'assets/character/throw/Throw (2).png' },
-        { key: 'throw_3', src: 'assets/character/throw/Throw (3).png' },
-        { key: 'throw_4', src: 'assets/character/throw/Throw (4).png' },
-        { key: 'throw_5', src: 'assets/character/throw/Throw (5).png' },
-        { key: 'throw_7', src: 'assets/character/throw/Throw (7).png' },
-        { key: 'throw_8', src: 'assets/character/throw/Throw (8).png' },
-        { key: 'throw_10', src: 'assets/character/throw/Throw (10).png' }
+        { key: 'bg',                  src: 'assets/background/Background.png' },
+        { key: 'pole',                src: 'assets/items/Pole_transparent.png' },
+        { key: 'body',                src: 'assets/character/attempt/clean/body.png' },
+        { key: 'upper_arm',           src: 'assets/character/attempt/clean/upper_arm_unified.png' },
+        { key: 'forearm',             src: 'assets/character/attempt/clean/forearm.png' },
+        { key: 'hand',                src: 'assets/character/attempt/clean/hand.png' },
+        { key: 'quacon_ball',         src: 'assets/character/attempt/clean/quacon_ball.png' },
+        { key: 'streamer_pink',       src: 'assets/character/attempt/clean/streamer_pink.png' },
+        { key: 'streamer_green_up',   src: 'assets/character/attempt/clean/streamer_green_up.png' },
+        { key: 'streamer_yellow_1',   src: 'assets/character/attempt/clean/streamer_yellow_1.png' },
+        { key: 'streamer_yellow_2',   src: 'assets/character/attempt/clean/streamer_yellow_2.png' },
+        { key: 'streamer_green_down', src: 'assets/character/attempt/clean/streamer_green_down.png' }
       ];
 
       this.totalAssets = assetList.length;
@@ -658,7 +1460,7 @@
           this.assetsLoaded++;
           if (this.assetsLoaded === this.totalAssets) {
             this.state = STATE.IDLE;
-            this.currentFrameKey = 'idle';
+            this.cord.reset(this.rig.handGripX, this.rig.handGripY);
             this.startLoop();
           }
         };
@@ -714,7 +1516,7 @@
     }
 
     // ==========================================
-    // GAME LOGIC & UPDATE
+    // UPDATE CYCLE
     // ==========================================
     update(dt) {
       this.particles.update(dt);
@@ -723,16 +1525,47 @@
         this.ringGlowTimer -= dt;
       }
 
-      // STATE MACHINE
+      // Auto-spin circular kinematics when holding in auto mode (Clockwise forward windup)
+      if (this.state === STATE.SWINGING && this.isMouseDown && this.controlMode === 'auto') {
+        this.autoSpinTime += dt;
+        // Accelerate smoothly from 5.0 rad/s up to 15.5 rad/s
+        const omega = Math.min(15.5, 5.0 + this.autoSpinTime * 5.8);
+        this.autoSpinAngle += omega * dt; // CLOCKWISE rotation: Back -> Up -> Forward -> Down
+
+        // Hand stays in athletic forward-chest windup posture, making a tight rhythmic circular pump
+        const handCenterX = this.rig.shoulderX + 24;
+        const handCenterY = this.rig.shoulderY + 20;
+        const handRadius = 14 + Math.min(this.autoSpinTime * 3, 5); // 14 to 19px tight natural radius
+
+        this.mouseWorldX = handCenterX + Math.cos(this.autoSpinAngle) * handRadius;
+        this.mouseWorldY = handCenterY + Math.sin(this.autoSpinAngle) * handRadius;
+      }
+
+      // Track mouse velocity
+      this.mouseVelocity = {
+        x: (this.mouseWorldX - this.prevMouseX) / Math.max(dt, 0.001),
+        y: (this.mouseWorldY - this.prevMouseY) / Math.max(dt, 0.001)
+      };
+      this.prevMouseX = this.mouseWorldX;
+      this.prevMouseY = this.mouseWorldY;
+
+      // Update Character Rig IK & Dynamic Wrist Articulation
+      const isInteracting = (this.state === STATE.SWINGING && this.isMouseDown);
+      let pullX, pullY;
+      if (this.state === STATE.SWINGING || this.state === STATE.IDLE) {
+        const ballPos = this.cord.getEndPosition();
+        pullX = ballPos.x;
+        pullY = ballPos.y;
+      }
+      this.rig.update(dt, isInteracting, this.mouseWorldX, this.mouseWorldY, pullX, pullY);
+
+      // State machine logic
       switch (this.state) {
         case STATE.IDLE:
           this.updateIdle(dt);
           break;
-        case STATE.SPINNING:
-          this.updateSpinning(dt);
-          break;
-        case STATE.THROWING:
-          this.updateThrowing(dt);
+        case STATE.SWINGING:
+          this.updateSwinging(dt);
           break;
         case STATE.FLYING:
           this.updateFlying(dt);
@@ -744,86 +1577,251 @@
     }
 
     updateIdle(dt) {
-      this.currentFrameKey = 'idle';
+      // Cord hangs gently from hand
+      this.cord.update(this.rig.handGripX, this.rig.handGripY, dt, true);
+      const ballPos = this.cord.getEndPosition();
+      const ballVel = this.cord.getEndVelocity(dt);
+      this.quacon.update(dt, ballVel.vx, ballVel.vy);
     }
 
-    updateSpinning(dt) {
-      this.spinTimer += dt;
+    updateSwinging(dt) {
+      if (this.controlMode === 'auto') {
+        // MODE 1: AUTO-SPIN (Hold to whirl smoothly & accelerate)
+        // Full momentum reached in ~1.7 seconds of holding
+        this.spinCharge = Math.min(1.0, this.autoSpinTime / 1.7);
+        this.recentSpinCharge = this.spinCharge;
+        this.continuousRotation = this.autoSpinTime * 12.0;
 
-      // Charge power: from 20% to 100% over 2.20 seconds
-      // 1st rotation (~0.6s): ~42% power -> Undershoots
-      // 2nd rotation (~1.25s): 60% - 70% power -> Sweet spot (enters ring hole!)
-      // 3rd rotation (~1.7s+): >80% power -> Overshoots past pole
-      this.spinPower = Math.min(0.20 + 0.80 * (this.spinTimer / 2.20), 1.0);
-
-      // Spin animation accelerates with power (110ms down to 42ms per frame)
-      const frameDuration = 0.11 - this.spinPower * 0.068;
-      this.spinFrameTimer += dt;
-      if (this.spinFrameTimer >= frameDuration) {
-        this.spinFrameTimer = 0;
-        this.spinFrameIdx = (this.spinFrameIdx + 1) % SPIN_FRAMES.length;
-
-        // Whistling whoosh sound at bottom and top swings
-        if (this.spinFrameIdx === 0 || this.spinFrameIdx === 4) {
-          this.sound.playWhoosh(0.75 + this.spinPower * 0.70);
+        // Dynamic whistling / whoosh sound rhythmically triggered by accumulated momentum!
+        this.whooshCooldown -= dt;
+        if (this.spinCharge > 0.12 && this.whooshCooldown <= 0) {
+          const pitch = 0.85 + this.spinCharge * 0.85;
+          this.sound.playWhoosh(pitch);
+          this.whooshCooldown = Math.max(0.16, 0.38 - this.spinCharge * 0.20);
         }
-      }
 
-      // Update current active sprite key
-      const currentFrameNum = SPIN_FRAMES[this.spinFrameIdx];
-      this.currentFrameKey = `spin_${currentFrameNum}`;
+        // Taut centrifugal sling kinematics: cord extends outward naturally under centrifugal force
+        const omega = Math.min(15.5, 5.0 + this.autoSpinTime * 5.8);
+        const lag = Math.min(0.35, 0.12 + (omega / 15.5) * 0.18);
+        const ballAngle = this.autoSpinAngle - lag;
+
+        const hx = this.rig.handGripX;
+        const hy = this.rig.handGripY;
+        const totalLen = this.cord.totalLength;
+
+        // Place each node along the taut centrifugal arc with subtle catenary curve
+        for (let i = 0; i < this.cord.numNodes; i++) {
+          const ratio = i / (this.cord.numNodes - 1);
+          const dist = ratio * totalLen;
+          const nodeLag = lag * Math.pow(ratio, 1.3);
+          const nodeAngle = this.autoSpinAngle - nodeLag;
+
+          const nx = hx + Math.cos(nodeAngle) * dist;
+          const ny = hy + Math.sin(nodeAngle) * dist;
+
+          const n = this.cord.nodes[i];
+          n.oldX = n.x;
+          n.oldY = n.y;
+          n.x = nx;
+          n.y = ny;
+        }
+
+        // Tangential velocity of the ball at the end of the cord:
+        // Clockwise rotation: V = omega * R along tangent (-sin(a), cos(a))
+        const effectiveR = totalLen + 16;
+        const tangVx = -Math.sin(ballAngle) * omega * effectiveR;
+        const tangVy = Math.cos(ballAngle) * omega * effectiveR;
+
+        // Set last node oldX/oldY so getEndVelocity() reflects the true physical velocity
+        const lastNode = this.cord.nodes[this.cord.numNodes - 1];
+        lastNode.oldX = lastNode.x - tangVx * dt;
+        lastNode.oldY = lastNode.y - tangVy * dt;
+
+        // Update quả còn streamers orientation and flutter
+        this.quacon.update(dt, tangVx, tangVy);
+      } else {
+        // MODE 2: MANUAL WHIRL (Getting Over It 1:1 Physics)
+        this.cord.update(this.rig.handGripX, this.rig.handGripY, dt, true);
+        const ballPos = this.cord.getEndPosition();
+        const ballVel = this.cord.getEndVelocity(dt);
+        const rawSpeed = Math.hypot(ballVel.vx, ballVel.vy);
+
+        // Track angular momentum around shoulder
+        const curAngle = Math.atan2(ballPos.y - this.rig.shoulderY, ballPos.x - this.rig.shoulderX);
+        let dAngle = curAngle - this.prevBallAngle;
+        while (dAngle > Math.PI) dAngle -= Math.PI * 2;
+        while (dAngle < -Math.PI) dAngle += Math.PI * 2;
+        this.prevBallAngle = curAngle;
+
+        const angularVelocity = dt > 0.001 ? Math.abs(dAngle) / dt : 0; // rad/s
+        const direction = dAngle >= 0 ? 1 : -1;
+
+        if (angularVelocity > 3.0 && Math.abs(dAngle) > 0.03) {
+          if (this.lastSpinDirection !== 0 && this.lastSpinDirection !== direction && Math.abs(dAngle) > 0.25) {
+            this.continuousRotation = 0;
+            this.spinCharge = Math.max(0, this.spinCharge - 0.25);
+          }
+          this.lastSpinDirection = direction;
+          this.continuousRotation += Math.abs(dAngle);
+
+          if (this.continuousRotation >= Math.PI) {
+            const effectiveAngle = Math.abs(dAngle);
+            const speedFactor = Math.min(1.4, Math.max(0.7, angularVelocity / 7.5));
+            this.spinCharge = Math.min(1.0, this.spinCharge + effectiveAngle * 0.09 * speedFactor);
+          }
+        } else {
+          this.continuousRotation = Math.max(0, this.continuousRotation - dt * 3.5);
+          this.spinCharge = Math.max(0, this.spinCharge - dt * 0.65);
+        }
+
+        this.recentSpinCharge = Math.max(this.spinCharge, this.recentSpinCharge - dt * 1.5);
+
+        this.whooshCooldown -= dt;
+        if (this.spinCharge > 0.15 && this.whooshCooldown <= 0) {
+          const pitch = 0.8 + this.spinCharge * 0.8;
+          this.sound.playWhoosh(pitch);
+          this.whooshCooldown = Math.max(0.18, 0.40 - this.spinCharge * 0.20);
+        }
+
+        this.quacon.update(dt, ballVel.vx, ballVel.vy);
+      }
     }
 
     performThrow() {
-      // Determine release frame and exact hand coordinate in this frame
-      const currentFrameNum = SPIN_FRAMES[this.spinFrameIdx];
-      const activeKey = `spin_${currentFrameNum}`;
-      const frameInfo = FRAME_TANGENTS[currentFrameNum];
-      const anchor = FRAME_ANCHORS[activeKey] || { x: 647, y: 1067 };
-      const hand = HAND_COORDS[activeKey] || { x: 852, y: 356 };
+      // Compute instantaneous position of the ball at release
+      const ballPos = this.cord.getEndPosition();
+      let vx, vy;
+      let isDrop = false;
 
-      // Exact force launch origin: placed directly at the character's hand in this specific frame!
-      const startX = CHAR_ANCHOR_X + (hand.x - anchor.x) * CHAR_SCALE;
-      const startY = GROUND_Y + (hand.y - anchor.y) * CHAR_SCALE;
+      if (this.controlMode === 'auto') {
+        const omega = Math.min(15.5, 5.0 + this.autoSpinTime * 5.8);
+        const lag = Math.min(0.35, 0.12 + (omega / 15.5) * 0.18);
+        const ballAngle = this.autoSpinAngle - lag;
 
-      this.releasePower = this.spinPower;
-      this.releaseAngleRad = frameInfo.deg * (Math.PI / 180);
+        // Instantaneous tangential launch direction of the whirling ball
+        // Clockwise rotation: tangent is (-sin(a), cos(a))
+        let dirX = -Math.sin(ballAngle);
+        let dirY = Math.cos(ballAngle);
 
-      // Calibrated launch speed:
-      // Power in [0.60, 0.70] (60-70%) enters the ring hole!
-      // Power > 0.75 (too strong) overshoots past/above the pole!
-      // Power < 0.58 (too weak) falls short/hits lower pole!
-      const launchSpeed = 1055 + this.releasePower * 500;
+        const charge = Math.min(1.0, Math.max(0, this.spinCharge, this.recentSpinCharge));
 
-      const vx = Math.cos(this.releaseAngleRad) * launchSpeed;
-      const vy = Math.sin(this.releaseAngleRad) * launchSpeed;
+        if (charge <= 0.08) {
+          // Barely held: drops naturally at feet
+          isDrop = true;
+          vx = dirX * 120;
+          vy = Math.max(dirY * 120, 50);
+        } else {
+          // Forward upswing launch detection:
+          // In clockwise motion, dirX = -sin(ballAngle) > 0 when ball is moving forward (top half).
+          if (dirX > 0) {
+            // Forward launch towards the festival arena!
+            // Shape into a soaring ceremonial trajectory (elevation angle ~40 - 65 deg up-right)
+            dirX = Math.max(0.45, Math.min(0.85, dirX));
+            if (dirY > -0.25) {
+              dirY = -Math.sqrt(Math.max(0.1, 1.0 - dirX * dirX));
+            }
+          } else {
+            // Released while swinging backward
+            if (dirY < -0.35) {
+              // High near the top of the arc: guide forward gracefully
+              dirX = Math.abs(dirX);
+            }
+          }
+
+          const len = Math.hypot(dirX, dirY) || 1;
+          dirX /= len;
+          dirY /= len;
+
+          // Speed scaled by accumulated spin energy:
+          // 420 px/s (quick tap) up to 1120 px/s (full power soaring ceremonial arc)
+          const baseSpeed = 420 + charge * 690;
+          const mappedSpeed = Math.min(1130, baseSpeed);
+
+          vx = dirX * mappedSpeed;
+          vy = dirY * mappedSpeed;
+        }
+      } else {
+        // MODE 2: MANUAL WHIRL
+        let ballVel = this.cord.getEndVelocity();
+        vx = ballVel.vx;
+        vy = ballVel.vy;
+        let rawSpeed = Math.hypot(vx, vy);
+
+        const isHandInFront = (this.rig.wristX >= this.rig.shoulderX - 10);
+        const isIntentionalBackThrow = (this.mouseVelocity && this.mouseVelocity.x < -200) || (!isHandInFront && vx < -50);
+
+        if (rawSpeed < 75 && Math.max(this.spinCharge, this.recentSpinCharge) < 0.05) {
+          isDrop = true;
+          vx = vx * 0.35;
+          vy = Math.max(vy * 0.35, 30);
+        } else {
+          let dirX = vx / (rawSpeed || 1);
+          let dirY = vy / (rawSpeed || 1);
+
+          if (isIntentionalBackThrow) {
+            dirX = -Math.abs(dirX);
+          } else if (isHandInFront) {
+            dirX = Math.max(0.40, Math.abs(dirX));
+            if (dirY > -0.15) {
+              dirY = -0.40;
+            }
+          }
+
+          const len = Math.hypot(dirX, dirY) || 1;
+          dirX /= len;
+          dirY /= len;
+
+          const charge = Math.min(1.0, Math.max(0, this.spinCharge, this.recentSpinCharge));
+          let mappedSpeed;
+
+          if (charge <= 0.05) {
+            mappedSpeed = Math.min(280, 60 + rawSpeed * 0.22);
+          } else {
+            const baseSpinSpeed = 380 + charge * 720;
+            const flickBonus = Math.min(30, (rawSpeed / 800) * 30);
+            mappedSpeed = Math.min(1130, baseSpinSpeed + flickBonus);
+          }
+
+          vx = dirX * mappedSpeed;
+          vy = dirY * mappedSpeed;
+        }
+      }
 
       this.totalThrows++;
       this.updateStatsUI();
 
+      if (!isDrop) {
+        // Trigger dynamic follow-through knee-flex / body spring bounce!
+        this.rig.triggerThrowBounce();
+        this.sound.playThrow();
+      } else {
+        this.sound.playGroundThud();
+      }
+
       this.projectile = {
-        x: startX,
-        y: startY,
-        prevX: startX,
-        prevY: startY,
+        x: ballPos.x,
+        y: ballPos.y,
+        prevX: ballPos.x,
+        prevY: ballPos.y,
         vx: vx,
         vy: vy,
-        angle: Math.atan2(vy, vx),
-        scale: 1.0,
         scored: false,
         hitPole: false,
         restTimer: 0
       };
 
-      this.sound.playThrow();
-      this.particles.clearTrail();
+      // Reset spin charge upon release
+      this.spinCharge = 0;
+      this.recentSpinCharge = 0;
+      this.continuousRotation = 0;
+      this.totalRotations = 0;
+      this.autoSpinTime = 0;
 
-      // Immediately transition to follow-through stance with empty hands
-      this.currentFrameKey = 'throw_2';
-      this.state = STATE.FLYING;
-    }
+      // Initialize cord trailing behind the ball in the slipstream
+      const topX = this.projectile.x + this.quacon.topAttachOffset.x;
+      const topY = this.projectile.y + this.quacon.topAttachOffset.y;
+      this.cord.initFlight(topX, topY, vx, vy);
 
-    updateThrowing(dt) {
       this.state = STATE.FLYING;
     }
 
@@ -844,31 +1842,28 @@
       p.x += p.vx * dt;
       p.y += p.vy * dt;
 
-      // Orientation aligns with flight velocity (ball sphere leads, ribbons stream behind)
-      p.angle = Math.atan2(p.vy, p.vx);
+      // Update quả còn streamers orientation and flutter
+      this.quacon.update(dt, p.vx, p.vy);
 
-      // Fixed scale throughout flight - strictly matching in-hand ball size without perspective distortion
-      p.scale = 1.0;
+      // Cord attaches to ball top cap and trails freely behind in the slipstream
+      const topX = p.x + this.quacon.topAttachOffset.x;
+      const topY = p.y + this.quacon.topAttachOffset.y;
+      this.cord.updateFlight(topX, topY, p.vx, p.vy, dt);
 
-      // Add ribbon trail point emitted from behind the ball
-      const trailX = p.x - Math.cos(p.angle) * 18;
-      const trailY = p.y - Math.sin(p.angle) * 18;
-      this.particles.addTrailPoint(trailX, trailY, p.angle);
-
-      // Check collision with Ring & Pole
+      // Check collisions with ring and pole
       this.checkCollisions(p);
 
       // Ground collision
-      if (p.y >= GROUND_Y) {
-        p.y = GROUND_Y;
+      if (p.y >= GROUND_Y - BALL_DIAMETER / 2) {
+        p.y = GROUND_Y - BALL_DIAMETER / 2;
         this.sound.playGroundThud();
-        this.particles.addDust(p.x, p.y, 14);
+        this.particles.addDust(p.x, p.y + BALL_DIAMETER / 2, 14);
 
         // Bouncing
-        p.vy = -p.vy * 0.38;
+        p.vy = -p.vy * 0.35;
         p.vx *= 0.65;
 
-        // If kinetic energy is low, transition to LANDED
+        // Settle when kinetic energy is low
         if (Math.hypot(p.vx, p.vy) < 60) {
           p.vx = 0;
           p.vy = 0;
@@ -877,8 +1872,8 @@
         }
       }
 
-      // Out of screen bounds
-      if (p.x > CANVAS_WIDTH + 100 || p.x < -100) {
+      // Out of bounds
+      if (p.x > CANVAS_WIDTH + 150 || p.x < -150) {
         this.state = STATE.LANDED;
         p.restTimer = 0;
       }
@@ -887,28 +1882,36 @@
     checkCollisions(p) {
       if (p.scored) return;
 
-      // 1. Continuous segment collision with the Ring Hole (Oval)
-      const dx = p.x - p.prevX;
-      if (dx !== 0 && ((p.prevX <= RING_CENTER_X && p.x >= RING_CENTER_X) || (p.prevX >= RING_CENTER_X && p.x <= RING_CENTER_X))) {
-        // Calculate Y intersection at X = RING_CENTER_X
-        const t = (RING_CENTER_X - p.prevX) / dx;
-        const intersectY = p.prevY + t * (p.y - p.prevY);
+      // Subtle aerodynamic assistance as quả còn approaches the ring
+      const distToRing = Math.hypot(p.x - RING_CENTER_X, p.y - RING_CENTER_Y);
+      if (distToRing < 100 && p.vx > 0) {
+        // Gently guide trajectory towards the ring vertical center
+        p.vy += (RING_CENTER_Y - p.y) * 1.2 * 0.016;
+      }
 
+      // 1. Continuous segment collision with the Ring Aperture
+      const dx = p.x - p.prevX;
+      const crossingX = (p.prevX <= RING_CENTER_X && p.x >= RING_CENTER_X) || (p.prevX >= RING_CENTER_X && p.x <= RING_CENTER_X);
+      const isNearCenter = distToRing <= RING_INNER_RY;
+
+      if ((dx !== 0 && crossingX) || isNearCenter) {
+        const t = dx !== 0 ? Math.max(0, Math.min(1, (RING_CENTER_X - p.prevX) / dx)) : 0.5;
+        const intersectY = p.prevY + t * (p.y - p.prevY);
         const dyHole = Math.abs(intersectY - RING_CENTER_Y);
 
         // Inner Hole Pass-Through (GOAL!)
         if (dyHole <= RING_INNER_RY) {
           p.scored = true;
-          this.ringGlowTimer = 0.9;
+          this.ringGlowTimer = 1.0;
           this.successfulThrows++;
           this.score += 100;
           this.streak++;
           this.updateStatsUI();
 
           this.sound.playScoreCelebration();
-          this.particles.addConfetti(RING_CENTER_X, RING_CENTER_Y, 75);
+          this.particles.addConfetti(RING_CENTER_X, RING_CENTER_Y, 80);
 
-          // Traditional Festive Blessings (Lời chúc may mắn Lễ hội Lồng Tồng)
+          // Traditional Festive Blessings
           const BLESSINGS = [
             'MƯA THUẬN GIÓ HÒA!',
             'MÙA MÀNG BỘI THU!',
@@ -919,7 +1922,6 @@
             'DUYÊN THẮM ĐẦU XUÂN!'
           ];
 
-          // Festival Milestone Honor Titles (Danh hiệu lễ hội vùng cao)
           let msg = 'XUYÊN TÂM VÒNG CÒN!';
           if (this.streak === 1) msg = 'TÂN THỦ KHAI HỘI!';
           else if (this.streak === 2) msg = 'XUYÊN TÂM VÒNG CÒN!';
@@ -933,12 +1935,12 @@
         }
 
         // Rim Collision (Bamboo hoop impact)
-        if (dyHole <= RING_OUTER_RY + 8) {
+        if (dyHole <= RING_OUTER_RY + 6) {
           this.sound.playRimClack();
           this.particles.addDust(RING_CENTER_X, intersectY, 8);
-          p.vx = -p.vx * 0.45;
-          p.vy = p.vy * 0.4 + (Math.random() - 0.5) * 80;
-          p.x = RING_CENTER_X - 10;
+          p.vx = -Math.abs(p.vx) * 0.4;
+          p.vy = p.vy * 0.35 + (Math.random() - 0.5) * 60;
+          p.x = RING_CENTER_X - 12;
           this.streak = 0;
           this.updateStatsUI();
           return;
@@ -946,12 +1948,12 @@
       }
 
       // 2. Bamboo Pole Shaft Collision (below the ring)
-      const poleTopY = RING_CENTER_Y + RING_OUTER_RY;
+      const poleTopY = RING_CENTER_Y + RING_OUTER_RY + 10;
       if (p.y > poleTopY && p.y < GROUND_Y) {
-        if (p.x >= RING_CENTER_X - 14 && p.x <= RING_CENTER_X + 14) {
+        if (p.x >= RING_CENTER_X - 16 && p.x <= RING_CENTER_X + 16) {
           this.sound.playRimClack();
-          p.vx = -Math.abs(p.vx) * 0.5;
-          p.x = RING_CENTER_X - 16;
+          p.vx = -Math.abs(p.vx) * 0.45;
+          p.x = RING_CENTER_X - 18;
           this.streak = 0;
           this.updateStatsUI();
         }
@@ -960,14 +1962,13 @@
 
     updateLanded(dt) {
       this.projectile.restTimer += dt;
-      if (this.projectile.restTimer > 1.1) {
+      if (this.projectile.restTimer > 1.2) {
         if (!this.projectile.scored && this.streak > 0) {
           this.streak = 0;
           this.updateStatsUI();
         }
         this.state = STATE.IDLE;
-        this.currentFrameKey = 'idle';
-        this.particles.clearTrail();
+        this.cord.reset(this.rig.handGripX, this.rig.handGripY);
       }
     }
 
@@ -985,19 +1986,65 @@
       // 2. Draw Pole & Ring
       this.drawPole();
 
-      // 3. Draw Character Animation (with per-frame absolute alignment)
-      this.drawCharacter();
+      // 3. Draw Character Rig (Body + Articulated Arm IK)
+      this.rig.draw(this.ctx, this.assets);
 
-      // 4. Draw Ribbon Trail (behind projectile)
-      this.particles.drawTrail(this.ctx);
+      // 4. Draw Procedural Braided Cord (Connecting hand to quả còn or trailing in flight)
+      this.cord.draw(this.ctx);
 
-      // 5. Draw Flying/Landed Quả Còn Projectile (calibrated 1:1 scale matching in-hand size)
+      // 5. Draw Quả Còn (Sphere + 5 Dynamic Physics Streamers)
       if (this.state === STATE.FLYING || this.state === STATE.LANDED) {
-        this.drawProjectile();
+        this.quacon.draw(this.ctx, this.projectile.x, this.projectile.y, this.assets);
+      } else {
+        const ballPos = this.cord.getEndPosition();
+        this.quacon.draw(this.ctx, ballPos.x, ballPos.y, this.assets);
       }
 
-      // 6. Draw Particles & Confetti (on top)
+      // 6. Draw Subtle Festival Momentum Charge Ring while swinging
+      if (this.state === STATE.SWINGING && this.spinCharge > 0.05) {
+        this.drawSpinChargeIndicator();
+      }
+
+      // 7. Draw Particles & Confetti (on top)
       this.particles.drawParticles(this.ctx);
+    }
+
+    drawSpinChargeIndicator() {
+      const hx = this.rig.handGripX;
+      const hy = this.rig.handGripY;
+      const charge = Math.min(1.0, this.spinCharge);
+      const r = 26;
+
+      this.ctx.save();
+      // Faint background guideline ring
+      this.ctx.beginPath();
+      this.ctx.arc(hx, hy, r, 0, Math.PI * 2);
+      this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+      this.ctx.lineWidth = 3;
+      this.ctx.stroke();
+
+      // Active charging gold arc
+      this.ctx.beginPath();
+      this.ctx.arc(hx, hy, r, -Math.PI / 2, -Math.PI / 2 + charge * Math.PI * 2);
+      this.ctx.strokeStyle = charge >= 0.92 ? '#ffeb3b' : '#f39c12';
+      this.ctx.lineWidth = charge >= 0.92 ? 4 : 3;
+      this.ctx.lineCap = 'round';
+      if (charge >= 0.92) {
+        this.ctx.shadowColor = '#ffd700';
+        this.ctx.shadowBlur = 12;
+      }
+      this.ctx.stroke();
+
+      // Subtle indicator pearl dot at current charge angle
+      const endAng = -Math.PI / 2 + charge * Math.PI * 2;
+      const dotX = hx + Math.cos(endAng) * r;
+      const dotY = hy + Math.sin(endAng) * r;
+      this.ctx.beginPath();
+      this.ctx.arc(dotX, dotY, charge >= 0.92 ? 4.5 : 3.5, 0, Math.PI * 2);
+      this.ctx.fillStyle = '#ffffff';
+      this.ctx.fill();
+
+      this.ctx.restore();
     }
 
     drawPole() {
@@ -1008,10 +2055,9 @@
       const drawW = this.assets.pole.width * POLE_SCALE;
       const drawH = this.assets.pole.height * POLE_SCALE;
 
-      // Draw pole sprite
       this.ctx.drawImage(this.assets.pole, drawX, drawY, drawW, drawH);
 
-      // If scored, draw celebratory golden ring glow
+      // Golden ring glow when scored
       if (this.ringGlowTimer > 0) {
         this.ctx.save();
         this.ctx.beginPath();
@@ -1023,72 +2069,6 @@
         this.ctx.stroke();
         this.ctx.restore();
       }
-    }
-
-    drawCharacter() {
-      const sprite = this.assets[this.currentFrameKey];
-      if (!sprite) return;
-
-      // Look up exact plant-foot anchor for this specific frame
-      const anchor = FRAME_ANCHORS[this.currentFrameKey] || { x: 647, y: 1067 };
-
-      const drawW = sprite.width * CHAR_SCALE;
-      const drawH = sprite.height * CHAR_SCALE;
-
-      // Align character so that her standing foot is exactly at (CHAR_ANCHOR_X, GROUND_Y)
-      const drawX = CHAR_ANCHOR_X - anchor.x * CHAR_SCALE;
-      const drawY = GROUND_Y - anchor.y * CHAR_SCALE;
-
-      this.ctx.drawImage(sprite, drawX, drawY, drawW, drawH);
-    }
-
-    drawProjectile() {
-      const p = this.projectile;
-      const img = this.assets.quacon_fly || this.assets.quacon;
-      if (!img) return;
-
-      this.ctx.save();
-      this.ctx.translate(p.x, p.y);
-      this.ctx.rotate(p.angle);
-
-      if (this.assets.quacon_fly) {
-        // Authentic flying quả còn extracted from Throw (10).png
-        // Ball sphere center is at (230, 135)
-        // Scaled at CHAR_SCALE (0.42) so both the ball diameter (~39px) and total length (~115px)
-        // match the in-hand quả còn (42px ball, ~125px length) with 100% pixel fidelity
-        const FLY_SCALE = CHAR_SCALE;
-        const PIVOT_X = 230;
-        const PIVOT_Y = 135;
-
-        const drawW = img.width * FLY_SCALE;
-        const drawH = img.height * FLY_SCALE;
-
-        this.ctx.drawImage(
-          img,
-          -PIVOT_X * FLY_SCALE,
-          -PIVOT_Y * FLY_SCALE,
-          drawW,
-          drawH
-        );
-      } else {
-        // Fallback for quacon.png: calibrated to match in-hand total con height
-        const QUACON_SCALE = 0.095;
-        const pivotX = 562;
-        const pivotY = 883;
-
-        const drawW = img.width * QUACON_SCALE;
-        const drawH = img.height * QUACON_SCALE;
-
-        this.ctx.drawImage(
-          img,
-          -pivotX * QUACON_SCALE,
-          -pivotY * QUACON_SCALE,
-          drawW,
-          drawH
-        );
-      }
-
-      this.ctx.restore();
     }
   }
 

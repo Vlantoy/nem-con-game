@@ -31,6 +31,12 @@
       </div>
 
       <div class="hud-group hud-controls">
+        <button id="btn-mode" class="btn-tool btn-mode" title="Đổi chế độ chơi: Giữ tự xoay hoặc Xoay chuột">
+          <span class="icon" id="mode-icon">⚡</span> <span id="mode-label">Tự Xoay</span>
+        </button>
+        <button id="btn-grip" class="btn-tool btn-grip" title="Đổi vị trí cầm dây còn: Đuôi dây, Giữa dây hoặc Gần quả">
+          <span class="icon">🧵</span> <span id="grip-label">Đuôi Dây</span>
+        </button>
         <button id="btn-culture" class="btn-tool btn-culture" title="Khám phá nét đẹp văn hóa Ném Còn">
           <span class="icon">🌾</span> Văn Hóa
         </button>
@@ -46,6 +52,12 @@
     <!-- Main Canvas Viewport -->
     <div id="canvas-wrapper">
       <canvas id="gameCanvas" width="1672" height="941"></canvas>
+
+      <!-- On-Screen Touch Hold Button for Mobile & Accessibility -->
+      <button id="btn-mobile-spin" class="btn-mobile-spin hidden" title="Nhấn giữ để tự xoay, thả ra để phóng">
+        <span class="btn-mobile-icon">⭕</span>
+        <span class="btn-mobile-text">GIỮ XOAY</span>
+      </button>
 
       <!-- Floating Score Announcement Popup -->
       <div id="announcement-banner">
@@ -138,24 +150,24 @@
         <div class="guide-item">
           <div class="guide-icon">🖱️</div>
           <div class="guide-desc">
-            <h4>1. Giữ chuột để xoay quả còn lấy đà</h4>
-            <p>Nhấn giữ chuột trái (hoặc chạm giữ màn hình / phím Space). Nhân vật bắt đầu xoay quả còn lấy đà. Lắng nghe tiếng gió rít và quan sát tốc độ quay để cảm nhận lực.</p>
+            <h4>1. Giữ chuột & Xoay vòng (Getting Over It)</h4>
+            <p>Nhấn giữ chuột trái (hoặc chạm kéo trên màn hình) và xoay chuột xung quanh nhân vật. Cánh tay nhân vật và dây còn sẽ cử động theo hướng chuột, tích lũy động năng và lực căng ly tâm.</p>
           </div>
         </div>
 
         <div class="guide-item">
-          <div class="guide-icon">🎯</div>
+          <div class="guide-icon">🔄</div>
           <div class="guide-desc">
-            <h4>2. Căn lực chuẩn 60% - 70% & Thả đúng nhịp</h4>
-            <p>Quả còn chỉ chui lọt qua vòng khi ném ở <strong>lực vừa phải (khoảng vòng xoay thứ 2, 60% - 70%)</strong>. Ném quá mạnh (>70%) quả còn sẽ bay vọt qua cột; ném quá yếu (<60%) sẽ rơi hụt phía trước.</p>
+            <h4>2. Quán tính con lắc khi dừng đột ngột</h4>
+            <p>Nếu đang xoay nhanh mà bạn dừng chuột đột ngột giữa chừng, cánh tay dừng lại nhưng quả còn tiếp tục vung mạnh về phía trước theo nguyên lý quán tính và bảo toàn động lượng!</p>
           </div>
         </div>
 
         <div class="guide-item">
           <div class="guide-icon">🚀</div>
           <div class="guide-desc">
-            <h4>3. Thả chuột khi tay vung hất về phía trước</h4>
-            <p>Thả chuột ngay khi tay nhân vật vung hất lên phía trước hướng về đỉnh cột. Quả còn bay xuất phát chuẩn xác từ chính bàn tay nhân vật theo góc tiếp tuyến tự nhiên.</p>
+            <h4>3. Buông chuột đúng nhịp hướng lên vòng còn</h4>
+            <p>Buông chuột khi quả còn đang vung hướng lên phía trước (khoảng góc 45° - 55°). Quả còn sẽ được phóng đi với trọn vẹn động năng và bay vút qua tâm vòng tre!</p>
           </div>
         </div>
 
@@ -171,6 +183,92 @@
       <div class="modal-footer">
         <button id="btn-modal-ok" class="btn-primary">Đã Hiểu — Bắt Đầu Chơi!</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Mode Selection Modal (Hiển thị khi mới vào game hoặc khi nhấn nút Đổi Chế Độ) -->
+  <div id="modal-mode" class="modal-overlay hidden">
+    <div class="modal-box modal-mode-box">
+      <div class="modal-header">
+        <div class="modal-tabs">
+          <span class="modal-header-title">🎋 CHỌN CHẾ ĐỘ NÉM CÒN</span>
+        </div>
+        <button id="btn-close-mode" class="modal-close" title="Đóng">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-intro">Chào mừng bạn đến với Lễ hội Lồng Tồng! Hãy chọn chế độ chơi và vị trí cầm dây còn phù hợp:</p>
+
+        <div class="mode-options-grid">
+          <!-- Option 1: Auto Spin (Recommended for Mobile) -->
+          <div class="mode-card active" id="card-mode-auto" data-mode="auto">
+            <div class="mode-badge">📱 KHUYÊN DÙNG CHO ĐIỆN THOẠI</div>
+            <div class="mode-icon-circle">⚡</div>
+            <h3>Chế Độ 1: Giữ Nút Tự Xoay</h3>
+            <p class="mode-desc"><strong>Nhấn giữ chuột hoặc chạm giữ màn hình:</strong> Cánh tay tự động xoay tròn đều đặn và tăng tốc dần theo thời gian. Buông tay đúng nhịp vung lên để phóng quả còn đi!</p>
+            <ul class="mode-perks">
+              <li>✔ Cực kỳ mượt mà, chơi hoàn hảo trên điện thoại</li>
+              <li>✔ Không bị ngón tay che khuất nhân vật</li>
+              <li>✔ Tự động tích luỹ động năng tăng tốc dần</li>
+            </ul>
+            <button class="btn-select-mode btn-mode-choice">ĐANG CHỌN</button>
+          </div>
+
+          <!-- Option 2: Manual Whirl (Getting Over It Style) -->
+          <div class="mode-card" id="card-mode-manual" data-mode="manual">
+            <div class="mode-badge">🖱️ PHÙ HỢP CHUỘT MÁY TÍNH</div>
+            <div class="mode-icon-circle">🔄</div>
+            <h3>Chế Độ 2: Xoay Chuột Thủ Công</h3>
+            <p class="mode-desc"><strong>Tự rê chuột hoặc lướt ngón tay theo vòng tròn:</strong> Vung xoay 2-3 vòng để tích luỹ lực ly tâm thực tế, sau đó buông chuột hướng về phía trước để phóng còn.</p>
+            <ul class="mode-perks">
+              <li>✔ Trải nghiệm vật lý Getting Over It 1:1</li>
+              <li>✔ Thử thách cảm giác tay và kỹ năng khéo léo</li>
+              <li>✔ Tự do điều khiển góc và bán kính xoay</li>
+            </ul>
+            <button class="btn-select-mode btn-mode-choice">CHỌN CHẾ ĐỘ NÀY</button>
+          </div>
+        </div>
+
+        <!-- Grip Position Selection inside Modal -->
+        <div class="grip-section">
+          <label class="grip-title">🧵 Thay Đổi Vị Trí Cầm Dây Còn:</label>
+          <div class="grip-options">
+            <button class="btn-grip-opt active" data-grip="long">
+              <span class="grip-opt-icon">🎋</span>
+              <div class="grip-opt-text">
+                <strong>Đuôi Dây (Sải Dài)</strong>
+                <small>Bán kính lớn, lực ly tâm cực đại, bay cao xa</small>
+              </div>
+            </button>
+            <button class="btn-grip-opt" data-grip="mid">
+              <span class="grip-opt-icon">🌾</span>
+              <div class="grip-opt-text">
+                <strong>Giữa Dây (Sải Vừa)</strong>
+                <small>Cân bằng, dễ căn nhịp vung, ổn định</small>
+              </div>
+            </button>
+            <button class="btn-grip-opt" data-grip="short">
+              <span class="grip-opt-icon">✨</span>
+              <div class="grip-opt-text">
+                <strong>Gần Quả Còn (Sải Ngắn)</strong>
+                <small>Vung nhanh thoăn thoắt, quỹ đạo căng</small>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-start-game" class="btn-primary">VÀO HỘI NÉM CÒN 🎯</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Landscape Hint Overlay -->
+  <div id="mobile-rotate-hint" class="mobile-hint hidden">
+    <div class="hint-content">
+      <div class="hint-icon">📱 ➔ 🔄</div>
+      <h3>Xoay Ngang Màn Hình</h3>
+      <p>Hãy xoay ngang điện thoại để có tầm nhìn lễ hội rộng và trải nghiệm ném còn tuyệt vời nhất!</p>
+      <button id="btn-dismiss-hint" class="btn-small">Tiếp tục chơi</button>
     </div>
   </div>
 

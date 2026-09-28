@@ -1,0 +1,133 @@
+{
+  "body": {
+    "size": [
+      1024,
+      1536
+    ],
+    "shoulder_joint": [
+      432,
+      362
+    ],
+    "foot_anchor": [
+      520,
+      1483
+    ]
+  },
+  "upper_arm": {
+    "size": [
+      100,
+      325
+    ],
+    "shoulder_pivot": [
+      50,
+      50
+    ],
+    "elbow_joint": [
+      46,
+      219
+    ],
+    "scale_to_body": 1.0
+  },
+  "forearm": {
+    "size": [
+      80,
+      200
+    ],
+    "elbow_pivot": [
+      40,
+      25
+    ],
+    "wrist_joint": [
+      38,
+      175
+    ],
+    "scale_to_body": 1.0
+  },
+  "hand": {
+    "size": [
+      365,
+      270
+    ],
+    "wrist_pivot": [
+      35,
+      185
+    ],
+    "grip_cord_point": [
+      205,
+      135
+    ],
+    "scale_to_body": 0.28
+  },
+  "quacon_ball": {
+    "size": [
+      308,
+      354
+    ],
+    "center": [
+      154,
+      177
+    ],
+    "top_cap_cord": [
+      147,
+      6
+    ],
+    "bot_cap_streamer": [
+      158,
+      345
+    ],
+    "ball_radius": 130
+  },
+  "streamers": {
+    "streamer_pink": {
+      "collar_pivot": [
+        36,
+        31
+      ],
+      "length": 380,
+      "rest_angle_deg": 25
+    },
+    "streamer_green_up": {
+      "collar_pivot": [
+        29,
+        26
+      ],
+      "length": 400,
+      "rest_angle_deg": -15
+    },
+    "streamer_green_down": {
+      "collar_pivot": [
+        31,
+        24
+      ],
+      "length": 410,
+      "rest_angle_deg": 45
+    },
+    "streamer_yellow_1": {
+      "collar_pivot": [
+        31,
+        27
+      ],
+      "length": 390,
+      "rest_angle_deg": 10
+    },
+    "streamer_yellow_2": {
+      "collar_pivot": [
+        33,
+        26
+      ],
+      "length": 420,
+      "rest_angle_deg": 30
+    }
+  },
+  "sleeve": {
+    "size": [
+      336,
+      300
+    ],
+    "shoulder_pivot": [
+      195,
+      68
+    ],
+    "scale_to_body": 0.53
+  }
+}

@@ -131,7 +131,12 @@ body {
   width: 100%;
   overflow: hidden;
   background: #000;
-  cursor: crosshair;
+  cursor: grab;
+  touch-action: none !important;
+}
+
+#canvas-wrapper.grabbing {
+  cursor: grabbing;
 }
 
 #gameCanvas {
@@ -142,6 +147,7 @@ body {
   height: 100%;
   object-fit: fill;
   image-rendering: auto;
+  touch-action: none !important;
 }
 
 /* Power Meter Overlay */
@@ -638,3 +644,374 @@ body {
     text-align: center;
   }
 }
+
+/* ==========================================
+   MODE SWITCHER & GRIP SELECTOR BUTTONS
+   ========================================== */
+.btn-mode {
+  background: linear-gradient(180deg, #5c2c16 0%, #36170b 100%);
+  border-color: #ffd700;
+  color: #ffeaa7;
+}
+
+.btn-mode:hover {
+  background: linear-gradient(180deg, #7a3a1d 0%, #4a200f 100%);
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+}
+
+.btn-grip {
+  background: linear-gradient(180deg, #3d2b1f 0%, #24160d 100%);
+  border-color: #d1a054;
+  color: #f5f0e8;
+}
+
+.btn-grip:hover {
+  background: linear-gradient(180deg, #593f2d 0%, #362215 100%);
+  border-color: #ffd700;
+}
+
+/* ==========================================
+   TOUCH HOLD ACTION BUTTON (MOBILE & ACCESSIBILITY)
+   ========================================== */
+.btn-mobile-spin {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #e67e22 0%, #b33917 100%);
+  border: 3.5px solid #ffd700;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7), 0 0 15px rgba(255, 215, 0, 0.4);
+  z-index: 30;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: transform 0.1s ease, box-shadow 0.1s ease, background 0.1s ease;
+}
+
+.btn-mobile-spin:active, .btn-mobile-spin.active {
+  transform: scale(0.92);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.9), 0 0 30px #ffd700;
+  background: radial-gradient(circle, #f39c12 0%, #d35400 100%);
+}
+
+.btn-mobile-spin.hidden {
+  display: none !important;
+}
+
+.btn-mobile-icon {
+  font-size: 26px;
+  line-height: 1;
+}
+
+.btn-mobile-text {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  margin-top: 3px;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+}
+
+/* ==========================================
+   MODE SELECTION MODAL
+   ========================================== */
+.modal-mode-box {
+  max-width: 780px;
+  width: 92%;
+  background: #1c0e0b;
+  border: 2px solid #ffd700;
+  box-shadow: 0 12px 50px rgba(0, 0, 0, 0.9), 0 0 25px rgba(255, 215, 0, 0.3);
+}
+
+.modal-header-title {
+  color: #ffd700;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mode-options-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 16px 0 20px;
+}
+
+.mode-card {
+  background: #2b140f;
+  border: 2px solid #6b4020;
+  border-radius: 12px;
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.25s ease;
+}
+
+.mode-card:hover {
+  border-color: #e67e22;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+}
+
+.mode-card.active {
+  border-color: #ffd700;
+  background: #381912;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.25), inset 0 0 15px rgba(255, 215, 0, 0.1);
+}
+
+.mode-badge {
+  position: absolute;
+  top: -10px;
+  background: #27ae60;
+  color: #fff;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  padding: 2px 10px;
+  border-radius: 10px;
+  border: 1px solid #2ecc71;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
+
+.mode-card:nth-child(2) .mode-badge {
+  background: #2980b9;
+  border-color: #3498db;
+}
+
+.mode-icon-circle {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: #4a2118;
+  border: 2px solid #c8963e;
+  font-size: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 8px 0 12px;
+}
+
+.mode-card.active .mode-icon-circle {
+  border-color: #ffd700;
+  background: #632d1f;
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.4);
+}
+
+.mode-card h3 {
+  font-size: 16px;
+  font-weight: 800;
+  color: #ffd700;
+  margin-bottom: 8px;
+}
+
+.mode-desc {
+  font-size: 12px;
+  color: #f0e2d0;
+  line-height: 1.45;
+  margin-bottom: 12px;
+  flex: 1;
+}
+
+.mode-perks {
+  list-style: none;
+  text-align: left;
+  width: 100%;
+  font-size: 11.5px;
+  color: #bfaea0;
+  margin-bottom: 16px;
+  padding-left: 4px;
+}
+
+.mode-perks li {
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mode-card.active .mode-perks li {
+  color: #e8d8c8;
+}
+
+.btn-mode-choice {
+  width: 100%;
+  padding: 8px;
+  font-size: 12px;
+  font-weight: 800;
+  border-radius: 6px;
+  border: 1px solid #7a4623;
+  background: #3d1c15;
+  color: #d1b48c;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.mode-card.active .btn-mode-choice {
+  background: linear-gradient(180deg, #e67e22 0%, #d35400 100%);
+  border-color: #ffd700;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+/* Grip Position Section */
+.grip-section {
+  background: #23100c;
+  border: 1px solid #573318;
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-top: 10px;
+}
+
+.grip-title {
+  display: block;
+  font-size: 13px;
+  font-weight: 800;
+  color: #ffd700;
+  margin-bottom: 10px;
+}
+
+.grip-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
+
+.btn-grip-opt {
+  background: #361710;
+  border: 1.5px solid #633c1d;
+  border-radius: 8px;
+  padding: 10px 8px;
+  color: #e0d0c0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  transition: all 0.2s;
+}
+
+.btn-grip-opt:hover {
+  border-color: #e67e22;
+  background: #472016;
+}
+
+.btn-grip-opt.active {
+  border-color: #ffd700;
+  background: #54251a;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.grip-opt-icon {
+  font-size: 20px;
+}
+
+.grip-opt-text strong {
+  display: block;
+  font-size: 12px;
+  color: #fff;
+}
+
+.btn-grip-opt.active .grip-opt-text strong {
+  color: #ffd700;
+}
+
+.grip-opt-text small {
+  font-size: 10px;
+  color: #a89484;
+  line-height: 1.2;
+  display: block;
+}
+
+/* ==========================================
+   MOBILE LANDSCAPE ROTATE HINT
+   ========================================== */
+.mobile-hint {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(10, 5, 3, 0.95);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+  text-align: center;
+}
+
+.mobile-hint.hidden {
+  display: none !important;
+}
+
+.hint-content {
+  background: #2b130e;
+  border: 2px solid #ffd700;
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 320px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+}
+
+.hint-icon {
+  font-size: 40px;
+  margin-bottom: 12px;
+  animation: rotateHint 2s infinite ease-in-out;
+}
+
+@keyframes rotateHint {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(90deg); }
+}
+
+.hint-content h3 {
+  color: #ffd700;
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+.hint-content p {
+  font-size: 12.5px;
+  color: #d1b48c;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+/* Mobile responsive fixes */
+@media (max-width: 680px) {
+  .mode-options-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .grip-options {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .btn-mobile-spin {
+    width: 78px;
+    height: 78px;
+    bottom: 16px;
+    right: 16px;
+  }
+  .btn-mobile-icon {
+    font-size: 22px;
+  }
+  .btn-mobile-text {
+    font-size: 9.5px;
+  }
+}
+
