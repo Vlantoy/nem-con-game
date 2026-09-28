@@ -905,7 +905,6 @@
         modeIcon: document.getElementById('mode-icon'),
         btnGrip: document.getElementById('btn-grip'),
         gripLabel: document.getElementById('grip-label'),
-        btnMobileSpin: document.getElementById('btn-mobile-spin'),
         modalMode: document.getElementById('modal-mode'),
         btnCloseMode: document.getElementById('btn-close-mode'),
         btnStartGame: document.getElementById('btn-start-game'),
@@ -927,9 +926,7 @@
         btnModalOk: document.getElementById('btn-modal-ok'),
         banner: document.getElementById('announcement-banner'),
         announceTitle: document.getElementById('announce-title'),
-        announceScore: document.getElementById('announce-score'),
-        mobileRotateHint: document.getElementById('mobile-rotate-hint'),
-        btnDismissHint: document.getElementById('btn-dismiss-hint')
+        announceScore: document.getElementById('announce-score')
       };
 
       // State variables
@@ -1137,25 +1134,6 @@
         });
       }
 
-      if (this.ui.btnDismissHint && this.ui.mobileRotateHint) {
-        this.ui.btnDismissHint.addEventListener('click', () => {
-          this.ui.mobileRotateHint.classList.add('hidden');
-        });
-      }
-
-      // Check mobile orientation
-      const checkOrientation = () => {
-        if (!this.ui.mobileRotateHint) return;
-        const isMobile = window.innerWidth <= 850 || ('ontouchstart' in window);
-        const isPortrait = window.innerHeight > window.innerWidth;
-        if (isMobile && isPortrait) {
-          this.ui.mobileRotateHint.classList.remove('hidden');
-        }
-      };
-      window.addEventListener('resize', checkOrientation);
-      window.addEventListener('orientationchange', checkOrientation);
-      checkOrientation();
-
       // Open Mode Modal on start: "mỗi khi vào sẽ được chọn 2 chế độ..."
       this.openModeModal();
 
@@ -1275,38 +1253,6 @@
       window.addEventListener('touchend', () => this.handlePointerUp());
       window.addEventListener('touchcancel', () => this.handlePointerUp());
 
-      // 4. Mobile On-Screen Spin Button (Touch Hold)
-      if (this.ui.btnMobileSpin) {
-        const handleBtnDown = (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          try { this.ui.btnMobileSpin.setPointerCapture(e.pointerId); } catch (err) {}
-          this.handlePointerDown(window.innerWidth / 2, window.innerHeight / 2, e.pointerId);
-        };
-        const handleBtnUp = (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          try { this.ui.btnMobileSpin.releasePointerCapture(e.pointerId); } catch (err) {}
-          this.handlePointerUp();
-        };
-
-        this.ui.btnMobileSpin.addEventListener('pointerdown', handleBtnDown);
-        this.ui.btnMobileSpin.addEventListener('pointerup', handleBtnUp);
-        this.ui.btnMobileSpin.addEventListener('pointercancel', handleBtnUp);
-
-        this.ui.btnMobileSpin.addEventListener('touchstart', (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          this.handlePointerDown(window.innerWidth / 2, window.innerHeight / 2);
-        }, { passive: false });
-        this.ui.btnMobileSpin.addEventListener('touchend', (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          this.handlePointerUp();
-        });
-        this.ui.btnMobileSpin.addEventListener('mousedown', handleBtnDown);
-        this.ui.btnMobileSpin.addEventListener('mouseup', handleBtnUp);
-      }
     }
 
     applyControlMode(mode) {
@@ -1337,16 +1283,6 @@
           const bMan = this.ui.cardModeManual.querySelector('.btn-mode-choice');
           if (bAuto) bAuto.textContent = 'CHỌN CHẾ ĐỘ NÀY';
           if (bMan) bMan.textContent = 'ĐANG CHỌN';
-        }
-      }
-
-      // Show on-screen spin button on touch devices or when mobile viewport
-      const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth <= 850);
-      if (this.ui.btnMobileSpin) {
-        if (mode === 'auto' && isTouch) {
-          this.ui.btnMobileSpin.classList.remove('hidden');
-        } else {
-          this.ui.btnMobileSpin.classList.add('hidden');
         }
       }
     }

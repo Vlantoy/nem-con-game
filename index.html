@@ -32,19 +32,19 @@
 
       <div class="hud-group hud-controls">
         <button id="btn-mode" class="btn-tool btn-mode" title="Đổi chế độ chơi: Giữ tự xoay hoặc Xoay chuột">
-          <span class="icon" id="mode-icon">⚡</span> <span id="mode-label">Tự Xoay</span>
+          <span class="icon" id="mode-icon">⚡</span> <span id="mode-label" class="btn-text">Tự Xoay</span>
         </button>
         <button id="btn-grip" class="btn-tool btn-grip" title="Đổi vị trí cầm dây còn: Đuôi dây, Giữa dây hoặc Gần quả">
-          <span class="icon">🧵</span> <span id="grip-label">Đuôi Dây</span>
+          <span class="icon">🧵</span> <span id="grip-label" class="btn-text">Đuôi Dây</span>
         </button>
         <button id="btn-culture" class="btn-tool btn-culture" title="Khám phá nét đẹp văn hóa Ném Còn">
-          <span class="icon">🌾</span> Văn Hóa
+          <span class="icon">🌾</span> <span class="btn-text">Văn Hóa</span>
         </button>
         <button id="btn-help" class="btn-tool" title="Hướng dẫn cách chơi">
-          <span class="icon">🎯</span> Luật Chơi
+          <span class="icon">🎯</span> <span class="btn-text">Luật Chơi</span>
         </button>
         <button id="btn-audio" class="btn-tool" title="Bật/Tắt âm thanh">
-          <span class="icon" id="audio-icon">🔊</span> Âm Thanh
+          <span class="icon" id="audio-icon">🔊</span> <span class="btn-text">Âm Thanh</span>
         </button>
       </div>
     </header>
@@ -52,12 +52,6 @@
     <!-- Main Canvas Viewport -->
     <div id="canvas-wrapper">
       <canvas id="gameCanvas" width="1672" height="941"></canvas>
-
-      <!-- On-Screen Touch Hold Button for Mobile & Accessibility -->
-      <button id="btn-mobile-spin" class="btn-mobile-spin hidden" title="Nhấn giữ để tự xoay, thả ra để phóng">
-        <span class="btn-mobile-icon">⭕</span>
-        <span class="btn-mobile-text">GIỮ XOAY</span>
-      </button>
 
       <!-- Floating Score Announcement Popup -->
       <div id="announcement-banner">
@@ -259,16 +253,6 @@
       <div class="modal-footer">
         <button id="btn-start-game" class="btn-primary">VÀO HỘI NÉM CÒN 🎯</button>
       </div>
-    </div>
-  </div>
-
-  <!-- Mobile Landscape Hint Overlay -->
-  <div id="mobile-rotate-hint" class="mobile-hint hidden">
-    <div class="hint-content">
-      <div class="hint-icon">📱 ➔ 🔄</div>
-      <h3>Xoay Ngang Màn Hình</h3>
-      <p>Hãy xoay ngang điện thoại để có tầm nhìn lễ hội rộng và trải nghiệm ném còn tuyệt vời nhất!</p>
-      <button id="btn-dismiss-hint" class="btn-small">Tiếp tục chơi</button>
     </div>
   </div>
 
