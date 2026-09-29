@@ -1044,7 +1044,7 @@
 
       // Cultural Article Multi-page & Chapter Switcher
       let currentCulturePage = 1;
-      const totalCulturePages = 4;
+      const totalCulturePages = 5;
       const chapterBtns = document.querySelectorAll('.chapter-nav-btn');
       const culturePages = document.querySelectorAll('.culture-page');
       const pageDots = document.querySelectorAll('.page-dots-indicator .dot');
