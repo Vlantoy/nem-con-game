@@ -1042,6 +1042,79 @@
       this.ui.btnCloseModal.addEventListener('click', closeModal);
       this.ui.btnModalOk.addEventListener('click', closeModal);
 
+      // Cultural Article Multi-page & Chapter Switcher
+      let currentCulturePage = 1;
+      const totalCulturePages = 4;
+      const chapterBtns = document.querySelectorAll('.chapter-nav-btn');
+      const culturePages = document.querySelectorAll('.culture-page');
+      const pageDots = document.querySelectorAll('.page-dots-indicator .dot');
+      const btnPagePrev = document.getElementById('btn-page-prev');
+      const btnPageNext = document.getElementById('btn-page-next');
+
+      const setCulturePage = (pageNum) => {
+        if (pageNum < 1) pageNum = 1;
+        if (pageNum > totalCulturePages) pageNum = totalCulturePages;
+        currentCulturePage = pageNum;
+
+        culturePages.forEach((p, idx) => {
+          if (idx + 1 === currentCulturePage) {
+            p.classList.add('active');
+          } else {
+            p.classList.remove('active');
+          }
+        });
+
+        chapterBtns.forEach(btn => {
+          const chap = parseInt(btn.getAttribute('data-chapter'), 10);
+          if (chap === currentCulturePage) {
+            btn.classList.add('active');
+          } else {
+            btn.classList.remove('active');
+          }
+        });
+
+        pageDots.forEach(dot => {
+          const page = parseInt(dot.getAttribute('data-page'), 10);
+          if (page === currentCulturePage) {
+            dot.classList.add('active');
+          } else {
+            dot.classList.remove('active');
+          }
+        });
+
+        if (btnPagePrev) btnPagePrev.disabled = (currentCulturePage === 1);
+        if (btnPageNext) btnPageNext.disabled = (currentCulturePage === totalCulturePages);
+
+        if (this.ui.tabContentCulture) {
+          this.ui.tabContentCulture.scrollTop = 0;
+        }
+      };
+
+      chapterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const chap = parseInt(btn.getAttribute('data-chapter'), 10);
+          setCulturePage(chap);
+        });
+      });
+
+      pageDots.forEach(dot => {
+        dot.addEventListener('click', () => {
+          const page = parseInt(dot.getAttribute('data-page'), 10);
+          setCulturePage(page);
+        });
+      });
+
+      if (btnPagePrev) {
+        btnPagePrev.addEventListener('click', () => {
+          setCulturePage(currentCulturePage - 1);
+        });
+      }
+      if (btnPageNext) {
+        btnPageNext.addEventListener('click', () => {
+          setCulturePage(currentCulturePage + 1);
+        });
+      }
+
       // Rotating Cultural Knowledge Ticker
       const CULTURAL_FACTS = [
         { badge: '🌾 GÓC VĂN HÓA:', text: 'Cột còn cao 15 - 30m bằng thân tre già vươn thẳng, tượng trưng cho trục vũ trụ nối Đất với Trời.' },

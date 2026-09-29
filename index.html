@@ -86,56 +86,298 @@
         <button id="btn-close-modal" class="modal-close" title="Đóng">&times;</button>
       </div>
 
-      <!-- Tab 1: Cultural Heritage Content -->
-      <div id="tab-content-culture" class="modal-body tab-pane active">
-        <div class="culture-intro">
-          <div class="culture-intro-icon">🌄</div>
-          <div class="culture-intro-text">
-            <h3>LỄ HỘI LỒNG TỒNG VÙNG CAO</h3>
-            <p>Trò chơi <strong>Ném Còn (Phóng Còn)</strong> là linh hồn trong Lễ hội Lồng Tồng (Hội Xuống Đồng) đầu xuân của đồng bào các dân tộc Tày, Nùng, Thái, Mường... Cây còn vút cao giữa đất trời tượng trưng cho trục vũ trụ, mỗi đường ném mang theo ước vọng mưa thuận gió hòa, mùa màng bội thu và hạnh phúc ấm no.</p>
+      <!-- Tab 1: Cultural Heritage Magazine Content (Báo chuyên đề văn hóa đa trang) -->
+      <div id="tab-content-culture" class="modal-body tab-pane active culture-magazine-pane">
+        <!-- Magazine Masthead Header -->
+        <div class="culture-masthead">
+          <div class="culture-badge-row">
+            <span class="culture-tag">🌾 DI SẢN VĂN HÓA PHI VẬT THỂ</span>
+            <span class="culture-read-time">⏱️ 4 phút đọc</span>
           </div>
+          <h2 class="culture-main-title">NÉM CÒN — HỒN THƠ & SỨC SỐNG LỄ HỘI LỒNG TỒNG</h2>
+          <p class="culture-subtitle">Huyền tích ngàn năm, cấu trúc vũ trụ luận và nét duyên dáng của trò chơi dân gian Tày, Nùng, Thái, Mường</p>
         </div>
 
-        <div class="culture-grid">
-          <!-- Card 1: Cột Còn -->
-          <div class="culture-card">
-            <div class="culture-card-header">
-              <span class="card-icon">🎋</span>
-              <h4>Cột Còn — Trục Nối Đất Trời</h4>
-            </div>
-            <p>Thân cây mai, bương già cao vút từ <strong>15 đến 30 mét</strong> dựng sừng sững giữa thung lũng bằng phẳng. Cột còn là biểu tượng chiếc thang vũ trụ nối cõi nhân gian với thần linh, dẫn dắt sinh khí trời đất về bản làng.</p>
+        <!-- Chapter Navigation Bar -->
+        <nav class="culture-chapter-nav" aria-label="Mục lục phóng sự">
+          <button class="chapter-nav-btn active" data-chapter="1">
+            <span class="chap-num">1</span>
+            <span class="chap-title">Nguồn Gốc & Ý Nghĩa</span>
+          </button>
+          <button class="chapter-nav-btn" data-chapter="2">
+            <span class="chap-num">2</span>
+            <span class="chap-title">Cột Còn & Quả Còn</span>
+          </button>
+          <button class="chapter-nav-btn" data-chapter="3">
+            <span class="chap-num">3</span>
+            <span class="chap-title">Nghi Lễ & Trao Duyên</span>
+          </button>
+          <button class="chapter-nav-btn" data-chapter="4">
+            <span class="chap-num">4</span>
+            <span class="chap-title">Video Thực Tế 🎬</span>
+          </button>
+        </nav>
+
+        <!-- Chapter 1: Nguồn Gốc & Ý Nghĩa Lễ Hội -->
+        <article class="culture-page active" id="culture-page-1">
+          <div class="page-header-row">
+            <span class="page-indicator">Trang 1 / 4 • Chương 1</span>
+            <h3 class="page-title">Huyền Tích Ngàn Đời & Khát Vọng Phồn Thực</h3>
           </div>
 
-          <!-- Card 2: Vòng Còn -->
-          <div class="culture-card">
-            <div class="culture-card-header">
-              <span class="card-icon">🌞</span>
-              <h4>Vòng Còn — Nhật Nguyệt Giao Hòa</h4>
+          <div class="article-body">
+            <p class="article-lead">
+              <span class="dropcap">M</span>ỗi độ xuân về khi hoa mơ, hoa mận nở trắng sườn đồi và chồi non cựa mình sau giấc ngủ đông, khắp các bản làng rẻo cao Việt Bắc và Tây Bắc lại rộn rã bước chân trẩy hội <strong>Lồng Tồng</strong> (Lễ hội Xuống Đồng). Giữa thung lũng bao la, tiếng cười nói hòa cùng tiếng trống chiêng thôi thúc muôn người hướng về trò chơi trung tâm: <strong>Ném Còn (Phóng Còn)</strong>.
+            </p>
+
+            <div class="culture-callout-box">
+              <div class="callout-icon">📜</div>
+              <div class="callout-content">
+                <h4>Huyền Tích Đôi Lứa Bện Cầu Cứu Bản Làng</h4>
+                <p>Truyền thuyết dân gian Tày - Nùng kể rằng, thuở xưa trời đại hạn kéo dài ba năm chín tháng, ruộng nương nứt nẻ, chim muông kiệt sức. Một đôi trai gái nghèo yêu nhau thắm thiết đã cùng bà con gom nhặt những sợi bông, vỏ cây rừng bện thành quả cầu ngũ sắc, nhồi vào đó những hạt thóc giống quý giá nhất. Chàng trai vung sức ném quả cầu bay vút qua chín tầng mây chạm tới Thiên Đình. Cảm động trước ý chí và tấm lòng son sắt, Ngọc Hoàng đã ban mưa lành xuống nhân gian, cứu sống muôn loài. Kể từ đó, tục Ném Còn trở thành nghi thức cầu mùa linh thiêng không thể thiếu mỗi độ Tết đến xuân về.</p>
+              </div>
             </div>
-            <p>Đỉnh cột uốn vòng tre đường kính 40 - 50cm bọc giấy bản: một mặt đỏ là <strong>Mặt Trời (Dương)</strong>, một mặt vàng/trắng là <strong>Mặt Trăng (Âm)</strong>. Quả còn phóng thủng tâm giấy là lúc <em>"Cổng trời khai mở"</em>, âm dương hòa hợp, xua tan tai ương, đón vạn sự lành.</p>
+
+            <div class="article-section-grid">
+              <div class="article-feature-card">
+                <div class="feature-badge">🌱 Ý Nghĩa Phồn Thực</div>
+                <h4>Khát Vọng Sinh Sôi & Mùa Vàng Bội Thu</h4>
+                <p>Ném còn là biểu tượng sinh động của tín ngưỡng phồn thực nguyên thủy. Quả còn tượng trưng cho bọc mầm sống, đường bay vút cao là khát vọng giao hòa giữa Đất và Trời. Khi quả còn rơi xuống, người đón được xem như đã hứng trọn sinh khí của tạo hóa, mang lại vụ mùa lúa ngô trĩu bắp, thóc đầy bồ, lợn gà đầy chuồng.</p>
+              </div>
+
+              <div class="article-feature-card">
+                <div class="feature-badge">⚡ Khai Mở Sinh Khí</div>
+                <h4>Đánh Thức Thần Sấm & Đất Trời</h4>
+                <p>Đồng bào quan niệm rằng mùa đông u ám đã kìm hãm sinh lực cây cỏ. Quả còn bay xé gió vun vút và tiếng reo hò dậy sóng của dân làng là hồi chuông đánh thức thần Sấm, thần Mưa và thần Nông trỗi dậy, xua tan mọi rủi ro xui xẻo của năm cũ, mở ra một năm mưa thuận gió hòa.</p>
+              </div>
+            </div>
+
+            <blockquote class="article-pullquote">
+              <p>“Cây còn chọc thủng màn sương xám,<br>Quả còn trao duyên, thóc ngọc về bản.”</p>
+              <cite>— Dân ca Lễ hội Lồng Tồng Tây Bắc</cite>
+            </blockquote>
+          </div>
+        </article>
+
+        <!-- Chapter 2: Cột Còn & Quả Còn -->
+        <article class="culture-page" id="culture-page-2">
+          <div class="page-header-row">
+            <span class="page-indicator">Trang 2 / 4 • Chương 2</span>
+            <h3 class="page-title">Bí Quyết Chế Tác: Cột Còn Vũ Trụ & Quả Còn Ngũ Hành</h3>
           </div>
 
-          <!-- Card 3: Quả Còn -->
-          <div class="culture-card">
-            <div class="culture-card-header">
-              <span class="card-icon">🎁</span>
-              <h4>Quả Còn — Túi Hạt Mầm Sinh Sôi</h4>
+          <div class="article-body">
+            <p class="article-lead">
+              Đằng sau mỗi cuộc ném còn tưng bừng là sự chuẩn bị công phu, tỉ mỉ theo đúng chuẩn mực vũ trụ luận cổ truyền. Từng thân tre, từng đường kim mũi chỉ khâu quả còn đều mang triết lý nhân sinh sâu sắc.
+            </p>
+
+            <div class="craft-grid">
+              <!-- Item 1: Cột Tre -->
+              <div class="craft-item">
+                <div class="craft-header">
+                  <span class="craft-num">01</span>
+                  <div>
+                    <h4>Cột Còn (Cây Nêu Vũ Trụ)</h4>
+                    <span class="craft-sub">Chiếc thang nối liền Nhân gian và Thần linh</span>
+                  </div>
+                </div>
+                <p>Dân bản chọn cây tre bương hoặc cây mai già từ <strong>15 đến 30 mét</strong>, thân thẳng tắp không vết sâu mọt, ngọn vút cong thanh thoát. Dựng cột còn giữa khoảng đất rộng bằng phẳng nhất thung lũng, cột còn đóng vai trò trục tâm vũ trụ (Axis Mundi), dẫn dắt linh khí trời đất hội tụ về bản.</p>
+              </div>
+
+              <!-- Item 2: Vòng Búp Còn -->
+              <div class="craft-item">
+                <div class="craft-header">
+                  <span class="craft-num">02</span>
+                  <div>
+                    <h4>Vòng Còn Nhật Nguyệt (Cổng Trời)</h4>
+                    <span class="craft-sub">Đường kính 40 - 50cm dán giấy bản 2 mặt</span>
+                  </div>
+                </div>
+                <p>Đỉnh cột uốn vòng tre tròn trịa, dán kín bằng giấy bản truyền thống: mặt hướng Đông dán <strong>giấy đỏ (Mặt Trời — Dương)</strong>, mặt hướng Tây dán <strong>giấy vàng/trắng (Mặt Trăng — Âm)</strong>. Khoảnh khắc quả còn đâm thủng tâm giấy là lúc <em>"Khai mở cổng trời"</em>, âm dương giao hòa tuyệt đối.</p>
+              </div>
+
+              <!-- Item 3: Ruột Quả Còn -->
+              <div class="craft-item">
+                <div class="craft-header">
+                  <span class="craft-num">03</span>
+                  <div>
+                    <h4>Ruột Quả Còn — Túi Hạt Mầm No Ấm</h4>
+                    <span class="craft-sub">Khâu bằng thổ cẩm ngũ sắc ngũ hành</span>
+                  </div>
+                </div>
+                <p>Quả còn hình lập phương hoặc múi khế, may bằng vải chàm và thổ cẩm ngũ sắc. Ruột quả còn tuyệt đối <strong>không nhồi cát đá</strong>, mà được bà mẹ vùng cao nhồi đầy <strong>hạt thóc giống lúa nương, ngô, vừng, hạt cải và sợi bông vải</strong> — gửi gắm ước nguyện mầm sống no ấm nảy nở.</p>
+              </div>
+
+              <!-- Item 4: Tua Rua & Dây Còn -->
+              <div class="craft-item">
+                <div class="craft-header">
+                  <span class="craft-num">04</span>
+                  <div>
+                    <h4>Dây Còn & Tua Rua Cầu Mưa</h4>
+                    <span class="craft-sub">Dải lụa ngũ sắc uốn lượn tựa mây trời</span>
+                  </div>
+                </div>
+                <p>Dây còn bện sợi gai dài khoảng 70 - 90cm. Bốn góc quả còn gắn các dải tua rua lụa dài mềm mại. Khi bay vút lên không trung, dải tua rua xoay tròn rực rỡ như những đám mây ngũ sắc mang mưa lành tưới mát nương ngô.</p>
+              </div>
             </div>
-            <p>Khâu tay tỉ mẩn từ thổ cẩm ngũ sắc tượng trưng cho ngũ hành. Ruột quả còn không nhồi cát đá mà nhồi <strong>hạt thóc nương, ngô, vừng, bông vải...</strong> gửi gắm ước nguyện no ấm. Các dải tua rua mềm mại phất phơ như những đám mây ngũ sắc mang mưa lành tưới mát nương rẫy.</p>
+          </div>
+        </article>
+
+        <!-- Chapter 3: Nghi Lễ Khai Hội & Tục Trao Duyên -->
+        <article class="culture-page" id="culture-page-3">
+          <div class="page-header-row">
+            <span class="page-indicator">Trang 3 / 4 • Chương 3</span>
+            <h3 class="page-title">Nghi Lễ Khai Hội & Tục Ném Còn Giao Duyên</h3>
           </div>
 
-          <!-- Card 4: Tục Giao Duyên -->
-          <div class="culture-card">
-            <div class="culture-card-header">
-              <span class="card-icon">🌸</span>
-              <h4>Tơ Duyên Bản Làng — Ném Còn Trao Tình</h4>
-            </div>
-            <p>Bên cạnh ý nghĩa cầu mùa, ném còn là ngày hội giao duyên náo nức nhất của lứa đôi vùng cao. Nam thanh nữ tú đứng đối diện tung còn qua lại; bắt trúng quả còn là đón lấy mối duyên lành, trao nhau khăn piêu, vòng bạc hẹn ước trăm năm.</p>
-          </div>
-        </div>
+          <div class="article-body">
+            <div class="ritual-timeline">
+              <div class="ritual-step">
+                <div class="step-badge">Nghi thức 1</div>
+                <h4>Lễ Tế Khai Hội & Cú Phóng Còn Mở Màn</h4>
+                <p>Trước giờ hội, thầy Tào hoặc già làng đức cao vọng trọng dâng mâm lễ cúng Thần Nông, Thần Núi, Thần Sông. Sau bài khấn thiêng, cụ già cầm quả còn đầu tiên vung tay phóng về phía vòng còn. Khi quả còn khai hội bay lên, cả thung lũng cùng hò reo, tiếng cồng chiêng tấu lên khai mạc hội thi.</p>
+              </div>
 
-        <div class="culture-quote">
-          💬 <em>"Còn bay vút qua cổng trời, lúa ngô trĩu hạt, lứa đôi nên duyên."</em>
+              <div class="ritual-step">
+                <div class="step-badge">Nghi thức 2</div>
+                <h4>Thi Tài "Tọt Con Vong" (Xuyên Vòng Cổng Trời)</h4>
+                <p>Hàng trăm chàng trai cô gái cùng thi tài ném còn. Cú ném đòi hỏi sự kết hợp tuyệt mỹ giữa lực quay ly tâm, quán tính con lắc và cảm giác góc phóng vút lên 50°. Người ném thủng vòng còn đầu tiên được coi là người may mắn nhất năm, được bà con tán dương và trao phần thưởng danh giá.</p>
+              </div>
+
+              <div class="ritual-step">
+                <div class="step-badge">Nghi thức 3</div>
+                <h4>Ném Còn Giao Duyên — Tơ Duyên Trăm Năm</h4>
+                <p>Bên lề cuộc thi tài, nam thanh nữ tú đứng đối diện thành hai hàng tung còn qua lại. Bắt được quả còn của đối phương là đón nhận tín hiệu giao duyên. Nếu bắt trượt, chàng trai hoặc cô gái trao cho nhau chiếc khăn piêu, vòng bạc, lược cài làm kỷ vật hẹn ước nên duyên vợ chồng.</p>
+              </div>
+            </div>
+
+            <div class="culture-quote-box">
+              <div class="quote-text">
+                🌸 <em>"Còn bay qua đỉnh dốc dài, người thương đứng đợi áo cài hoa lan. Cầm dây còn xoay vội vàng, buông tay một nhịp rộn ràng duyên ta."</em>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Chapter 4: Video Phóng Sự Thực Tế (YouTube) -->
+        <article class="culture-page" id="culture-page-4">
+          <div class="page-header-row">
+            <span class="page-indicator">Trang 4 / 4 • Chương 4</span>
+            <h3 class="page-title">Thư Viện Video & Phóng Sự Thực Tế (YouTube)</h3>
+          </div>
+
+          <div class="article-body">
+            <p class="article-lead">
+              Chiêm ngưỡng những thước phim chân thực, phóng sự truyền hình và không khí rực rỡ sắc màu của các lễ hội Lồng Tồng vùng cao ngoài đời thực:
+            </p>
+
+            <div class="video-grid">
+              <!-- Video 1 -->
+              <div class="video-card">
+                <div class="video-thumb-container">
+                  <div class="video-overlay-play">▶</div>
+                  <span class="video-tag">VTV / PHÓNG SỰ</span>
+                  <div class="video-mock-bg video-bg-1">
+                    <span class="video-icon-deco">🎋</span>
+                  </div>
+                </div>
+                <div class="video-info">
+                  <h4>Lễ Hội Lồng Tồng Ba Bể — Không Khí Hội Xuân Đỉnh Cao</h4>
+                  <p>Phóng sự ghi lại cảnh hàng ngàn đồng bào Tày, Nùng và du khách tụ hội bên hồ Ba Bể (Bắc Kạn), chiêm ngưỡng cây còn cao 25m và những màn tung còn ngoạn mục xé toang sương sớm.</p>
+                  <div class="video-actions">
+                    <a href="https://www.youtube.com/results?search_query=lễ+hội+lồng+tồng+ba+bể+ném+còn" target="_blank" rel="noopener noreferrer" class="btn-yt-watch">
+                      <span class="yt-icon">🔴</span> Xem trên YouTube ↗
+                    </a>
+                    <a href="https://www.youtube.com/watch?v=LHDcW2BBkRs" target="_blank" rel="noopener noreferrer" class="btn-yt-link">Video Ba Bể</a>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Video 2 -->
+              <div class="video-card">
+                <div class="video-thumb-container">
+                  <div class="video-overlay-play">▶</div>
+                  <span class="video-tag">VĂN HÓA TÂY BẮC</span>
+                  <div class="video-mock-bg video-bg-2">
+                    <span class="video-icon-deco">🌄</span>
+                  </div>
+                </div>
+                <div class="video-info">
+                  <h4>Trò Chơi Dân Gian Ném Còn Dân Tộc Thái Tây Bắc</h4>
+                  <p>Khám phá trọn vẹn văn hóa ném còn truyền thống của đồng bào dân tộc Thái Điện Biên, Sơn La: từ kỹ thuật vung dây còn, nhịp điệu dân gian đến tục ném còn giao duyên.</p>
+                  <div class="video-actions">
+                    <a href="https://www.youtube.com/results?search_query=trò+chơi+dân+gian+ném+còn+dân+tộc+Thái+Tây+Bắc" target="_blank" rel="noopener noreferrer" class="btn-yt-watch">
+                      <span class="yt-icon">🔴</span> Xem trên YouTube ↗
+                    </a>
+                    <a href="https://www.youtube.com/watch?v=xUQ9W45XbYM" target="_blank" rel="noopener noreferrer" class="btn-yt-link">Video Thái Tây Bắc</a>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Video 3 -->
+              <div class="video-card">
+                <div class="video-thumb-container">
+                  <div class="video-overlay-play">▶</div>
+                  <span class="video-tag">LỄ HỘI XỨ LẠNG</span>
+                  <div class="video-mock-bg video-bg-3">
+                    <span class="video-icon-deco">🌸</span>
+                  </div>
+                </div>
+                <div class="video-info">
+                  <h4>Hội Xuân Ném Còn Giao Duyên Xứ Lạng — Cao Bằng</h4>
+                  <p>Cận cảnh nam thanh nữ tú trong trang phục thổ cẩm rực rỡ, những nụ cười duyên và khoảnh khắc quả còn đâm xuyên thủng hồng tâm trong tiếng hò reo vang dội.</p>
+                  <div class="video-actions">
+                    <a href="https://www.youtube.com/results?search_query=ném+còn+giao+duyên+lễ+hội+lồng+tồng+Lạng+Sơn+Cao+Bằng" target="_blank" rel="noopener noreferrer" class="btn-yt-watch">
+                      <span class="yt-icon">🔴</span> Xem trên YouTube ↗
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Video 4 -->
+              <div class="video-card">
+                <div class="video-thumb-container">
+                  <div class="video-overlay-play">▶</div>
+                  <span class="video-tag">TRẢI NGHIỆM THỰC TẾ</span>
+                  <div class="video-mock-bg video-bg-4">
+                    <span class="video-icon-deco">🎯</span>
+                  </div>
+                </div>
+                <div class="video-info">
+                  <h4>Vlogger Trải Nghiệm Cầm Quả Còn Ném Trúng Hồng Tâm</h4>
+                  <p>Video trải nghiệm góc nhìn thực tế: lực ly tâm khi xoay dây còn, cảm giác buông tay đúng nhịp và niềm phấn khích khi quả còn chui lọt qua vòng búp trên cây nêu cao vút.</p>
+                  <div class="video-actions">
+                    <a href="https://www.youtube.com/results?search_query=trải+nghiệm+ném+còn+lễ+hội+xuống+đồng" target="_blank" rel="noopener noreferrer" class="btn-yt-watch">
+                      <span class="yt-icon">🔴</span> Xem trên YouTube ↗
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Direct Quick Search Banner -->
+            <div class="culture-yt-banner">
+              <div class="yt-banner-text">
+                <strong>🎥 Khám Phá Thêm Hàng Trăm Video Lễ Hội Ném Còn Trên YouTube</strong>
+                <p>Xem các phóng sự truyền hình VTV, VTC, Truyền hình các tỉnh miền núi phía Bắc ghi lại trực tiếp không khí hội xuân.</p>
+              </div>
+              <a href="https://www.youtube.com/results?search_query=trò+chơi+ném+còn+lễ+hội+lồng+tồng" target="_blank" rel="noopener noreferrer" class="btn-yt-hub">
+                🔍 Tìm Video Ném Còn Trên YouTube
+              </a>
+            </div>
+          </div>
+        </article>
+
+        <!-- Chapter Pagination Controls Footer -->
+        <div class="culture-pagination-footer">
+          <button class="btn-page-nav" id="btn-page-prev" disabled>← Trang Trước</button>
+          <div class="page-dots-indicator" id="culture-page-dots">
+            <span class="dot active" data-page="1">1</span>
+            <span class="dot" data-page="2">2</span>
+            <span class="dot" data-page="3">3</span>
+            <span class="dot" data-page="4">4</span>
+          </div>
+          <button class="btn-page-nav" id="btn-page-next">Trang Kế Tiếp →</button>
         </div>
       </div>
 
