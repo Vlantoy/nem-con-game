@@ -1137,12 +1137,18 @@
       // Open Mode Modal on start: "mỗi khi vào sẽ được chọn 2 chế độ..."
       this.openModeModal();
 
-      // Helper to convert screen coordinates to canvas world coordinates
+      // Helper to convert screen coordinates to canvas world coordinates (under object-fit: cover)
       this.getCanvasPos = (clientX, clientY) => {
         const rect = this.canvas.getBoundingClientRect();
+        const scale = Math.max(rect.width / CANVAS_WIDTH, rect.height / CANVAS_HEIGHT);
+        const renderedW = CANVAS_WIDTH * scale;
+        const renderedH = CANVAS_HEIGHT * scale;
+        const offsetX = (rect.width - renderedW) / 2;
+        const offsetY = (rect.height - renderedH) / 2;
+
         return {
-          x: (clientX - rect.left) * (CANVAS_WIDTH / rect.width),
-          y: (clientY - rect.top) * (CANVAS_HEIGHT / rect.height)
+          x: ((clientX - rect.left) - offsetX) / scale,
+          y: ((clientY - rect.top) - offsetY) / scale
         };
       };
 
