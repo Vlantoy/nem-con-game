@@ -1137,18 +1137,48 @@
       // Open Mode Modal on start: "mỗi khi vào sẽ được chọn 2 chế độ..."
       this.openModeModal();
 
-      // Helper to convert screen coordinates to canvas world coordinates (under object-fit: cover)
+      // Request landscape orientation lock if supported by mobile browser
+      try {
+        if (screen.orientation && screen.orientation.lock) {
+          screen.orientation.lock('landscape').catch(() => {});
+        }
+      } catch (e) {}
+
+      // Helper to convert screen coordinates to canvas world coordinates (handles object-fit: cover + mobile 90° forced landscape)
       this.getCanvasPos = (clientX, clientY) => {
+        const isPortraitRotated = (window.innerHeight > window.innerWidth) && (window.innerWidth <= 900);
         const rect = this.canvas.getBoundingClientRect();
-        const scale = Math.max(rect.width / CANVAS_WIDTH, rect.height / CANVAS_HEIGHT);
+        
+        let localX, localY, elemW, elemH;
+
+        if (isPortraitRotated) {
+          // Canvas is rotated 90deg clockwise in CSS: element width is rect.height (100vh), height is rect.width (100vw)
+          const cx = rect.left + rect.width / 2;
+          const cy = rect.top + rect.height / 2;
+          const dxScreen = clientX - cx;
+          const dyScreen = clientY - cy;
+
+          elemW = this.canvas.clientWidth || rect.height;
+          elemH = this.canvas.clientHeight || rect.width;
+
+          localX = elemW / 2 + dyScreen;
+          localY = elemH / 2 - dxScreen;
+        } else {
+          elemW = rect.width;
+          elemH = rect.height;
+          localX = clientX - rect.left;
+          localY = clientY - rect.top;
+        }
+
+        const scale = Math.max(elemW / CANVAS_WIDTH, elemH / CANVAS_HEIGHT);
         const renderedW = CANVAS_WIDTH * scale;
         const renderedH = CANVAS_HEIGHT * scale;
-        const offsetX = (rect.width - renderedW) / 2;
-        const offsetY = (rect.height - renderedH) / 2;
+        const offsetX = (elemW - renderedW) / 2;
+        const offsetY = (elemH - renderedH) / 2;
 
         return {
-          x: ((clientX - rect.left) - offsetX) / scale,
-          y: ((clientY - rect.top) - offsetY) / scale
+          x: (localX - offsetX) / scale,
+          y: (localY - offsetY) / scale
         };
       };
 

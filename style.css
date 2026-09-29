@@ -1067,3 +1067,32 @@ body {
   }
 }
 
+/* ==========================================
+   FORCED LANDSCAPE ORIENTATION ON MOBILE
+   Always forces horizontal landscape layout on mobile phones
+   ========================================== */
+@media screen and (orientation: portrait) and (max-width: 900px) {
+  html, body {
+    overflow: hidden !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    position: fixed !important;
+  }
+
+  #game-container {
+    width: 100vh !important;
+    height: 100vw !important;
+    max-width: 100vh !important;
+    max-height: 100vw !important;
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) rotate(90deg) !important;
+    transform-origin: center center !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+}
+
