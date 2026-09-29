@@ -651,44 +651,82 @@
   }
 
   // ==========================================
-  // CHARACTER RIG & ARTICULATED IK SYSTEM
+  // CHARACTER RIG & ARTICULATED IK SYSTEM (MODULAR SKIN-DRIVEN)
   // ==========================================
   class CharacterRig {
-    constructor() {
+    constructor(skinId = null) {
+      // Load active character skin configuration from character-config.js
+      this.skinConfig = (typeof CHARACTER_CONFIG !== 'undefined')
+        ? CHARACTER_CONFIG.getSkinConfig(skinId)
+        : null;
+
+      // Fallback defaults if CHARACTER_CONFIG is missing
+      const cfg = this.skinConfig || {
+        scale: CHAR_SCALE,
+        standingAnchorX: CHAR_ANCHOR_X,
+        anchors: {
+          footAnchor: { x: 565, y: 1510 },
+          shoulderJoint: { x: 429, y: 360 }
+        },
+        kinematics: {
+          scaleUpper: 0.53,
+          scaleFore: 1.15,
+          scaleHand: 0.35,
+          upperArm: { shoulderPivot: { x: 206, y: 208 }, elbowJoint: { x: 228, y: 603 } },
+          forearm: { elbowPivot: { x: 29, y: 20 }, wristJoint: { x: 49, y: 200 } },
+          hand: { wristPivot: { x: 25, y: 180 }, gripTunnel: { x: 165, y: 135 } }
+        },
+        animation: {
+          breathSpeed: 2.2,
+          breathAmplitude: 1.5,
+          swingKneeFlexMultiplier: 4.0,
+          throwFollowThroughVelocity: -14,
+          wristFlexionLimit: 1.05
+        }
+      };
+
+      this.cfg = cfg;
+
       // Body foot anchor and circular shoulder socket joint
-      this.footAnchor = { x: 565, y: 1510 };
-      this.shoulderJoint = { x: 429, y: 360 };
+      this.footAnchor = cfg.anchors.footAnchor;
+      this.shoulderJoint = cfg.anchors.shoulderJoint;
 
       // Scaled kinematics parameters
-      this.sBody = CHAR_SCALE;
-      this.sUpper = 0.53 * CHAR_SCALE;
-      this.sFore = 1.15 * CHAR_SCALE;
-      this.sHand = 0.35 * CHAR_SCALE;
+      this.sBody = cfg.scale || CHAR_SCALE;
+      this.standingAnchorX = cfg.standingAnchorX || CHAR_ANCHOR_X;
+      this.sUpper = (cfg.kinematics.scaleUpper || 0.53) * this.sBody;
+      this.sFore = (cfg.kinematics.scaleFore || 1.15) * this.sBody;
+      this.sHand = (cfg.kinematics.scaleHand || 0.35) * this.sBody;
 
-      // Pivots and vectors:
-      // upper_arm_unified.png (322x648): shoulder pivot at (206, 208), elbow at (228, 603)
-      this.uPiv = { x: 206 * this.sUpper, y: 208 * this.sUpper };
-      this.uElb = { x: 228 * this.sUpper, y: 603 * this.sUpper };
+      // Upper arm pivots & vectors
+      const uP = cfg.kinematics.upperArm.shoulderPivot;
+      const uE = cfg.kinematics.upperArm.elbowJoint;
+      this.uPiv = { x: uP.x * this.sUpper, y: uP.y * this.sUpper };
+      this.uElb = { x: uE.x * this.sUpper, y: uE.y * this.sUpper };
       const uVec = { x: this.uElb.x - this.uPiv.x, y: this.uElb.y - this.uPiv.y };
-      this.L1 = Math.hypot(uVec.x, uVec.y); // ≈ 209.7 * CHAR_SCALE ≈ 44.0px
+      this.L1 = Math.hypot(uVec.x, uVec.y);
       this.uBaseAng = Math.atan2(uVec.y, uVec.x);
 
-      // forearm.png (69x221): elbow pivot at (29, 20), wrist joint at (49, 200)
-      this.fPiv = { x: 29 * this.sFore, y: 20 * this.sFore };
-      this.fWri = { x: 49 * this.sFore, y: 200 * this.sFore };
+      // Forearm pivots & vectors
+      const fP = cfg.kinematics.forearm.elbowPivot;
+      const fW = cfg.kinematics.forearm.wristJoint;
+      this.fPiv = { x: fP.x * this.sFore, y: fP.y * this.sFore };
+      this.fWri = { x: fW.x * this.sFore, y: fW.y * this.sFore };
       const fVec = { x: this.fWri.x - this.fPiv.x, y: this.fWri.y - this.fPiv.y };
-      this.L2 = Math.hypot(fVec.x, fVec.y); // ≈ 208.3 * CHAR_SCALE ≈ 43.7px
+      this.L2 = Math.hypot(fVec.x, fVec.y);
       this.fBaseAng = Math.atan2(fVec.y, fVec.x);
 
-      // Hand sprite (325x270): wrist socket at (25, 180), fist curled tunnel at (165, 135)
-      this.hPiv = { x: 25 * this.sHand, y: 180 * this.sHand };
-      this.hGrip = { x: 165 * this.sHand, y: 135 * this.sHand };
+      // Hand pivots & vectors
+      const hP = cfg.kinematics.hand.wristPivot;
+      const hG = cfg.kinematics.hand.gripTunnel;
+      this.hPiv = { x: hP.x * this.sHand, y: hP.y * this.sHand };
+      this.hGrip = { x: hG.x * this.sHand, y: hG.y * this.sHand };
       const hVec = { x: this.hGrip.x - this.hPiv.x, y: this.hGrip.y - this.hPiv.y };
       this.hDist = Math.hypot(hVec.x, hVec.y);
       this.hBaseAng = Math.atan2(hVec.y, hVec.x);
 
       // World positions
-      this.bodyDrawX = CHAR_ANCHOR_X - this.footAnchor.x * this.sBody;
+      this.bodyDrawX = this.standingAnchorX - this.footAnchor.x * this.sBody;
       this.bodyDrawY = GROUND_Y - this.footAnchor.y * this.sBody;
 
       // Dynamic body bobbing & knee flexion (nhún nhẹ tự nhiên)
@@ -721,7 +759,8 @@
 
     triggerThrowBounce() {
       // Dynamic upward spring follow-through when releasing the con
-      this.throwVel = -14;
+      const bounceVel = (this.cfg.animation && this.cfg.animation.throwFollowThroughVelocity) || -14;
+      this.throwVel = bounceVel;
     }
 
     solveIK(targetX, targetY) {
@@ -762,9 +801,14 @@
     update(dt, isInteracting, mouseWorldX, mouseWorldY, pullTargetX, pullTargetY) {
       this.animTimer += dt;
 
+      const breathSpeed = (this.cfg.animation && this.cfg.animation.breathSpeed) || 2.2;
+      const breathAmp = (this.cfg.animation && this.cfg.animation.breathAmplitude) || 1.5;
+      const kneeFlexMult = (this.cfg.animation && this.cfg.animation.swingKneeFlexMultiplier) || 4.0;
+      const wristLimit = (this.cfg.animation && this.cfg.animation.wristFlexionLimit) || 1.05;
+
       // 1. Dynamic knee flexion & breathing bob ("nhún nhẹ để cảm giác chuyển động")
       let targetDip = 0;
-      const breathDip = Math.sin(this.animTimer * 2.2) * 1.5;
+      const breathDip = Math.sin(this.animTimer * breathSpeed) * breathAmp;
 
       if (isInteracting) {
         // Direct responsive tracking of mouse position
@@ -775,7 +819,7 @@
         // When arm pulls down/back, knees flex and body crouches slightly (down by 3-5px)
         // When arm swings up, body extends/springs up
         const armPhase = (this.wristY - this.shoulderY) / (this.L1 + this.L2);
-        const swingDip = Math.max(-2.5, Math.min(5.5, armPhase * 4.0));
+        const swingDip = Math.max(-2.5, Math.min(5.5, armPhase * kneeFlexMult));
         targetDip = swingDip + Math.sin(this.animTimer * 4.0) * 0.8;
       } else {
         // Relaxed standing ready stance
@@ -809,9 +853,7 @@
         if (diff > Math.PI) diff -= Math.PI * 2;
         if (diff < -Math.PI) diff += Math.PI * 2;
 
-        // Human wrist flexion limit (~60 degrees = ~1.05 rad)
-        const maxFlex = 1.05;
-        const clampedFlex = Math.max(-maxFlex, Math.min(maxFlex, diff));
+        const clampedFlex = Math.max(-wristLimit, Math.min(wristLimit, diff));
         // Rotate hand with cord pull while keeping strong forearm connection
         targetWristAngle = this.th2 + clampedFlex * 0.75;
       } else {
@@ -833,7 +875,7 @@
       const bh = assets.body.height * this.sBody;
 
       ctx.save();
-      ctx.translate(CHAR_ANCHOR_X, GROUND_Y);
+      ctx.translate(this.standingAnchorX, GROUND_Y);
       const squashY = Math.max(0.92, (bh - this.bodyDip) / bh);
       ctx.scale(1.0, squashY);
       ctx.drawImage(
@@ -1480,13 +1522,20 @@
     }
 
     loadAssets() {
+      // Dynamic character sprite loading from character-config.js
+      const charAssets = (typeof CHARACTER_CONFIG !== 'undefined')
+        ? CHARACTER_CONFIG.getCharacterAssetEntries()
+        : [
+            { key: 'body',      src: 'assets/character/attempt/clean/body.png' },
+            { key: 'upper_arm', src: 'assets/character/attempt/clean/upper_arm_unified.png' },
+            { key: 'forearm',   src: 'assets/character/attempt/clean/forearm.png' },
+            { key: 'hand',      src: 'assets/character/attempt/clean/hand.png' }
+          ];
+
       const assetList = [
         { key: 'bg',                  src: 'assets/background/Background.png' },
         { key: 'pole',                src: 'assets/items/Pole_transparent.png' },
-        { key: 'body',                src: 'assets/character/attempt/clean/body.png' },
-        { key: 'upper_arm',           src: 'assets/character/attempt/clean/upper_arm_unified.png' },
-        { key: 'forearm',             src: 'assets/character/attempt/clean/forearm.png' },
-        { key: 'hand',                src: 'assets/character/attempt/clean/hand.png' },
+        ...charAssets,
         { key: 'quacon_ball',         src: 'assets/character/attempt/clean/quacon_ball.png' },
         { key: 'streamer_pink',       src: 'assets/character/attempt/clean/streamer_pink.png' },
         { key: 'streamer_green_up',   src: 'assets/character/attempt/clean/streamer_green_up.png' },
