@@ -2,7 +2,6 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-const PORT = 8080;
 const PUBLIC_DIR = __dirname;
 
 const MIME_TYPES = {
@@ -17,38 +16,52 @@ const MIME_TYPES = {
   '.svg': 'image/svg+xml'
 };
 
-const server = http.createServer((req, res) => {
-  let reqPath = decodeURIComponent(req.url.split('?')[0]);
-  if (reqPath === '/' || reqPath === '') {
-    reqPath = '/index.html';
-  }
-
-  const safePath = path.normalize(reqPath).replace(/^(\.\.[\/\\])+/, '');
-  const filePath = path.join(PUBLIC_DIR, safePath);
-
-  fs.stat(filePath, (err, stats) => {
-    if (err || !stats.isFile()) {
-      res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
-      res.end('404 Not Found');
-      return;
+function startServer(port) {
+  const srv = http.createServer((req, res) => {
+    let reqPath = decodeURIComponent(req.url.split('?')[0]);
+    if (reqPath === '/' || reqPath === '') {
+      reqPath = '/index.html';
     }
 
-    const ext = path.extname(filePath).toLowerCase();
-    const contentType = MIME_TYPES[ext] || 'application/octet-stream';
+    const safePath = path.normalize(reqPath).replace(/^(\.\.[\/\\])+/, '');
+    const filePath = path.join(PUBLIC_DIR, safePath);
 
-    res.writeHead(200, {
-      'Content-Type': contentType,
-      'Content-Length': stats.size,
-      'Cache-Control': 'no-cache',
-      'Access-Control-Allow-Origin': '*'
+    fs.stat(filePath, (err, stats) => {
+      if (err || !stats.isFile()) {
+        res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+        res.end('404 Not Found');
+        return;
+      }
+
+      const ext = path.extname(filePath).toLowerCase();
+      const contentType = MIME_TYPES[ext] || 'application/octet-stream';
+
+      res.writeHead(200, {
+        'Content-Type': contentType,
+        'Content-Length': stats.size,
+        'Cache-Control': 'no-cache',
+        'Access-Control-Allow-Origin': '*'
+      });
+
+      const stream = fs.createReadStream(filePath);
+      stream.pipe(res);
     });
-
-    const stream = fs.createReadStream(filePath);
-    stream.pipe(res);
   });
-});
 
-// Listen without specifying host so Node binds dual-stack (both IPv4 and IPv6)
-server.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}/ and http://127.0.0.1:${PORT}/`);
-});
+  srv.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      const nextPort = port === 8080 ? 3000 : (port === 3000 ? 8081 : port + 1);
+      console.log(`Port ${port} in use, trying port ${nextPort}...`);
+      startServer(nextPort);
+    } else {
+      console.error('Server error:', err);
+    }
+  });
+
+  srv.listen(port, () => {
+    console.log(`Server running at http://localhost:${port}/ and http://127.0.0.1:${port}/`);
+  });
+}
+
+const PORT = parseInt(process.env.PORT || '8080', 10);
+startServer(PORT);

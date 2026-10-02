@@ -655,10 +655,22 @@
   // ==========================================
   class CharacterRig {
     constructor(skinId = null) {
+      this.initKinematics(skinId);
+    }
+
+    setSkin(skinConfigOrId) {
+      this.initKinematics(skinConfigOrId);
+    }
+
+    initKinematics(skinConfigOrId = null) {
       // Load active character skin configuration from character-config.js
-      this.skinConfig = (typeof CHARACTER_CONFIG !== 'undefined')
-        ? CHARACTER_CONFIG.getSkinConfig(skinId)
-        : null;
+      if (typeof skinConfigOrId === 'object' && skinConfigOrId !== null) {
+        this.skinConfig = skinConfigOrId;
+      } else if (typeof CHARACTER_CONFIG !== 'undefined') {
+        this.skinConfig = CHARACTER_CONFIG.getSkinConfig(skinConfigOrId);
+      } else {
+        this.skinConfig = null;
+      }
 
       // Fallback defaults if CHARACTER_CONFIG is missing
       const cfg = this.skinConfig || {
@@ -968,7 +980,13 @@
         btnModalOk: document.getElementById('btn-modal-ok'),
         banner: document.getElementById('announcement-banner'),
         announceTitle: document.getElementById('announce-title'),
-        announceScore: document.getElementById('announce-score')
+        announceScore: document.getElementById('announce-score'),
+        btnSkin: document.getElementById('btn-skin'),
+        skinLabel: document.getElementById('skin-label'),
+        modalSkin: document.getElementById('modal-skin'),
+        btnCloseSkin: document.getElementById('btn-close-skin'),
+        btnSkinDone: document.getElementById('btn-skin-done'),
+        skinGridContainer: document.getElementById('skin-grid-container')
       };
 
       // State variables
@@ -1249,6 +1267,31 @@
         });
       }
 
+      // Skin & Character Selection Modal
+      const btnQuickSkin = document.getElementById('btn-quick-skin');
+      if (btnQuickSkin) {
+        btnQuickSkin.addEventListener('click', () => {
+          this.openSkinModal();
+        });
+      }
+      if (this.ui.btnSkin) {
+        this.ui.btnSkin.addEventListener('click', () => {
+          this.openSkinModal();
+        });
+      }
+      if (this.ui.btnCloseSkin) {
+        this.ui.btnCloseSkin.addEventListener('click', () => {
+          this.closeSkinModal();
+        });
+      }
+      if (this.ui.btnSkinDone) {
+        this.ui.btnSkinDone.addEventListener('click', () => {
+          this.closeSkinModal();
+        });
+      }
+
+      this.updateSkinUI();
+
       // Open Mode Modal on start: "mỗi khi vào sẽ được chọn 2 chế độ..."
       this.openModeModal();
 
@@ -1480,6 +1523,98 @@
     closeModeModal() {
       if (this.ui.modalMode) {
         this.ui.modalMode.classList.add('hidden');
+      }
+    }
+
+    openSkinModal() {
+      this.renderSkinGrid();
+      if (this.ui.modalSkin) {
+        this.ui.modalSkin.classList.remove('hidden');
+      }
+    }
+
+    closeSkinModal() {
+      if (this.ui.modalSkin) {
+        this.ui.modalSkin.classList.add('hidden');
+      }
+    }
+
+    renderSkinGrid() {
+      if (!this.ui.skinGridContainer || typeof CHARACTER_CONFIG === 'undefined') return;
+      const allSkins = CHARACTER_CONFIG.getAllSkins();
+      const activeId = CHARACTER_CONFIG.getActiveSkinId();
+
+      this.ui.skinGridContainer.innerHTML = '';
+
+      allSkins.forEach(skin => {
+        const isCurrent = (skin.id === activeId);
+        const card = document.createElement('div');
+        card.className = `skin-card ${isCurrent ? 'active' : ''}`;
+        card.setAttribute('data-skin-id', skin.id);
+
+        const previewSrc = skin.preview || skin.sprites.body;
+
+        card.innerHTML = `
+          <div class="skin-card-badge">ĐANG SỬ DỤNG</div>
+          <div class="skin-preview-wrap">
+            <img src="${previewSrc}" alt="${skin.name}" class="skin-preview-img" onerror="this.src='${skin.sprites.body}'">
+          </div>
+          <div class="skin-info">
+            <h3>${skin.name}</h3>
+            <p class="skin-ethnicity">${skin.ethnicity || ''}</p>
+            <p class="skin-desc">${skin.description || ''}</p>
+          </div>
+          <button class="btn-select-skin">${isCurrent ? '✔ ĐANG CHỌN' : 'CHỌN NHÂN VẬT NÀY'}</button>
+        `;
+
+        card.addEventListener('click', async () => {
+          if (skin.id === CHARACTER_CONFIG.getActiveSkinId()) return;
+          await this.changeSkin(skin.id);
+          this.renderSkinGrid();
+          this.sound.init();
+          this.sound.playWhoosh(1.2);
+        });
+
+        this.ui.skinGridContainer.appendChild(card);
+      });
+    }
+
+    async changeSkin(skinId) {
+      if (typeof CHARACTER_CONFIG === 'undefined') return;
+      const cfg = CHARACTER_CONFIG.getSkinConfig(skinId);
+      if (!cfg) return;
+
+      CHARACTER_CONFIG.setActiveSkinId(skinId);
+
+      // Load new skin assets
+      const charAssets = CHARACTER_CONFIG.getCharacterAssetEntries(skinId);
+      await Promise.all(charAssets.map(item => {
+        return new Promise(resolve => {
+          const img = new Image();
+          img.onload = () => {
+            this.assets[item.key] = img;
+            resolve();
+          };
+          img.onerror = () => {
+            resolve();
+          };
+          img.src = item.src;
+        });
+      }));
+
+      // Update Character Rig
+      this.rig.setSkin(cfg);
+      if (this.state === STATE.IDLE || this.state === STATE.LOADING) {
+        this.cord.reset(this.rig.handGripX, this.rig.handGripY);
+      }
+      this.updateSkinUI();
+    }
+
+    updateSkinUI() {
+      if (typeof CHARACTER_CONFIG === 'undefined') return;
+      const cfg = CHARACTER_CONFIG.getSkinConfig();
+      if (this.ui.skinLabel && cfg) {
+        this.ui.skinLabel.textContent = cfg.name ? cfg.name.split(' ')[0] : 'Nhân Vật';
       }
     }
 

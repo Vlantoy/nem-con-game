@@ -31,6 +31,9 @@
       </div>
 
       <div class="hud-group hud-controls">
+        <button id="btn-skin" class="btn-tool btn-skin" title="Chọn nhân vật & Đổi trang phục">
+          <span class="icon">👘</span> <span id="skin-label" class="btn-text">Nhân Vật</span>
+        </button>
         <button id="btn-mode" class="btn-tool btn-mode" title="Đổi chế độ chơi: Giữ tự xoay hoặc Xoay chuột">
           <span class="icon" id="mode-icon">⚡</span> <span id="mode-label" class="btn-text">Tự Xoay</span>
         </button>
@@ -473,6 +476,9 @@
         <div class="modal-tabs">
           <span class="modal-header-title">🎋 CHỌN CHẾ ĐỘ NÉM CÒN</span>
         </div>
+        <button id="btn-quick-skin" class="btn-tool btn-skin" style="margin-left: auto; margin-right: 12px; padding: 4px 10px;" title="Chọn nhân vật">
+          <span class="icon">👘</span> <span class="btn-text">Đổi Nhân Vật</span>
+        </button>
         <button id="btn-close-mode" class="modal-close" title="Đóng">&times;</button>
       </div>
       <div class="modal-body">
@@ -538,6 +544,28 @@
       </div>
       <div class="modal-footer">
         <button id="btn-start-game" class="btn-primary">VÀO HỘI NÉM CÒN 🎯</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Character / Skin Selection Modal (Đổi trang phục & nhân vật bất kỳ lúc nào) -->
+  <div id="modal-skin" class="modal-overlay hidden">
+    <div class="modal-box modal-skin-box">
+      <div class="modal-header">
+        <div class="modal-tabs">
+          <span class="modal-header-title">👘 CHỌN NHÂN VẬT & TRANG PHỤC HỘI</span>
+        </div>
+        <button id="btn-close-skin" class="modal-close" title="Đóng">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-intro">Chọn nhân vật tham gia trẩy hội ném còn vùng cao (có thể đổi bất cứ lúc nào khi chơi):</p>
+        
+        <div class="skin-selection-grid" id="skin-grid-container">
+          <!-- Dynamic Skin Cards rendered by game.js from CHARACTER_CONFIG -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-skin-done" class="btn-primary">HOÀN TẤT & TRỞ LẠI SÂN HỘI 🎯</button>
       </div>
     </div>
   </div>

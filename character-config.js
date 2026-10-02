@@ -29,6 +29,7 @@ const CHARACTER_CONFIG = (() => {
       name: 'Cô Gái Tày Lễ Hội',
       ethnicity: 'Dân tộc Tày - Nùng (Việt Bắc)',
       gender: 'female',
+      preview: 'assets/character/skins/skin_template/anh_mau_khi_ghep_hoan_chinh.png',
       description: 'Trang phục áo chàm truyền thống, khăn vấn, thắt lưng ngũ sắc trẩy hội Lồng Tồng.',
 
       // Tỉ lệ thu phóng và vị trí đứng trên sân ném
@@ -92,9 +93,10 @@ const CHARACTER_CONFIG = (() => {
     // -----------------------------------------------------------------------
     'nam_tay_khoe_khoan': {
       id: 'nam_tay_khoe_khoan',
-      name: 'Chàng Trai Bản Tày (Mới)',
+      name: 'Chàng Trai Bản Tày',
       ethnicity: 'Dân tộc Tày (Việt Bắc)',
       gender: 'male',
+      preview: 'assets/character/skins/New skin/ChatGPT Image Oct 2, 2026, 10_30_13 PM-1.png',
       description: 'Trang phục áo chàm nam tính cộc tay hoa văn thổ cẩm đỏ xanh, sải tay dài.',
       scale: 0.21,
       standingAnchorX: 220,
