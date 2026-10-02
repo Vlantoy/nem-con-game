@@ -107,24 +107,24 @@ const CHARACTER_CONFIG = (() => {
         hand: 'assets/character/skins/nam_tay_moi/hand.png'
       },
       anchors: {
-        footAnchor: { x: 512, y: 1470 },
-        shoulderJoint: { x: 405, y: 270 }
+        footAnchor: { x: 565, y: 1510 },
+        shoulderJoint: { x: 429, y: 360 }
       },
       kinematics: {
-        scaleUpper: 0.27,
-        scaleFore: 0.155,
-        scaleHand: 0.135,
+        scaleUpper: 0.53,
+        scaleFore: 1.15,
+        scaleHand: 0.35,
         upperArm: {
-          shoulderPivot: { x: 445, y: 180 },
-          elbowJoint: { x: 460, y: 1300 }
+          shoulderPivot: { x: 206, y: 208 },
+          elbowJoint: { x: 228, y: 603 }
         },
         forearm: {
-          elbowPivot: { x: 350, y: 260 },
-          wristJoint: { x: 560, y: 1820 }
+          elbowPivot: { x: 29, y: 20 },
+          wristJoint: { x: 49, y: 200 }
         },
         hand: {
-          wristPivot: { x: 230, y: 580 },
-          gripTunnel: { x: 850, y: 460 }
+          wristPivot: { x: 25, y: 180 },
+          gripTunnel: { x: 165, y: 135 }
         }
       },
       animation: {

@@ -18,29 +18,30 @@ const MIME_TYPES = {
 
 function startServer(port) {
   const srv = http.createServer((req, res) => {
-    if (req.method === 'POST' && req.url === '/save-sprite') {
+    let reqPath = decodeURIComponent(req.url.split('?')[0]);
+    if (reqPath === '/' || reqPath === '') {
+      reqPath = '/index.html';
+    }
+
+    // Endpoint to save processed skin PNGs directly from canvas
+    if (req.method === 'POST' && reqPath === '/save-skin-part') {
       let body = '';
       req.on('data', chunk => body += chunk);
       req.on('end', () => {
         try {
-          const { filename, base64 } = JSON.parse(body);
-          const target = path.join(PUBLIC_DIR, filename);
+          const data = JSON.parse(body);
+          const target = path.join(PUBLIC_DIR, data.targetPath);
+          const base64Data = data.imageData.replace(/^data:image\/png;base64,/, '');
           fs.mkdirSync(path.dirname(target), { recursive: true });
-          fs.writeFileSync(target, Buffer.from(base64, 'base64'));
-          console.log('Saved sprite:', target);
+          fs.writeFileSync(target, Buffer.from(base64Data, 'base64'));
           res.writeHead(200, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ success: true, file: target }));
+          res.end(JSON.stringify({ success: true, path: target }));
         } catch (e) {
           res.writeHead(500, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ error: e.message }));
+          res.end(JSON.stringify({ success: false, error: e.message }));
         }
       });
       return;
-    }
-
-    let reqPath = decodeURIComponent(req.url.split('?')[0]);
-    if (reqPath === '/' || reqPath === '') {
-      reqPath = '/index.html';
     }
 
     const safePath = path.normalize(reqPath).replace(/^(\.\.[\/\\])+/, '');
