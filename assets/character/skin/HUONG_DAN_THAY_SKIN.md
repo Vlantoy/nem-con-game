@@ -6,7 +6,7 @@
 
 ## 🚀 CÁCH THAY ĐỔI NHANH NHẤT (CHỈ CẦN DÁN ĐÈ ẢNH):
 
-Chỉ cần mở Photoshop / Procreate / Illustrator / Canva, vẽ nhân vật mới rồi **LƯU / DÁN ĐÈ TRỰC TIẾP** vào thư mục [`assets/character/skin/`](file:///d:/LMHT/Traditional%20game%20MVP/assets/character/skin/):
+Chỉ cần mở Photoshop / Procreate / Illustrator / Canva, vẽ nhân vật mới rồi **LƯU / DÁN ĐÈ TRỰC TIẾP** vào thư mục này (`assets/character/skin/`):
 
 1. **`body.png`** (Kích thước: `1130 × 1536 px`)
    - Vẽ toàn bộ thân thể nhân vật mới (Đầu, tóc, mũ/khăn, thân áo, váy/quần, 2 chân, cánh tay trái).
@@ -21,7 +21,7 @@ Chỉ cần mở Photoshop / Procreate / Illustrator / Canva, vẽ nhân vật m
 4. **`hand.png`** (Kích thước: `325 × 270 px`)
    - Vẽ bàn tay phải ở tư thế khum tròn cầm dây quả còn.
 
-👉 **Sau khi paste 4 file vào thư mục `assets/character/skin/` -> Bấm F5 trên trình duyệt -> Nhân vật mới hiển thị ngay lập tức!**
+👉 **Sau khi paste 4 file vào thư mục này -> Bấm F5 trên trình duyệt -> Nhân vật mới hiển thị ngay lập tức!**
 
 ---
 

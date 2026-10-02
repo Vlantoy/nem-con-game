@@ -37,10 +37,10 @@ const CHARACTER_CONFIG = (() => {
 
       // Đường dẫn tài nguyên hình ảnh (Sprites)
       sprites: {
-        body: 'assets/character/attempt/clean/body.png',
-        upper_arm: 'assets/character/attempt/clean/upper_arm_unified.png',
-        forearm: 'assets/character/attempt/clean/forearm.png',
-        hand: 'assets/character/attempt/clean/hand.png'
+        body: 'assets/character/skin/body.png',
+        upper_arm: 'assets/character/skin/upper_arm_unified.png',
+        forearm: 'assets/character/skin/forearm.png',
+        hand: 'assets/character/skin/hand.png'
       },
 
       // Toạ độ điểm neo trên ảnh Thân (Body)
