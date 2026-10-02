@@ -17,7 +17,7 @@ const CHARACTER_CONFIG = (() => {
   'use strict';
 
   // Skin mặc định khi người chơi vào game
-  const DEFAULT_SKIN_ID = 'nu_tay_truyen_thong';
+  const DEFAULT_SKIN_ID = 'nam_tay_khoe_khoan';
 
   // DANH SÁCH TẤT CẢ CÁC SKIN NHÂN VẬT
   const CHARACTER_SKINS = {
@@ -92,37 +92,37 @@ const CHARACTER_CONFIG = (() => {
     // -----------------------------------------------------------------------
     'nam_tay_khoe_khoan': {
       id: 'nam_tay_khoe_khoan',
-      name: 'Chàng Trai Bản Tày',
-      ethnicity: 'Dân tộc Tày (Tây Bắc)',
+      name: 'Chàng Trai Bản Tày (Mới)',
+      ethnicity: 'Dân tộc Tày (Việt Bắc)',
       gender: 'male',
-      description: 'Trang phục chàm nam tính, dáng đứng vạm vỡ, sải tay dài.',
+      description: 'Trang phục áo chàm nam tính cộc tay hoa văn thổ cẩm đỏ xanh, sải tay dài.',
       scale: 0.21,
       standingAnchorX: 220,
       sprites: {
-        body: 'assets/character/attempt/clean/body.png',
-        upper_arm: 'assets/character/attempt/clean/upper_arm_unified.png',
-        forearm: 'assets/character/attempt/clean/forearm.png',
-        hand: 'assets/character/attempt/clean/hand.png'
+        body: 'assets/character/skins/nam_tay_moi/body.png',
+        upper_arm: 'assets/character/skins/nam_tay_moi/upper_arm_unified.png',
+        forearm: 'assets/character/skins/nam_tay_moi/forearm.png',
+        hand: 'assets/character/skins/nam_tay_moi/hand.png'
       },
       anchors: {
-        footAnchor: { x: 565, y: 1510 },
-        shoulderJoint: { x: 429, y: 360 }
+        footAnchor: { x: 512, y: 1470 },
+        shoulderJoint: { x: 355, y: 340 }
       },
       kinematics: {
-        scaleUpper: 0.53,
-        scaleFore: 1.15,
-        scaleHand: 0.35,
+        scaleUpper: 0.28,
+        scaleFore: 0.12,
+        scaleHand: 0.08,
         upperArm: {
-          shoulderPivot: { x: 206, y: 208 },
-          elbowJoint: { x: 228, y: 603 }
+          shoulderPivot: { x: 440, y: 300 },
+          elbowJoint: { x: 600, y: 1500 }
         },
         forearm: {
-          elbowPivot: { x: 29, y: 20 },
-          wristJoint: { x: 49, y: 200 }
+          elbowPivot: { x: 360, y: 150 },
+          wristJoint: { x: 550, y: 1900 }
         },
         hand: {
-          wristPivot: { x: 25, y: 180 },
-          gripTunnel: { x: 165, y: 135 }
+          wristPivot: { x: 280, y: 650 },
+          gripTunnel: { x: 850, y: 450 }
         }
       },
       animation: {

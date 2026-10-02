@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Trình Thử Nghiệm & Căn Chỉnh Skin Mới (Skin Rig Tuner)</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #1a1a24; color: #eee; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; height: 100vh; overflow: hidden; }
+    #canvas-container { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; background: radial-gradient(circle, #2d2d3f 0%, #15151e 100%); }
+    canvas { background: transparent; border: 2px solid #444; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    #sidebar { width: 420px; background: #232332; border-left: 1px solid #333; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+    h2 { font-size: 18px; color: #4ade80; border-bottom: 1px solid #3a3a4d; padding-bottom: 8px; }
+    .group { background: #1c1c28; padding: 12px; border-radius: 6px; border: 1px solid #313144; }
+    .group h3 { font-size: 14px; margin-bottom: 8px; color: #38bdf8; display: flex; justify-content: space-between; }
+    .row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; font-size: 13px; }
+    .row label { width: 140px; color: #bbb; }
+    .row input[type="range"] { flex: 1; margin: 0 8px; }
+    .row input[type="number"] { width: 65px; background: #2b2b3d; border: 1px solid #444; color: #fff; padding: 4px 6px; border-radius: 4px; text-align: right; }
+    button { background: #10b981; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+    button:hover { background: #059669; }
+    .btn-secondary { background: #3b82f6; margin-top: 5px; }
+    .btn-secondary:hover { background: #2563eb; }
+    pre { background: #111; color: #a3e635; padding: 10px; border-radius: 6px; font-size: 11px; max-height: 200px; overflow-y: auto; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <div id="canvas-container">
+    <canvas id="stage" width="1000" height="1000"></canvas>
+  </div>
+  <div id="sidebar">
+    <h2>🛠️ Căn Chỉnh Khớp Xương Skin Mới</h2>
+    
+    <div class="group">
+      <h3>1. Toạ Độ Khớp Thân (Body)</h3>
+      <div class="row"><label>Foot Anchor X:</label><input type="range" id="b_footX" min="0" max="1024" value="512"><input type="number" id="b_footX_n" value="512"></div>
+      <div class="row"><label>Foot Anchor Y:</label><input type="range" id="b_footY" min="0" max="1536" value="1470"><input type="number" id="b_footY_n" value="1470"></div>
+      <div class="row"><label>Shoulder Joint X:</label><input type="range" id="b_shX" min="0" max="1024" value="355"><input type="number" id="b_shX_n" value="355"></div>
+      <div class="row"><label>Shoulder Joint Y:</label><input type="range" id="b_shY" min="0" max="1536" value="250"><input type="number" id="b_shY_n" value="250"></div>
+    </div>
+
+    <div class="group">
+      <h3>2. Bắp Tay / Vai Áo (Upper Arm)</h3>
+      <div class="row"><label>Scale Bắp Tay:</label><input type="range" id="ua_scale" min="0.05" max="1.0" step="0.01" value="0.28"><input type="number" id="ua_scale_n" step="0.01" value="0.28"></div>
+      <div class="row"><label>Shoulder Pivot X:</label><input type="range" id="ua_pX" min="0" max="900" value="440"><input type="number" id="ua_pX_n" value="440"></div>
+      <div class="row"><label>Shoulder Pivot Y:</label><input type="range" id="ua_pY" min="0" max="1800" value="300"><input type="number" id="ua_pY_n" value="300"></div>
+      <div class="row"><label>Elbow Joint X:</label><input type="range" id="ua_eX" min="0" max="900" value="480"><input type="number" id="ua_eX_n" value="480"></div>
+      <div class="row"><label>Elbow Joint Y:</label><input type="range" id="ua_eY" min="0" max="1800" value="1600"><input type="number" id="ua_eY_n" value="1600"></div>
+    </div>
+
+    <div class="group">
+      <h3>3. Cẳng Tay (Forearm)</h3>
+      <div class="row"><label>Scale Cẳng Tay:</label><input type="range" id="fa_scale" min="0.05" max="1.0" step="0.01" value="0.12"><input type="number" id="fa_scale_n" step="0.01" value="0.12"></div>
+      <div class="row"><label>Elbow Pivot X:</label><input type="range" id="fa_pX" min="0" max="750" value="360"><input type="number" id="fa_pX_n" value="360"></div>
+      <div class="row"><label>Elbow Pivot Y:</label><input type="range" id="fa_pY" min="0" max="2200" value="100"><input type="number" id="fa_pY_n" value="100"></div>
+      <div class="row"><label>Wrist Joint X:</label><input type="range" id="fa_wX" min="0" max="750" value="500"><input type="number" id="fa_wX_n" value="500"></div>
+      <div class="row"><label>Wrist Joint Y:</label><input type="range" id="fa_wY" min="0" max="2200" value="1900"><input type="number" id="fa_wY_n" value="1900"></div>
+    </div>
+
+    <div class="group">
+      <h3>4. Bàn Tay (Hand)</h3>
+      <div class="row"><label>Scale Bàn Tay:</label><input type="range" id="h_scale" min="0.02" max="0.5" step="0.005" value="0.08"><input type="number" id="h_scale_n" step="0.005" value="0.08"></div>
+      <div class="row"><label>Wrist Pivot X:</label><input type="range" id="h_pX" min="0" max="1500" value="250"><input type="number" id="h_pX_n" value="250"></div>
+      <div class="row"><label>Wrist Pivot Y:</label><input type="range" id="h_pY" min="0" max="1100" value="650"><input type="number" id="h_pY_n" value="650"></div>
+      <div class="row"><label>Grip Cord X:</label><input type="range" id="h_gX" min="0" max="1500" value="850"><input type="number" id="h_gX_n" value="850"></div>
+      <div class="row"><label>Grip Cord Y:</label><input type="range" id="h_gY" min="0" max="1100" value="450"><input type="number" id="h_gY_n" value="450"></div>
+    </div>
+
+    <button id="copyConfigBtn">📋 Xuất Mã Cấu Hình (Copy Config)</button>
+    <pre id="outputJson"></pre>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('stage');
+    const ctx = canvas.getContext('2d');
+
+    const sprites = {
+      body: new Image(),
+      upper_arm: new Image(),
+      forearm: new Image(),
+      hand: new Image(),
+      ball: new Image()
+    };
+
+    sprites.body.src = 'assets/character/skins/nam_tay_moi/body.png';
+    sprites.upper_arm.src = 'assets/character/skins/nam_tay_moi/upper_arm_unified.png';
+    sprites.forearm.src = 'assets/character/skins/nam_tay_moi/forearm.png';
+    sprites.hand.src = 'assets/character/skins/nam_tay_moi/hand.png';
+    sprites.ball.src = 'assets/character/attempt/clean/quacon_ball.png';
+
+    // Interactive target for IK arm test
+    let target = { x: 450, y: 550 };
+    canvas.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      target.x = (e.clientX - rect.left) * (canvas.width / rect.width);
+      target.y = (e.clientY - rect.top) * (canvas.height / rect.height);
+    });
+
+    function bind(id) {
+      const slider = document.getElementById(id);
+      const num = document.getElementById(id + '_n');
+      slider.addEventListener('input', () => { num.value = slider.value; update(); });
+      num.addEventListener('input', () => { slider.value = num.value; update(); });
+    }
+
+    ['b_footX', 'b_footY', 'b_shX', 'b_shY',
+     'ua_scale', 'ua_pX', 'ua_pY', 'ua_eX', 'ua_eY',
+     'fa_scale', 'fa_pX', 'fa_pY', 'fa_wX', 'fa_wY',
+     'h_scale', 'h_pX', 'h_pY', 'h_gX', 'h_gY'].forEach(bind);
+
+    function getVal(id) {
+      return parseFloat(document.getElementById(id).value);
+    }
+
+    function solveIK(l1, l2, tx, ty) {
+      const dist = Math.hypot(tx, ty);
+      const targetAngle = Math.atan2(ty, tx);
+      const clampedDist = Math.max(Math.abs(l1 - l2) + 0.001, Math.min(l1 + l2 - 0.001, dist));
+      const cosA = (l1 * l1 + clampedDist * clampedDist - l2 * l2) / (2 * l1 * clampedDist);
+      const angleA = Math.acos(Math.max(-1, Math.min(1, cosA)));
+      const cosB = (l1 * l1 + l2 * l2 - clampedDist * clampedDist) / (2 * l1 * l2);
+      const angleB = Math.acos(Math.max(-1, Math.min(1, cosB)));
+      const a1 = targetAngle - angleA;
+      const a2 = a1 + (Math.PI - angleB);
+      return { a1, a2 };
+    }
+
+    function render() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Ground grid
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, 800); ctx.lineTo(canvas.width, 800);
+      ctx.stroke();
+
+      const charScale = 0.35;
+      const groundX = 350;
+      const groundY = 800;
+
+      // 1. Draw Body
+      const footX = getVal('b_footX');
+      const footY = getVal('b_footY');
+      const bodyW = sprites.body.width || 1024;
+      const bodyH = sprites.body.height || 1536;
+
+      const bodyOriginX = groundX - footX * charScale;
+      const bodyOriginY = groundY - footY * charScale;
+
+      if (sprites.body.complete) {
+        ctx.drawImage(sprites.body, bodyOriginX, bodyOriginY, bodyW * charScale, bodyH * charScale);
+      }
+
+      // Shoulder position on screen
+      const shX = bodyOriginX + getVal('b_shX') * charScale;
+      const shY = bodyOriginY + getVal('b_shY') * charScale;
+
+      // Upper arm specs
+      const uaScale = getVal('ua_scale');
+      const uaPx = getVal('ua_pX'), uaPy = getVal('ua_pY');
+      const uaEx = getVal('ua_eX'), uaEy = getVal('ua_eY');
+      const l1 = Math.hypot(uaEx - uaPx, uaEy - uaPy) * uaScale * charScale;
+      const uaLocalAngle = Math.atan2(uaEy - uaPy, uaEx - uaPx);
+
+      // Forearm specs
+      const faScale = getVal('fa_scale');
+      const faPx = getVal('fa_pX'), faPy = getVal('fa_pY');
+      const faWx = getVal('fa_wX'), faWy = getVal('fa_wY');
+      const l2 = Math.hypot(faWx - faPx, faWy - faPy) * faScale * charScale;
+      const faLocalAngle = Math.atan2(faWy - faPy, faWx - faPx);
+
+      // Solve IK
+      const ik = solveIK(l1, l2, target.x - shX, target.y - shY);
+      const armAngle1 = ik.a1;
+      const armAngle2 = ik.a2;
+
+      // Draw Upper Arm
+      ctx.save();
+      ctx.translate(shX, shY);
+      ctx.rotate(armAngle1 - uaLocalAngle);
+      ctx.scale(uaScale * charScale, uaScale * charScale);
+      if (sprites.upper_arm.complete) {
+        ctx.drawImage(sprites.upper_arm, -uaPx, -uaPy);
+      }
+      ctx.restore();
+
+      // Elbow position
+      const elbX = shX + l1 * Math.cos(armAngle1);
+      const elbY = shY + l1 * Math.sin(armAngle1);
+
+      // Draw Forearm
+      ctx.save();
+      ctx.translate(elbX, elbY);
+      ctx.rotate(armAngle2 - faLocalAngle);
+      ctx.scale(faScale * charScale, faScale * charScale);
+      if (sprites.forearm.complete) {
+        ctx.drawImage(sprites.forearm, -faPx, -faPy);
+      }
+      ctx.restore();
+
+      // Wrist position
+      const wristX = elbX + l2 * Math.cos(armAngle2);
+      const wristY = elbY + l2 * Math.sin(armAngle2);
+
+      // Hand specs
+      const hScale = getVal('h_scale');
+      const hPx = getVal('h_pX'), hPy = getVal('h_pY');
+      const hGx = getVal('h_gX'), hGy = getVal('h_gY');
+      const hLocalAngle = Math.atan2(hGy - hPy, hGx - hPx);
+
+      // Draw Hand
+      ctx.save();
+      ctx.translate(wristX, wristY);
+      ctx.rotate(armAngle2 - hLocalAngle);
+      ctx.scale(hScale * charScale, hScale * charScale);
+      if (sprites.hand.complete) {
+        ctx.drawImage(sprites.hand, -hPx, -hPy);
+      }
+      ctx.restore();
+
+      // Draw Target & Ball
+      ctx.fillStyle = '#ef4444';
+      ctx.beginPath();
+      ctx.arc(target.x, target.y, 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Draw cord from hand to ball
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(wristX, wristY);
+      ctx.lineTo(target.x, target.y);
+      ctx.stroke();
+
+      if (sprites.ball.complete) {
+        ctx.drawImage(sprites.ball, target.x - 20, target.y - 20, 40, 40);
+      }
+
+      requestAnimationFrame(render);
+    }
+
+    function update() {
+      const cfg = {
+        scale: 0.21,
+        anchors: {
+          footAnchor: { x: getVal('b_footX'), y: getVal('b_footY') },
+          shoulderJoint: { x: getVal('b_shX'), y: getVal('b_shY') }
+        },
+        kinematics: {
+          scaleUpper: getVal('ua_scale'),
+          scaleFore: getVal('fa_scale'),
+          scaleHand: getVal('h_scale'),
+          upperArm: {
+            shoulderPivot: { x: getVal('ua_pX'), y: getVal('ua_pY') },
+            elbowJoint: { x: getVal('ua_eX'), y: getVal('ua_eY') }
+          },
+          forearm: {
+            elbowPivot: { x: getVal('fa_pX'), y: getVal('fa_pY') },
+            wristJoint: { x: getVal('fa_wX'), y: getVal('fa_wY') }
+          },
+          hand: {
+            wristPivot: { x: getVal('h_pX'), y: getVal('h_pY') },
+            gripTunnel: { x: getVal('h_gX'), y: getVal('h_gY') }
+          }
+        }
+      };
+      document.getElementById('outputJson').innerText = JSON.stringify(cfg, null, 2);
+    }
+
+    document.getElementById('copyConfigBtn').addEventListener('click', () => {
+      navigator.clipboard.writeText(document.getElementById('outputJson').innerText);
+      alert('Đã copy cấu hình JSON vào clipboard!');
+    });
+
+    update();
+    render();
+  </script>
+</body>
+</html>
