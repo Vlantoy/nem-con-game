@@ -108,22 +108,22 @@ const CHARACTER_CONFIG = (() => {
       },
       anchors: {
         footAnchor: { x: 512, y: 1470 },
-        shoulderJoint: { x: 410, y: 270 }
+        shoulderJoint: { x: 405, y: 270 }
       },
       kinematics: {
-        scaleUpper: 0.22,
-        scaleFore: 0.11,
-        scaleHand: 0.08,
+        scaleUpper: 0.27,
+        scaleFore: 0.155,
+        scaleHand: 0.135,
         upperArm: {
-          shoulderPivot: { x: 445, y: 250 },
-          elbowJoint: { x: 450, y: 1200 }
+          shoulderPivot: { x: 445, y: 180 },
+          elbowJoint: { x: 460, y: 1300 }
         },
         forearm: {
-          elbowPivot: { x: 360, y: 250 },
-          wristJoint: { x: 640, y: 1950 }
+          elbowPivot: { x: 350, y: 260 },
+          wristJoint: { x: 560, y: 1820 }
         },
         hand: {
-          wristPivot: { x: 260, y: 560 },
+          wristPivot: { x: 230, y: 580 },
           gripTunnel: { x: 850, y: 460 }
         }
       },
