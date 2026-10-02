@@ -18,6 +18,26 @@ const MIME_TYPES = {
 
 function startServer(port) {
   const srv = http.createServer((req, res) => {
+    if (req.method === 'POST' && req.url === '/save-sprite') {
+      let body = '';
+      req.on('data', chunk => body += chunk);
+      req.on('end', () => {
+        try {
+          const { filename, base64 } = JSON.parse(body);
+          const target = path.join(PUBLIC_DIR, filename);
+          fs.mkdirSync(path.dirname(target), { recursive: true });
+          fs.writeFileSync(target, Buffer.from(base64, 'base64'));
+          console.log('Saved sprite:', target);
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ success: true, file: target }));
+        } catch (e) {
+          res.writeHead(500, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: e.message }));
+        }
+      });
+      return;
+    }
+
     let reqPath = decodeURIComponent(req.url.split('?')[0]);
     if (reqPath === '/' || reqPath === '') {
       reqPath = '/index.html';
