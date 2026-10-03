@@ -765,8 +765,9 @@
       this.handGripY = this.wristY + Math.sin(this.wristAngle) * this.hDist;
 
       // Target hand position (smoothly driven by mouse or idle)
-      this.targetHandX = this.shoulderX + 1;
-      this.targetHandY = this.shoulderY + 86;
+      const idleOff = (cfg.kinematics && cfg.kinematics.idleHandOffset) || { x: 1, y: 86 };
+      this.targetHandX = this.shoulderX + idleOff.x;
+      this.targetHandY = this.shoulderY + idleOff.y;
     }
 
     triggerThrowBounce() {
@@ -835,8 +836,9 @@
         targetDip = swingDip + Math.sin(this.animTimer * 4.0) * 0.8;
       } else {
         // Relaxed standing ready stance
-        const defaultX = this.shoulderX + 1;
-        const defaultY = this.shoulderY + 86;
+        const idleOff = (this.cfg.kinematics && this.cfg.kinematics.idleHandOffset) || { x: 1, y: 86 };
+        const defaultX = this.shoulderX + idleOff.x;
+        const defaultY = this.shoulderY + idleOff.y;
         this.targetHandX += (defaultX - this.targetHandX) * Math.min(dt * 8, 1.0);
         this.targetHandY += (defaultY - this.targetHandY) * Math.min(dt * 8, 1.0);
         targetDip = breathDip;
@@ -899,23 +901,23 @@
       );
       ctx.restore();
 
-      // 2. Draw Upper Arm with Unified Puffed Sleeve (vai áo gắn liền cánh tay, xoay tự nhiên tại khớp vai)
-      if (assets.upper_arm) {
-        const img = assets.upper_arm;
-        ctx.save();
-        ctx.translate(this.shoulderX, this.shoulderY);
-        ctx.rotate(this.th1 - this.uBaseAng);
-        ctx.drawImage(img, -this.uPiv.x, -this.uPiv.y, img.width * this.sUpper, img.height * this.sUpper);
-        ctx.restore();
-      }
-
-      // 3. Draw Forearm (pivoting at elbow)
+      // 2. Draw Forearm (pivoting at elbow, drawn before upper arm so sleeve cuff cleanly overlaps elbow)
       if (assets.forearm) {
         const img = assets.forearm;
         ctx.save();
         ctx.translate(this.elbowX, this.elbowY);
         ctx.rotate(this.th2 - this.fBaseAng);
         ctx.drawImage(img, -this.fPiv.x, -this.fPiv.y, img.width * this.sFore, img.height * this.sFore);
+        ctx.restore();
+      }
+
+      // 3. Draw Upper Arm with Unified Puffed Sleeve (sleeve cuff naturally wraps over forearm)
+      if (assets.upper_arm) {
+        const img = assets.upper_arm;
+        ctx.save();
+        ctx.translate(this.shoulderX, this.shoulderY);
+        ctx.rotate(this.th1 - this.uBaseAng);
+        ctx.drawImage(img, -this.uPiv.x, -this.uPiv.y, img.width * this.sUpper, img.height * this.sUpper);
         ctx.restore();
       }
 

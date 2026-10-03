@@ -38,10 +38,10 @@ const CHARACTER_CONFIG = (() => {
 
       // Đường dẫn tài nguyên hình ảnh (Sprites)
       sprites: {
-        body: 'assets/character/skin/body.png',
-        upper_arm: 'assets/character/skin/upper_arm_unified.png',
-        forearm: 'assets/character/skin/forearm.png',
-        hand: 'assets/character/skin/hand.png'
+        body: 'assets/character/skins/skin_template/body.png',
+        upper_arm: 'assets/character/skins/skin_template/upper_arm_unified.png',
+        forearm: 'assets/character/skins/skin_template/forearm.png',
+        hand: 'assets/character/skins/skin_template/hand.png'
       },
 
       // Toạ độ điểm neo trên ảnh Thân (Body)
@@ -108,24 +108,25 @@ const CHARACTER_CONFIG = (() => {
       },
       anchors: {
         footAnchor: { x: 512, y: 1470 },
-        shoulderJoint: { x: 378, y: 248 }
+        shoulderJoint: { x: 392, y: 250 }
       },
       kinematics: {
-        scaleUpper: 0.125,
-        scaleFore: 0.125,
-        scaleHand: 0.08,
+        scaleUpper: 0.258,
+        scaleFore: 0.194,
+        scaleHand: 0.38,
         upperArm: {
-          shoulderPivot: { x: 435, y: 275 },
-          elbowJoint: { x: 440, y: 1470 }
+          shoulderPivot: { x: 440, y: 200 },
+          elbowJoint: { x: 580, y: 1240 }
         },
         forearm: {
-          elbowPivot: { x: 350, y: 260 },
-          wristJoint: { x: 360, y: 1420 }
+          elbowPivot: { x: 380, y: 260 },
+          wristJoint: { x: 448, y: 1640 }
         },
         hand: {
-          wristPivot: { x: 320, y: 600 },
-          gripTunnel: { x: 800, y: 550 }
-        }
+          wristPivot: { x: 132, y: 60 },
+          gripTunnel: { x: 132, y: 180 }
+        },
+        idleHandOffset: { x: 2, y: 110 }
       },
       animation: {
         breathSpeed: 2.0,
