@@ -1,62 +1,82 @@
 {
+  "_doc": "CẤU HÌNH KHỚP NỐI & KÍCH THƯỚC CHUẨN 100% ĐỒNG BỘ VỚI character-config.js VÀ HUONG_DAN_TAO_SKIN.md",
   "body": {
     "size": [
       1024,
       1536
     ],
     "shoulder_joint": [
-      432,
-      362
+      429,
+      360
     ],
     "foot_anchor": [
-      520,
-      1483
+      565,
+      1510
     ]
   },
-  "upper_arm": {
+  "upper_arm_unified": {
+    "file": "upper_arm_unified.png",
     "size": [
-      100,
-      325
+      322,
+      648
     ],
     "shoulder_pivot": [
-      50,
-      50
+      206,
+      208
     ],
     "elbow_joint": [
-      46,
-      219
+      228,
+      603
     ],
-    "scale_to_body": 1.0
+    "scale_to_body": 0.477
+  },
+  "upper_arm": {
+    "file": "upper_arm_unified.png",
+    "size": [
+      322,
+      648
+    ],
+    "shoulder_pivot": [
+      206,
+      208
+    ],
+    "elbow_joint": [
+      228,
+      603
+    ],
+    "scale_to_body": 0.477
   },
   "forearm": {
+    "file": "forearm.png",
     "size": [
-      80,
-      200
+      69,
+      221
     ],
     "elbow_pivot": [
-      40,
-      25
+      29,
+      20
     ],
     "wrist_joint": [
-      38,
-      175
+      49,
+      200
     ],
-    "scale_to_body": 1.0
+    "scale_to_body": 1.035
   },
   "hand": {
+    "file": "hand.png",
     "size": [
-      365,
+      325,
       270
     ],
     "wrist_pivot": [
-      35,
-      185
+      25,
+      180
     ],
     "grip_cord_point": [
-      205,
+      165,
       135
     ],
-    "scale_to_body": 0.28
+    "scale_to_body": 0.385
   },
   "quacon_ball": {
     "size": [
@@ -118,16 +138,5 @@
       "length": 420,
       "rest_angle_deg": 30
     }
-  },
-  "sleeve": {
-    "size": [
-      336,
-      300
-    ],
-    "shoulder_pivot": [
-      195,
-      68
-    ],
-    "scale_to_body": 0.53
   }
 }

@@ -1,107 +1,113 @@
-# ⚡ BỘ PROMPT & HƯỚNG DẪN TẠO SKIN CHUẨN (KHÔNG CẦN SỬA CODE)
+# ⚡ BỘ MASTER PROMPT & HƯỚNG DẪN TẠO SKIN ĐỒNG BỘ 4-TRONG-1 (ALL-IN-ONE)
 
-Tài liệu này cung cấp **Bộ Prompt AI (ChatGPT / DALL-E / Midjourney)** và **Thông số chuẩn 100% theo Nhân Vật Nữ Template**.  
-Chỉ cần copy bộ prompt này đưa cho AI hoặc mở Photoshop vẽ theo đúng khung toạ độ, bạn sẽ có ngay một nhân vật mới **tự động khớp xương, khớp kích thước và cử động hoàn hảo trong game mà không cần sửa bất kỳ 1 dòng code nào!**
+Tài liệu này cung cấp **Bộ Master Prompt AI (ChatGPT / DALL-E 3 / Midjourney v6 / SDXL)** giúp bạn tạo toàn bộ **4 bộ phận nhân vật NAM (hoặc bất kỳ nhân vật nào)** trên **CÙNG 1 HÌNH ẢNH DUY NHẤT (Single Sprite Sheet)**.
+
+> 🌟 **Lợi ích đột phá của phương pháp tạo đồng thời 4-trong-1:**
+> 1. **100% Đồng nhất phong cách & màu sắc:** Thân người, bắp tay, cẳng tay và bàn tay được vẽ cùng 1 lượt, cùng gam màu da, cùng chất liệu vải áo chàm và hoa văn thổ cẩm.
+> 2. **Chuẩn xác tỷ lệ giải phẫu học:** AI tự căn chỉnh chiều dài bắp tay, cẳng tay và bàn tay tương xứng với tỷ lệ cơ thể nhân vật, triệt tiêu hoàn toàn lỗi tay quá to hoặc quá nhỏ.
+> 3. **Tiết kiệm thời gian:** Chỉ cần bấm tạo **1 lần duy nhất** thay vì phải prompt 4-5 lần rời rạc rồi chắp vá.
+> 4. **Khớp 100% với hệ thống xương IK của game:** Tự động khớp các điểm neo không cần sửa bất kỳ dòng code nào.
 
 ---
 
-## 🎯 1. NGUYÊN TẮC VÀNG ĐỂ SKIN KHỚP 100% VỚI TEMPLATE
+## 🎯 1. NGUYÊN TẮC VÀNG CỦA 4 BỘ PHẬN TRÊN BẢN VẼ
 
-Nhân vật trong game gồm 4 bộ phận hoạt động theo hệ thống xương động học ngược (2D Bone IK):
-
-| File Sprite | Kích thước Canvas | Điểm neo khớp nối (Pivot Point) | Mô tả & Quy tắc bắt buộc |
+| File Sprite | Kích thước Template | Vị trí Khớp Nối (Pivot) | Quy tắc bắt buộc khi vẽ |
 | :--- | :---: | :--- | :--- |
-| **`body.png`** | **`1024 × 1536 px`** | Gót chân: `(565, 1510)`<br>Khớp vai: `(429, 360)` | **THÂN THỂ:** Gồm đầu, tóc, trang phục, 2 chân và cánh tay trái.<br>⚠️ **BẮT BUỘC:** Nách áo bên phải phải khoét sạch cong tròn (clean armhole). **TUYỆT ĐỐI KHÔNG VẼ CÁNH TAY PHẢI** thò ra ngoài áo! |
-| **`upper_arm_unified.png`** | **`322 × 648 px`** | Khớp vai: `(206, 208)`<br>Viền cùi chỏ: `(228, 603)` | **BẮP TAY ÁO:** Tay áo bồng kéo dài từ vai xuống cùi chỏ.<br>⚠️ **BẮT BUỘC:** Đáy tay áo dừng đúng tại viền cùi chỏ. **KHÔNG vẽ mẩu thịt thò ra dưới viền áo**! |
-| **`forearm.png`** | **`69 × 221 px`** | Khớp cùi chỏ: `(29, 20)`<br>Khớp cổ tay: `(49, 200)` | **CẲNG TAY:** Phần tay trần từ cùi chỏ đến cổ tay.<br>⚠️ **BẮT BUỘC:** Đỉnh cùi chỏ bo tròn hình bán nguyệt (để xoay 360° kín khít). **Đáy cẳng tay dừng tại cổ tay, KHÔNG vẽ nắm đấm**! |
-| **`hand.png`** | **`325 × 270 px`** | Cổ tay: `(25, 180)`<br>Lỗ xỏ dây còn: `(165, 135)` | **BÀN TAY:** Bàn tay khum tròn nắm dây quả còn.<br>⚠️ **BẮT BUỘC:** Cổ tay ở góc trên-trái, ngón tay hướng vào trong để dây quả còn luồn qua lòng bàn tay. |
+| **`body.png`** | **`1024 × 1536 px`** | Gót chân: `(565, 1510)`<br>Khớp vai: `(429, 360)` | **THÂN THỂ:** Đứng góc 3/4 nhìn sang phải, tay trái ôm hông.<br>⚠️ **BẮT BUỘC:** Vai bên phải khoét nách áo cong tròn sạch sẽ (sleeveless armhole seam). **TUYỆT ĐỐI KHÔNG CÓ CÁNH TAY PHẢI, KHÔNG CÓ MẨU CỤT THÒ RA**! |
+| **`upper_arm_unified.png`** | **`322 × 648 px`** | Khớp vai: `(206, 208)`<br>Viền cùi chỏ: `(228, 603)` | **BẮP TAY ÁO:** Ống tay áo bồng vẽ riêng đặt thẳng đứng.<br>⚠️ **BẮT BUỘC:** Đáy ống tay áo cắt phẳng ngang tại viền cùi chỏ. **KHÔNG vẽ mẩu thịt thò ra dưới viền áo**! |
+| **`forearm.png`** | **`69 × 221 px`** | Khớp cùi chỏ: `(29, 20)`<br>Khớp cổ tay: `(49, 200)` | **CẲNG TAY:** Cẳng tay da trần đặt thẳng đứng.<br>⚠️ **BẮT BUỘC:** Đỉnh cùi chỏ bo tròn hình bán nguyệt mịn (half-circle dome) để xoay kín khít. **Đáy dừng tại ngấn cổ tay, TUYỆT ĐỐI KHÔNG vẽ bàn tay/nắm đấm**! |
+| **`hand.png`** | **`325 × 270 px`** | Cổ tay: `(25, 180)`<br>Lỗ xỏ dây còn: `(165, 135)` | **BÀN TAY:** Bàn tay khum tròn nắm giữ dây quả còn.<br>⚠️ **BẮT BUỘC:** Cuống cổ tay ở góc trên bên trái, ngón tay hướng vào trong. |
 
-> 💡 **Ảnh mẫu tham chiếu có sẵn trong thư mục này:**
-> - [`anh_mau_khi_ghep_hoan_chinh.png`](file:///d:/LMHT/Traditional%20game%20MVP/assets/character/skins/skin_template/anh_mau_khi_ghep_hoan_chinh.png): Ảnh nhân vật mẫu khi 4 bộ phận ghép lại hoàn chỉnh.
-> - [`khung_mau_doi_chieu.png`](file:///d:/LMHT/Traditional%20game%20MVP/assets/character/skins/skin_template/khung_mau_doi_chieu.png): Bản đồ toạ độ đánh dấu chính xác 5 điểm khớp pixel chuẩn.
-
----
-
-## 🤖 2. BỘ PROMPT CHUẨN DÙNG CHO CHATGPT (DALL-E 3)
-
-### 📌 BƯỚC 1: TẠO NHÂN VẬT TỔNG THỂ (FULL CHARACTER)
-👉 **Thao tác:** Tải lên ảnh [`khung_mau_doi_chieu.png`](file:///d:/LMHT/Traditional%20game%20MVP/assets/character/skins/skin_template/khung_mau_doi_chieu.png) vào ChatGPT và gửi prompt sau:
-
-```text
-Hãy vẽ cho tôi một nhân vật [Mô tả nhân vật: ví dụ Chàng trai Tày áo chàm / Chiến binh áo giáp / Cô gái hiện đại] theo đúng phong cách 2D pixel art JRPG tương tự ảnh tham chiếu đính kèm.
-
-YÊU CẦU KỸ THUẬT BẮT BUỘC:
-1. Nền trong suốt hoàn toàn (Transparent PNG background).
-2. Độ phân giải khung vẽ đúng 1024 x 1536 pixel.
-3. Dáng đứng (Pose): Quay mặt 3/4 sang bên phải (three-quarter view facing right). Tỷ lệ cơ thể đầu-thân-chân phải khớp hoàn toàn với nhân vật mẫu trong ảnh đính kèm.
-4. Gót chân đứng tiếp đất tại vị trí đáy toạ độ y ≈ 1510px.
-5. Cánh tay trái: Đặt tự nhiên ngang hông/bụng áo.
-6. Giữ tông màu sắc nét, viền nét pixel art sạch sẽ (clean pixel outlines, no blurry anti-aliasing).
-```
+> 📁 File JSON cấu hình toạ độ chuẩn tương ứng: [`skin_config.json`](file:///d:/LMHT/Traditional%20game%20MVP/assets/character/skin/skin_config.json)  
+> 📁 Code hệ thống kinematics chính: [`character-config.js`](file:///d:/LMHT/Traditional%20game%20MVP/character-config.js)
 
 ---
 
-### 📌 BƯỚC 2: TÁCH 4 BỘ PHẬN SPRITE RỜI KHỚP 100% VỚI KHUNG XƯƠNG
+## 🚀 2. MASTER PROMPT ĐỒNG THỜI 4-TRONG-1 (KHUYÊN DÙNG)
 
-Sau khi ChatGPT đã vẽ được nhân vật bạn ưng ý ở Bước 1, tiếp tục gửi lần lượt 4 prompt dưới đây:
+### 📌 CÁCH DÙNG CHO CHATGPT (GPT-4o / DALL-E 3)
+1. Tải lên ảnh tham chiếu [`khung_mau_doi_chieu.png`](file:///d:/LMHT/Traditional%20game%20MVP/assets/character/skins/skin_template/khung_mau_doi_chieu.png) vào ChatGPT.
+2. Sao chép và dán nguyên văn prompt tiếng Việt dưới đây:
 
-#### 🔹 2.1. File Thân Người (`body.png` - 1024 × 1536 px)
 ```text
-Từ nhân vật vừa tạo, hãy xuất cho tôi file thân thể 'body.png' với nền trong suốt (transparent PNG) kích thước đúng 1024 x 1536 pixel:
-- Giữ nguyên: Toàn bộ đầu, tóc, nón/mũ, thân áo, quần/váy, 2 chân và cánh tay trái.
-- QUY TẮC CỐT LÕI: KHÔNG VẼ CÁNH TAY PHẢI.
-- Tại vị trí vai phải (toạ độ x: 429, y: 360), hãy vẽ đường khoét nách áo cong tròn tự nhiên (clean sleeveless armhole seam).
-- Tuyệt đối không để lại mẩu tay cụt, mặt cắt thịt hay bất kỳ đoạn vải ống tay nào nhô ra ngoài nách áo.
-```
+Hãy vẽ cho tôi một bản thiết kế bộ phận nhân vật game 2D (2D modular character sprite sheet kit) trên một hình ảnh duy nhất với nền trắng trơn hoàn toàn (solid pure white background), theo phong cách đồ hoạ 2D pixel art JRPG tương tự ảnh đính kèm.
 
-#### 🔹 2.2. File Bắp Tay Áo (`upper_arm_unified.png` - 322 × 648 px)
-```text
-Xuất cho tôi file bắp tay áo phải 'upper_arm_unified.png' với nền trong suốt (transparent PNG) kích thước đúng 322 x 648 pixel:
-- Chỉ vẽ duy nhất phần bắp tay và vai áo bồng bên phải của nhân vật, xếp dọc từ trên xuống.
-- Đỉnh vai áo bồng nằm ở toạ độ (x: 206, y: 208).
-- Đáy ống tay áo dừng chính xác tại viền cùi chỏ toạ độ (x: 228, y: 603).
-- QUY TẮC CỐT LÕI: Cắt phẳng ngang tại viền tay áo. TUYỆT ĐỐI KHÔNG vẽ phần da thịt thò ra ngoài viền tay áo để làm khớp nối xoay cùi chỏ.
-```
+NHÂN VẬT:
+- Một chàng trai thanh niên người Tày (Việt Bắc), độ tuổi 20-25, vóc dáng khỏe khoắn, tuấn tú, nam tính và thân thiện.
+- Trang phục: Áo chàm truyền thống cài khuy chéo, vạt áo và cổ áo có thêu hoa văn thổ cẩm đặc sắc (đỏ, cam, xanh ngọc), thắt lưng vải dệt, quần ống đứng màu chàm sẫm, quấn khăn chàm gọn gàng trên đầu.
+- Phong cách: 2D pixel art JRPG sắc nét, màu sắc tươi sáng, viền nét sạch sẽ rõ ràng (clean sharp outlines, no blurry anti-aliasing).
 
-#### 🔹 2.3. File Cẳng Tay (`forearm.png` - 69 × 221 px)
-```text
-Xuất cho tôi file cẳng tay phải 'forearm.png' với nền trong suốt (transparent PNG) kích thước đúng 69 x 221 pixel:
-- Chỉ vẽ duy nhất phần cẳng tay da trần bên phải, kéo dài theo chiều dọc.
-- Đỉnh cùi chỏ tại toạ độ (x: 29, y: 20) phải được bo tròn hình bán nguyệt (half-circle rounded joint dome) để khi xoay bên trong ống tay áo không bao giờ bị hở khe.
-- Đáy cẳng tay tại toạ độ (x: 49, y: 200) dừng tại ngấn cổ tay.
-- QUY TẮC CỐT LÕI: TUYỆT ĐỐI KHÔNG vẽ bàn tay hay nắm đấm (bàn tay là sprite rời).
-```
+BỐ CỤC KHUNG TRANH (TẤT CẢ 4 BỘ PHẬN TRÊN CÙNG 1 TẤM ẢNH, TÁCH RỜI NHAU VÀ CÓ KHOẢNG CÁCH NGĂN CÁCH RÕ RÀNG):
 
-#### 🔹 2.4. File Bàn Tay Cầm Còn (`hand.png` - 325 × 270 px)
-```text
-Xuất cho tôi file bàn tay phải 'hand.png' với nền trong suốt (transparent PNG) kích thước đúng 325 x 270 pixel:
-- Chỉ vẽ bàn tay phải ở tư thế khum tròn các ngón tay để nắm giữ dây quả còn.
-- Cuống cổ tay nằm ở góc trên bên trái tại toạ độ (x: 25, y: 180).
-- Lòng bàn tay và lỗ xỏ dây quả còn nằm tại tâm (x: 165, y: 135).
-- Nền hoàn toàn trong suốt.
+1. PHẦN THÂN CHÍNH (Nằm ở bên trái, chiếm 60% bức ảnh):
+   - Toàn thân nhân vật đứng thẳng, góc nhìn 3/4 quay sang bên phải (three-quarter view facing right).
+   - Hai chân đứng vững vàng trên mặt đất, tỷ lệ chiều cao khớp với ảnh mẫu đính kèm.
+   - Cánh tay trái gập tự nhiên đặt ngang hông hoặc trước bụng áo.
+   - ⚠️ ĐIỀU KIỆN QUAN TRỌNG NHẤT: BÊN VAI PHẢI LÀ ĐƯỜNG NÁCH ÁO KHOÉT TRÒN CỘC TAY SẠCH SẼ (clean sleeveless armhole seam). TUYỆT ĐỐI KHÔNG CÓ CÁNH TAY PHẢI, không có mẩu thịt cụt hay vải tay áo thò ra ở vai phải.
+
+2. PHẦN BẮP TAY ÁO PHẢI (Nằm ở cột bên phải, phía trên):
+   - Vẽ riêng một ống tay áo bồng bên phải đặt thẳng đứng.
+   - Đồng bộ màu vải chàm và hoa văn viền thổ cẩm ở cùi chỏ với thân áo chính.
+   - Đỉnh vai cong tròn. Đáy ống tay áo cắt phẳng ngang ngay tại khớp cùi chỏ.
+   - ⚠️ TUYỆT ĐỐI KHÔNG vẽ phần da thịt cẳng tay thò ra dưới viền áo.
+
+3. PHẦN CẲNG TAY PHẢI (Nằm ở cột bên phải, ở giữa):
+   - Vẽ riêng phần cẳng tay da trần săn chắc của tay phải đặt thẳng đứng, cùng tông màu da với khuôn mặt và cổ nhân vật.
+   - Đỉnh cùi chỏ có chỏm tròn hình bán nguyệt mịn màng (rounded joint dome) để làm khớp xoay.
+   - Đáy cẳng tay kết thúc sạch sẽ tại ngấn cổ tay.
+   - ⚠️ TUYỆT ĐỐI KHÔNG vẽ bàn tay hay nắm đấm (bàn tay là bộ phận rời).
+
+4. PHẦN BÀN TAY PHẢI (Nằm ở cột bên phải, phía dưới):
+   - Vẽ riêng bàn tay phải các ngón tay khum tròn tư thế nắm dây ném quả còn.
+   - Cuống cổ tay nằm ở góc trên bên trái, lòng bàn tay mở hướng vào trong để xỏ dây.
+
+YÊU CẦU KỸ THUẬT:
+- Nền trắng tinh khiết (solid plain white background) để dễ dàng tách nền trong suốt.
+- 4 bộ phận không dính vào nhau, có khoảng trống tối thiểu 50px ngăn cách giữa các bộ phận để dễ cắt rời.
+- Không vẽ bóng đổ phức tạp trên nền.
+- Toàn bộ 4 bộ phận có tỷ lệ kích thước tương quan giải phẫu học đồng nhất 100%.
 ```
 
 ---
 
-## 🎨 3. MASTER PROMPT TIẾNG ANH (CHO MIDJOURNEY / STABLE DIFFUSION)
-
-Nếu bạn sử dụng **Midjourney v6** hoặc **Stable Diffusion XL**, hãy dùng câu lệnh chuẩn này:
+### 📌 CÁCH DÙNG CHO MIDJOURNEY V6 / STABLE DIFFUSION XL / LEONARDO AI
+Sao chép câu lệnh chuẩn tiếng Anh:
 
 ```text
-2D game character sprite sheet, full-body standing pose facing three-quarters right, [ethnic Tay youth / your character description], wearing traditional embroidered indigo attire, clean pixel art style, 16-bit JRPG aesthetic, isolated on solid white background --ar 2:3 --v 6.0 --no background, scenery, shadow
-```
+A complete 2D modular video game character sprite sheet kit on a single canvas, isolated on a solid plain white background. Character is a handsome, athletic young ethnic Tay male (Vietnamese highland culture), wearing a traditional indigo tunic with ornate red and turquoise brocade embroidery, matching indigo headband, dark trousers, friendly confident expression, 16-bit JRPG clean pixel art style, crisp outlines, vibrant colors. 
 
-Sau đó dùng Photoshop đặt layer nhân vật mới lên trên file [`khung_mau_doi_chieu.png`](file:///d:/LMHT/Traditional%20game%20MVP/assets/character/skins/skin_template/khung_mau_doi_chieu.png), chỉnh opacity 50% để khớp đúng 5 điểm neo đỏ-xanh-vàng rồi crop ra 4 file theo kích thước bảng trên.
+The image is neatly arranged as a modular rigging sheet containing 4 separated, non-overlapping parts:
+1. MAIN BODY (on the left side): Full body standing pose facing three-quarter right, left arm resting naturally on hip. CRITICAL: The right shoulder has a clean sleeveless round armhole seam - NO right arm, NO severed stump, NO arm stub attached.
+2. RIGHT UPPER ARM (top right column): A detached puffy indigo sleeve placed vertically, matching embroidery cuff at elbow level. Clean cut at bottom hem, NO flesh visible.
+3. RIGHT FOREARM (middle right column): A detached bare athletic forearm placed vertically, matching skin tone. Top elbow has a smooth half-circle rounded joint dome. Bottom ends cleanly at the wrist crease - NO hand, NO fingers attached.
+4. RIGHT HAND (bottom right column): A detached right hand with fingers curled in a natural gripping fist pose for holding a cord. Wrist joint oriented at top-left.
+
+Crisp flat 2D game asset, clean spacing between all components, professional game dev model sheet, no shadows, no background clutter, 8k resolution --ar 16:9 --v 6.0 --style raw
+```
 
 ---
 
-## 🚀 4. CÁCH ĐƯA VÀO GAME (1 THAO TÁC DUY NHẤT)
+## ✂️ 3. CẮT 4 FILE TỰ ĐỘNG BẰNG 1 CÂU LỆNH (AUTO-SLICER TOOL)
 
-Sau khi có đủ 4 file:
-1. `body.png`
-2. `upper_arm_unified.png`
-3. `forearm.png`
-4. `hand.png`
+Dự án đã tích hợp sẵn công cụ tự động cắt ảnh sprite sheet thành 4 file chuẩn game:
 
-👉 **Dán đè 4 file vào thư mục:** [`assets/character/skin/`](file:///d:/LMHT/Traditional%20game%20MVP/assets/character/skin/)  
-👉 **Mở trình duyệt -> Bấm F5 (Reload):** Nhân vật mới sẽ xuất hiện với đầy đủ chuyển động vung tay ném còn mượt mà, **không cần cấu hình hay sửa bất kỳ dòng code nào!**
+1. Lưu ảnh AI tạo về máy, ví dụ đặt tên là `nhan_vat_nam.png`.
+2. Chạy lệnh sau trong Terminal / PowerShell:
+```powershell
+python tools/cat_sprite_sheet.py nhan_vat_nam.png assets/character/skin/
+```
+
+Tool sẽ tự động:
+- Tách nền trắng thành nền trong suốt (transparent).
+- Tách 4 khối: Thân (`body`), Bắp tay (`upper_arm_unified`), Cẳng tay (`forearm`), Bàn tay (`hand`).
+- Căn chỉnh tỷ lệ và lưu ra đúng kích thước template (`1024x1536`, `322x648`, `69x221`, `325x270`).
+- Ghi thẳng vào thư mục `assets/character/skin/`.
+
+---
+
+## 🕹️ 4. KIỂM TRA TRONG GAME
+
+Sau khi đã có 4 file trong thư mục `assets/character/skin/`:
+1. Mở trình duyệt vào game (hoặc bấm **F5 / Ctrl+F5** để tải lại trang).
+2. Nhân vật nam mới sẽ lập tức xuất hiện với chuyển động xoay tay, vung đà và ném quả còn mượt mà chuẩn xác từng khớp nối!
