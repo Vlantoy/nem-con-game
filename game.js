@@ -936,6 +936,7 @@
   // ==========================================
   class Game {
     constructor() {
+      window.gameInstance = this;
       this.canvas = document.getElementById('gameCanvas');
       this.ctx = this.canvas.getContext('2d');
 

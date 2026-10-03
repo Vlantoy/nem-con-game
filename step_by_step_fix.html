@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Quy Trình Cắt Gọt & Chuẩn Hoá Sprite Nhân Vật Nam</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { background: #0f172a; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 25px; margin: 0; }
+    h1 { color: #f59e0b; font-size: 22px; margin-bottom: 8px; }
+    p.sub { color: #94a3b8; font-size: 13px; margin-bottom: 25px; }
+    .step-card { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 20px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+    .step-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #334155; padding-bottom: 10px; }
+    .step-title { font-size: 16px; font-weight: bold; color: #38bdf8; display: flex; align-items: center; gap: 8px; }
+    .step-desc { font-size: 13px; color: #cbd5e1; line-height: 1.5; margin-bottom: 15px; }
+    .canvas-compare { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
+    .canvas-box { text-align: center; background: #0b1120; border: 1px dashed #475569; border-radius: 8px; padding: 12px; }
+    .canvas-box label { display: block; font-size: 12px; font-weight: bold; color: #94a3b8; margin-bottom: 8px; }
+    canvas { background: radial-gradient(circle, #1e293b 0%, #0b1120 100%); border-radius: 6px; }
+    .status-badge { background: #10b981; color: #fff; font-size: 11px; padding: 3px 8px; border-radius: 12px; font-weight: bold; }
+    .status-badge.error { background: #ef4444; }
+  </style>
+</head>
+<body>
+  <h1>📸 QUY TRÌNH TỪNG BƯỚC CẮT GỌT & CHUẨN HOÁ TAY NHÂN VẬT NAM</h1>
+  <p class="sub">Chụp hình chi tiết từng thao tác: 1. Cắt nách áo Body -> 2. Tỉa bắp tay áo -> 3. Phục hồi cơ bắp cẳng tay -> 4. Ráp hoàn chỉnh trên khung xương.</p>
+
+  <!-- BƯỚC 1: XỬ LÝ NÁCH ÁO BODY -->
+  <div class="step-card">
+    <div class="step-header">
+      <div class="step-title"><span>✂️ BƯỚC 1:</span> Tẩy sạch khúc ống tay cụt trên thân người (Body.png)</div>
+      <span class="status-badge" id="badge-step1">ĐÃ XỬ LÝ</span>
+    </div>
+    <p class="step-desc">
+      <strong>Vấn đề:</strong> AI để lại một khúc ống tay áo sơ mi trắng hình trụ dài ~120px nhô ra ngoài nách áo gile.<br>
+      <strong>Thao tác xử lý:</strong> Lần theo đường viền chỉ đỏ và áo gile đen, cắt gọt sạch toàn bộ phần vải trắng và mặt cắt thịt thừa bên ngoài, trả lại nách áo gile cong tự nhiên như nhân vật Nữ.
+    </p>
+    <div class="canvas-compare">
+      <div class="canvas-box">
+        <label>❌ TRƯỚC: Có khúc tay cụt thừa (Zoom vai)</label>
+        <canvas id="cvs_b1_before" width="300" height="350"></canvas>
+      </div>
+      <div class="canvas-box">
+        <label>✅ SAU: Nách áo sạch 100% (Zoom vai)</label>
+        <canvas id="cvs_b1_after" width="300" height="350"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- BƯỚC 2: XỬ LÝ BẮP TAY ÁO -->
+  <div class="step-card">
+    <div class="step-header">
+      <div class="step-title"><span>✂️ BƯỚC 2:</span> Cắt bắp tay áo dừng tại viền thổ cẩm (Upper_arm_unified.png)</div>
+      <span class="status-badge" id="badge-step2">ĐÃ XỬ LÝ</span>
+    </div>
+    <p class="step-desc">
+      <strong>Vấn đề:</strong> Dưới viền áo thổ cẩm có mẩu da thịt thò ra khiến tâm khuỷu tay bị tụt xuống dưới và đè lên cẳng tay.<br>
+      <strong>Thao tác xử lý:</strong> Cắt bỏ mẩu da thừa, lấy mép viền thổ cẩm làm tâm xoay cùi chỏ chuẩn xác, giữ nguyên độ bồng áo dày dặn.
+    </p>
+    <div class="canvas-compare">
+      <div class="canvas-box">
+        <label>❌ TRƯỚC: Thừa mẩu thịt dưới viền áo</label>
+        <canvas id="cvs_b2_before" width="220" height="320"></canvas>
+      </div>
+      <div class="canvas-box">
+        <label>✅ SAU: Cắt gọn tại viền thổ cẩm (Tâm cùi chỏ)</label>
+        <canvas id="cvs_b2_after" width="220" height="320"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- BƯỚC 3: XỬ LÝ CẲNG TAY VẠM VỠ -->
+  <div class="step-card">
+    <div class="step-header">
+      <div class="step-title"><span>💪 BƯỚC 3:</span> Phục hồi độ to cơ bắp cẳng tay (Forearm.png)</div>
+      <span class="status-badge" id="badge-step3">ĐÃ XỬ LÝ</span>
+    </div>
+    <p class="step-desc">
+      <strong>Vấn đề:</strong> Bị bóp nghẹt vào khung 69px của Nữ khiến tay bé như que tăm so với thân hình nam.<br>
+      <strong>Thao tác xử lý:</strong> Trả về bề ngang cơ bắp đầy đặn (~130px), bo tròn đầu cùi chỏ để khi xoay trượt êm ái bên trong ống tay áo.
+    </p>
+    <div class="canvas-compare">
+      <div class="canvas-box">
+        <label>❌ TRƯỚC: Cẳng tay 69px (Que củi)</label>
+        <canvas id="cvs_b3_before" width="120" height="320"></canvas>
+      </div>
+      <div class="canvas-box">
+        <label>✅ SAU: Cẳng tay vạm vỡ 130px (Khớp với tay trái)</label>
+        <canvas id="cvs_b3_after" width="160" height="320"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- BƯỚC 4: RÁP CHUYỂN ĐỘNG THỰC TẾ TRÊN KHUNG XƯƠNG -->
+  <div class="step-card">
+    <div class="step-header">
+      <div class="step-title"><span>🎯 BƯỚC 4:</span> Kiểm tra ráp hoàn chỉnh ở 3 góc vung tay (IK Motion Test)</div>
+      <span class="status-badge" id="badge-step4">HOÀN HẢO</span>
+    </div>
+    <p class="step-desc">
+      Kiểm tra ở 3 tư thế: <strong>1. Đứng chờ (Hạ tay)</strong>, <strong>2. Vung ngang (45°)</strong>, và <strong>3. Vung cao (80°)</strong>.<br>
+      Quan sát nách áo và cùi chỏ: <strong>Tuyệt đối không còn vết tì vết, không thừa mẩu tay cụt, tỷ lệ tay to lớn cân xứng!</strong>
+    </p>
+    <div class="canvas-compare">
+      <div class="canvas-box">
+        <label>TƯ THẾ 1: ĐỨNG CHỜ (IDLE)</label>
+        <canvas id="cvs_rig_idle" width="340" height="480"></canvas>
+      </div>
+      <div class="canvas-box">
+        <label>TƯ THẾ 2: VUNG TAY LẤY ĐÀ (SWING 45°)</label>
+        <canvas id="cvs_rig_swing" width="340" height="480"></canvas>
+      </div>
+      <div class="canvas-box">
+        <label>TƯ THẾ 3: BUÔNG CÒN PHÓNG ĐI (RELEASE 80°)</label>
+        <canvas id="cvs_rig_throw" width="340" height="480"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <script src="character-config.js"></script>
+  <script>
+    async function loadImg(src) {
+      return new Promise((r, j) => {
+        const img = new Image();
+        img.onload = () => r(img);
+        img.onerror = j;
+        img.src = src;
+      });
+    }
+
+    async function executeFix() {
+      const rawBody = await loadImg('assets/character/skins/New skin/ChatGPT Image Oct 2, 2026, 10_30_15 PM-2.png');
+      const rawUpper = await loadImg('assets/character/skins/New skin/ChatGPT Image Oct 2, 2026, 10_30_18 PM-3.png');
+      const rawFore = await loadImg('assets/character/skins/New skin/ChatGPT Image Oct 2, 2026, 10_30_19 PM-4.png');
+      const rawHand = await loadImg('assets/character/skins/New skin/ChatGPT Image Oct 2, 2026, 10_30_20 PM-5.png');
+
+      // -------------------------------------------------------------
+      // BƯỚC 1: XỬ LÝ BODY - CẮT BỎ KHÚC ỐNG TAY CỤT MÀU TRẮNG
+      // -------------------------------------------------------------
+      const bCvs = document.createElement('canvas');
+      bCvs.width = 1024; bCvs.height = 1536;
+      const bCtx = bCvs.getContext('2d');
+      bCtx.drawImage(rawBody, 0, 0);
+
+      // Render Before Zoom (x: 250->550, y: 180->530)
+      const cvsB1Before = document.getElementById('cvs_b1_before');
+      cvsB1Before.getContext('2d').drawImage(rawBody, 250, 180, 300, 350, 0, 0, 300, 350);
+
+      // Clean the stump:
+      // The vest border starts around x: 380-410 between y: 190 and 380.
+      // Anything to the left of the black vest/red trim is the white stump!
+      const imgData = bCtx.getImageData(0, 0, 1024, 1536);
+      const pix = imgData.data;
+
+      for (let y = 190; y <= 380; y++) {
+        // Find the vest boundary for this row
+        // Moving from right (inside vest x: 440) to left
+        let vestEdgeX = 390;
+        for (let x = 440; x >= 320; x--) {
+          const idx = (y * 1024 + x) * 4;
+          const r = pix[idx], g = pix[idx+1], b = pix[idx+2], a = pix[idx+3];
+          if (a > 30) {
+            // Check if it's the black vest fabric or red/teal trim
+            const isVest = (r < 75 && g < 75 && b < 75) || (r > 130 && g < 65 && b < 65) || (g > 90 && b > 90 && r < 70);
+            if (isVest) {
+              vestEdgeX = x;
+            }
+          }
+        }
+
+        // Erase everything to the left of the vestEdgeX in the armhole zone
+        for (let x = 0; x <= vestEdgeX - 2; x++) {
+          const idx = (y * 1024 + x) * 4;
+          pix[idx+3] = 0; // set alpha = 0 (completely transparent)
+        }
+      }
+      bCtx.putImageData(imgData, 0, 0);
+
+      // Render After Zoom
+      const cvsB1After = document.getElementById('cvs_b1_after');
+      cvsB1After.getContext('2d').drawImage(bCvs, 250, 180, 300, 350, 0, 0, 300, 350);
+
+      // -------------------------------------------------------------
+      // BƯỚC 2: XỬ LÝ UPPER ARM - CẮT TẠI VIỀN THỔ CẨM
+      // -------------------------------------------------------------
+      const cvsB2Before = document.getElementById('cvs_b2_before');
+      cvsB2Before.getContext('2d').drawImage(rawUpper, 0, 0, rawUpper.width, rawUpper.height, 0, 0, 220, 320);
+
+      const uCvs = document.createElement('canvas');
+      uCvs.width = 887; uCvs.height = 1520;
+      const uCtx = uCvs.getContext('2d');
+      // Draw upper arm but cut off the skin nub below the cuff (y > 1520)
+      uCtx.drawImage(rawUpper, 0, 0);
+
+      // Erase skin below cuff
+      const uImgData = uCtx.getImageData(0, 0, 887, 1520);
+      const uPix = uImgData.data;
+      for (let y = 1450; y < 1520; y++) {
+        for (let x = 0; x < 887; x++) {
+          const idx = (y * 887 + x) * 4;
+          const r = uPix[idx], g = uPix[idx+1], b = uPix[idx+2];
+          // skin tone test: r > 200, g > 140, b > 100
+          if (r > 190 && g > 130 && b > 90 && !(r > 240 && g > 240 && b > 240)) {
+            uPix[idx+3] = 0;
+          }
+        }
+      }
+      uCtx.putImageData(uImgData, 0, 0);
+
+      const cvsB2After = document.getElementById('cvs_b2_after');
+      cvsB2After.getContext('2d').drawImage(uCvs, 0, 0, uCvs.width, uCvs.height, 0, 0, 220, 320);
+
+      // -------------------------------------------------------------
+      // BƯỚC 3: XỬ LÝ FOREARM - CƠ BẮP VẠM VỠ 130PX
+      // -------------------------------------------------------------
+      // Before: old squished forearm
+      const oldFore = await loadImg('assets/character/skins/nam_tay_moi/forearm.png');
+      const cvsB3Before = document.getElementById('cvs_b3_before');
+      cvsB3Before.getContext('2d').drawImage(oldFore, 0, 0, oldFore.width, oldFore.height, 10, 20, 100, 280);
+
+      // After: muscular full-width forearm from rawFore
+      const fCvs = document.createElement('canvas');
+      fCvs.width = 724; fCvs.height = 2172;
+      const fCtx = fCvs.getContext('2d');
+      fCtx.drawImage(rawFore, 0, 0);
+
+      // Add rounded cap on top so rotation inside cuff has zero seam
+      fCtx.fillStyle = '#f5c6aa';
+      fCtx.beginPath();
+      fCtx.arc(360, 260, 160, Math.PI, 0, false);
+      fCtx.fill();
+
+      const cvsB3After = document.getElementById('cvs_b3_after');
+      cvsB3After.getContext('2d').drawImage(fCvs, 0, 0, fCvs.width, fCvs.height, 0, 0, 160, 320);
+
+      // -------------------------------------------------------------
+      // LƯU CÁC FILE CHUẨN HOÁ MỚI VÀO ASSETS
+      // -------------------------------------------------------------
+      async function savePart(targetPath, canvas) {
+        const dataUrl = canvas.toDataURL('image/png');
+        await fetch('/save-skin-part', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ targetPath, imageData: dataUrl })
+        });
+      }
+
+      await savePart('assets/character/skins/nam_tay_moi/body.png', bCvs);
+      await savePart('assets/character/skins/nam_tay_moi/upper_arm_unified.png', uCvs);
+      await savePart('assets/character/skins/nam_tay_moi/forearm.png', fCvs);
+
+      // Also copy to active skin folder assets/character/skin/
+      await savePart('assets/character/skin/body.png', bCvs);
+      await savePart('assets/character/skin/upper_arm_unified.png', uCvs);
+      await savePart('assets/character/skin/forearm.png', fCvs);
+
+      // -------------------------------------------------------------
+      // BƯỚC 4: RÁP TRÊN KHUNG XƯƠNG Ở 3 GÓC ĐỘ VĂN HÓA / GAMEPLAY
+      // -------------------------------------------------------------
+      function renderRigPose(canvasId, targetX, targetY) {
+        const cvs = document.getElementById(canvasId);
+        const ctx = cvs.getContext('2d');
+        ctx.fillStyle = '#0b1120';
+        ctx.fillRect(0, 0, cvs.width, cvs.height);
+
+        const s = 0.28;
+        const groundX = 170, groundY = 460;
+        const bodyOriginX = groundX - 512 * s;
+        const bodyOriginY = groundY - 1470 * s;
+
+        // 1. Draw Body
+        ctx.drawImage(bCvs, bodyOriginX, bodyOriginY, 1024 * s, 1536 * s);
+
+        // Shoulder joint
+        const shX = bodyOriginX + 378 * s;
+        const shY = bodyOriginY + 248 * s;
+
+        // Proportional arm lengths for male (muscular arm)
+        const L1 = 135 * s;
+        const L2 = 145 * s;
+
+        // IK
+        const dx = targetX - shX, dy = targetY - shY;
+        const dist = Math.hypot(dx, dy);
+        const theta = Math.atan2(dy, dx);
+        const cosA = Math.max(-1, Math.min(1, (L1*L1 + dist*dist - L2*L2)/(2*L1*dist)));
+        const alpha = Math.acos(cosA);
+        const th1 = theta - alpha;
+        const elbX = shX + L1 * Math.cos(th1);
+        const elbY = shY + L1 * Math.sin(th1);
+        const th2 = Math.atan2(targetY - elbY, targetX - elbX);
+        const wrX = elbX + L2 * Math.cos(th2);
+        const wrY = elbY + L2 * Math.sin(th2);
+
+        // Draw Upper Arm
+        ctx.save();
+        ctx.translate(shX, shY);
+        ctx.rotate(th1 - 1.48);
+        const uW = 887 * 0.125 * s;
+        const uH = 1520 * 0.125 * s;
+        ctx.drawImage(uCvs, -uW * 0.49, -uH * 0.18, uW, uH);
+        ctx.restore();
+
+        // Draw Forearm
+        ctx.save();
+        ctx.translate(elbX, elbY);
+        ctx.rotate(th2 - 1.45);
+        const fW = 724 * 0.125 * s;
+        const fH = 2172 * 0.125 * s;
+        ctx.drawImage(fCvs, -fW * 0.48, -fH * 0.12, fW, fH);
+        ctx.restore();
+
+        // Draw Hand
+        ctx.save();
+        ctx.translate(wrX, wrY);
+        ctx.rotate(th2 - 1.45);
+        const hW = 1448 * 0.08 * s;
+        const hH = 1086 * 0.08 * s;
+        ctx.drawImage(rawHand, -hW * 0.22, -hH * 0.55, hW, hH);
+        ctx.restore();
+
+        // Joint markers
+        ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.arc(shX, shY, 4, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#3b82f6'; ctx.beginPath(); ctx.arc(elbX, elbY, 4, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#10b981'; ctx.beginPath(); ctx.arc(wrX, wrY, 4, 0, Math.PI*2); ctx.fill();
+      }
+
+      // Pose 1: Idle (tay hạ)
+      renderRigPose('cvs_rig_idle', 170 + 40, 270 + 70);
+      // Pose 2: Swing 45°
+      renderRigPose('cvs_rig_swing', 170 + 80, 270 - 10);
+      // Pose 3: Release / Throw 80°
+      renderRigPose('cvs_rig_throw', 170 + 60, 270 - 70);
+
+      console.log('✅ ALL OPERATIONS COMPLETED & SAVED TO ASSETS!');
+    }
+
+    window.addEventListener('load', executeFix);
+  </script>
+</body>
+</html>
