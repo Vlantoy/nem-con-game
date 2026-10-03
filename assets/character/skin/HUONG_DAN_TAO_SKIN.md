@@ -25,62 +25,34 @@ Tài liệu này cung cấp **Bộ Master Prompt AI (ChatGPT / DALL-E 3 / Midjou
 
 ### 📌 CÁCH DÙNG CHO CHATGPT (GPT-4o / DALL-E 3)
 1. Tải lên ảnh tham chiếu [`khung_mau_doi_chieu.png`](file:///d:/LMHT/Traditional%20game%20MVP/assets/character/skins/skin_template/khung_mau_doi_chieu.png) vào ChatGPT.
-2. Sao chép và dán nguyên văn prompt tiếng Việt dưới đây:
+2. Gửi câu lệnh tối giản sau:
 
 ```text
-Hãy vẽ cho tôi một bản thiết kế bộ phận nhân vật game 2D (2D modular character sprite sheet kit) trên một hình ảnh duy nhất với nền trắng trơn hoàn toàn (solid pure white background), theo phong cách đồ hoạ 2D pixel art JRPG tương tự ảnh đính kèm.
+Vẽ một sprite sheet nhân vật game 2D trên nền trắng trơn hoàn toàn, phong cách pixel art JRPG tương tự ảnh đính kèm:
 
-NHÂN VẬT:
-- Một chàng trai thanh niên người Tày (Việt Bắc), độ tuổi 20-25, vóc dáng khỏe khoắn, tuấn tú, nam tính và thân thiện.
-- Trang phục: Áo chàm truyền thống cài khuy chéo, vạt áo và cổ áo có thêu hoa văn thổ cẩm đặc sắc (đỏ, cam, xanh ngọc), thắt lưng vải dệt, quần ống đứng màu chàm sẫm, quấn khăn chàm gọn gàng trên đầu.
-- Phong cách: 2D pixel art JRPG sắc nét, màu sắc tươi sáng, viền nét sạch sẽ rõ ràng (clean sharp outlines, no blurry anti-aliasing).
+Nhân vật: Chàng trai dân tộc Tày khỏe khoắn, mặc áo chàm thổ cẩm truyền thống, quấn khăn đầu.
 
-BỐ CỤC KHUNG TRANH (TẤT CẢ 4 BỘ PHẬN TRÊN CÙNG 1 TẤM ẢNH, TÁCH RỜI NHAU VÀ CÓ KHOẢNG CÁCH NGĂN CÁCH RÕ RÀNG):
+Bố cục gồm 4 bộ phận tách rời nhau (không chạm nhau):
+1. Thân người (bên trái): Đứng góc 3/4 nhìn sang phải, tay trái chống hông. Nách áo bên phải cộc tay khoét tròn (tuyệt đối không vẽ cánh tay phải).
+2. Bắp tay áo (bên phải): Vẽ riêng một ống tay áo bồng màu chàm đặt thẳng đứng, đáy cắt ngang ở cùi chỏ.
+3. Cẳng tay (bên phải): Vẽ riêng cẳng tay da trần đặt dọc, đỉnh cùi chỏ bo tròn, đáy dừng ở cổ tay (không vẽ bàn tay).
+4. Bàn tay (bên phải): Vẽ riêng bàn tay phải khum tròn tư thế nắm dây.
 
-1. PHẦN THÂN CHÍNH (Nằm ở bên trái, chiếm 60% bức ảnh):
-   - Toàn thân nhân vật đứng thẳng, góc nhìn 3/4 quay sang bên phải (three-quarter view facing right).
-   - Hai chân đứng vững vàng trên mặt đất, tỷ lệ chiều cao khớp với ảnh mẫu đính kèm.
-   - Cánh tay trái gập tự nhiên đặt ngang hông hoặc trước bụng áo.
-   - ⚠️ ĐIỀU KIỆN QUAN TRỌNG NHẤT: BÊN VAI PHẢI LÀ ĐƯỜNG NÁCH ÁO KHOÉT TRÒN CỘC TAY SẠCH SẼ (clean sleeveless armhole seam). TUYỆT ĐỐI KHÔNG CÓ CÁNH TAY PHẢI, không có mẩu thịt cụt hay vải tay áo thò ra ở vai phải.
-
-2. PHẦN BẮP TAY ÁO PHẢI (Nằm ở cột bên phải, phía trên):
-   - Vẽ riêng một ống tay áo bồng bên phải đặt thẳng đứng.
-   - Đồng bộ màu vải chàm và hoa văn viền thổ cẩm ở cùi chỏ với thân áo chính.
-   - Đỉnh vai cong tròn. Đáy ống tay áo cắt phẳng ngang ngay tại khớp cùi chỏ.
-   - ⚠️ TUYỆT ĐỐI KHÔNG vẽ phần da thịt cẳng tay thò ra dưới viền áo.
-
-3. PHẦN CẲNG TAY PHẢI (Nằm ở cột bên phải, ở giữa):
-   - Vẽ riêng phần cẳng tay da trần săn chắc của tay phải đặt thẳng đứng, cùng tông màu da với khuôn mặt và cổ nhân vật.
-   - Đỉnh cùi chỏ có chỏm tròn hình bán nguyệt mịn màng (rounded joint dome) để làm khớp xoay.
-   - Đáy cẳng tay kết thúc sạch sẽ tại ngấn cổ tay.
-   - ⚠️ TUYỆT ĐỐI KHÔNG vẽ bàn tay hay nắm đấm (bàn tay là bộ phận rời).
-
-4. PHẦN BÀN TAY PHẢI (Nằm ở cột bên phải, phía dưới):
-   - Vẽ riêng bàn tay phải các ngón tay khum tròn tư thế nắm dây ném quả còn.
-   - Cuống cổ tay nằm ở góc trên bên trái, lòng bàn tay mở hướng vào trong để xỏ dây.
-
-YÊU CẦU KỸ THUẬT:
-- Nền trắng tinh khiết (solid plain white background) để dễ dàng tách nền trong suốt.
-- 4 bộ phận không dính vào nhau, có khoảng trống tối thiểu 50px ngăn cách giữa các bộ phận để dễ cắt rời.
-- Không vẽ bóng đổ phức tạp trên nền.
-- Toàn bộ 4 bộ phận có tỷ lệ kích thước tương quan giải phẫu học đồng nhất 100%.
+Yêu cầu: Nền trắng sạch sẽ, các bộ phận tách rời có khoảng trống, tỷ lệ cơ thể đồng nhất.
 ```
 
 ---
 
-### 📌 CÁCH DÙNG CHO MIDJOURNEY V6 / STABLE DIFFUSION XL / LEONARDO AI
-Sao chép câu lệnh chuẩn tiếng Anh:
-
+### 📌 CÁCH DÙNG CHO MIDJOURNEY V6 / STABLE DIFFUSION XL
 ```text
-A complete 2D modular video game character sprite sheet kit on a single canvas, isolated on a solid plain white background. Character is a handsome, athletic young ethnic Tay male (Vietnamese highland culture), wearing a traditional indigo tunic with ornate red and turquoise brocade embroidery, matching indigo headband, dark trousers, friendly confident expression, 16-bit JRPG clean pixel art style, crisp outlines, vibrant colors. 
-
-The image is neatly arranged as a modular rigging sheet containing 4 separated, non-overlapping parts:
-1. MAIN BODY (on the left side): Full body standing pose facing three-quarter right, left arm resting naturally on hip. CRITICAL: The right shoulder has a clean sleeveless round armhole seam - NO right arm, NO severed stump, NO arm stub attached.
-2. RIGHT UPPER ARM (top right column): A detached puffy indigo sleeve placed vertically, matching embroidery cuff at elbow level. Clean cut at bottom hem, NO flesh visible.
-3. RIGHT FOREARM (middle right column): A detached bare athletic forearm placed vertically, matching skin tone. Top elbow has a smooth half-circle rounded joint dome. Bottom ends cleanly at the wrist crease - NO hand, NO fingers attached.
-4. RIGHT HAND (bottom right column): A detached right hand with fingers curled in a natural gripping fist pose for holding a cord. Wrist joint oriented at top-left.
-
-Crisp flat 2D game asset, clean spacing between all components, professional game dev model sheet, no shadows, no background clutter, 8k resolution --ar 16:9 --v 6.0 --style raw
+2D game character sprite sheet, isolated on solid white background, 16-bit pixel art style.
+Handsome athletic young ethnic Tay man in traditional indigo vest with ethnic embroidery.
+Arranged with 4 separated non-overlapping parts:
+- Left: Full body standing 3/4 right, left hand on hip. Right armhole is sleeveless and empty (no right arm).
+- Right top: Detached puffy indigo sleeve, placed vertically, cut at elbow.
+- Right middle: Detached bare muscular forearm, rounded top joint, no hand.
+- Right bottom: Detached gripping hand curled to hold a cord.
+Clean flat 2D game asset, ample spacing between parts, no shadows --ar 16:9 --v 6.0
 ```
 
 ---
