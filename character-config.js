@@ -102,7 +102,7 @@ const CHARACTER_CONFIG = (() => {
       description: 'Trang phục áo chàm nam tính cộc tay hoa văn thổ cẩm đỏ xanh, sải tay dài.',
       scale: 0.21,
       standingAnchorX: 220,
-      drawForearmFirst: true, // Cẳng tay trần xoay tự nhiên bên dưới miệng ống tay áo bồng
+      drawForearmFirst: false,
       sprites: {
         body: 'assets/character/skins/nam_tay_moi/body.png',
         upper_arm: 'assets/character/skins/nam_tay_moi/upper_arm_unified.png',
@@ -110,24 +110,24 @@ const CHARACTER_CONFIG = (() => {
         hand: 'assets/character/skins/nam_tay_moi/hand.png'
       },
       anchors: {
-        footAnchor: { x: 470, y: 1515 },
-        shoulderJoint: { x: 390, y: 348 }
+        footAnchor: { x: 470, y: 1520 },
+        shoulderJoint: { x: 363, y: 379 } // Tâm chính xác của ô tròn trên vai
       },
       kinematics: {
-        scaleUpper: 1.0, // Tỷ lệ chuẩn 1:1 theo ảnh crop gốc
+        scaleUpper: 1.0,
         scaleFore: 1.0,
         scaleHand: 1.0,
         upperArm: {
-          shoulderPivot: { x: 105, y: 35 },
-          elbowJoint: { x: 75, y: 355 }
+          shoulderPivot: { x: 78, y: 66 },  // Khớp vai trên bắp tay nối đúng vào tâm ô tròn
+          elbowJoint: { x: 78, y: 258 }     // Khớp cùi chỏ đáy bắp tay
         },
         forearm: {
-          elbowPivot: { x: 75, y: 48 },
-          wristJoint: { x: 77, y: 170 }
+          elbowPivot: { x: 78, y: 0 },      // Khớp cùi chỏ đỉnh cẳng tay
+          wristJoint: { x: 113, y: 218 }    // Khớp cổ tay đáy cẳng tay
         },
         hand: {
-          wristPivot: { x: 50, y: 10 },
-          gripTunnel: { x: 50, y: 55 }
+          wristPivot: { x: 36, y: 4 },      // Khớp cổ tay trên bàn tay
+          gripTunnel: { x: 45, y: 60 }      // Điểm xỏ dây quả còn
         },
         idleHandOffset: { x: 0, y: 0 }
       },
