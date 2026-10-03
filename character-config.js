@@ -38,10 +38,10 @@ const CHARACTER_CONFIG = (() => {
 
       // Đường dẫn tài nguyên hình ảnh (Sprites)
       sprites: {
-        body: 'assets/character/skins/skin_template/body.png',
-        upper_arm: 'assets/character/skins/skin_template/upper_arm_unified.png',
-        forearm: 'assets/character/skins/skin_template/forearm.png',
-        hand: 'assets/character/skins/skin_template/hand.png'
+        body: 'assets/character/skin/body.png',
+        upper_arm: 'assets/character/skin/upper_arm_unified.png',
+        forearm: 'assets/character/skin/forearm.png',
+        hand: 'assets/character/skin/hand.png'
       },
 
       // Toạ độ điểm neo trên ảnh Thân (Body)

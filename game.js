@@ -901,23 +901,23 @@
       );
       ctx.restore();
 
-      // 2. Draw Forearm (pivoting at elbow, drawn before upper arm so sleeve cuff cleanly overlaps elbow)
-      if (assets.forearm) {
-        const img = assets.forearm;
-        ctx.save();
-        ctx.translate(this.elbowX, this.elbowY);
-        ctx.rotate(this.th2 - this.fBaseAng);
-        ctx.drawImage(img, -this.fPiv.x, -this.fPiv.y, img.width * this.sFore, img.height * this.sFore);
-        ctx.restore();
-      }
-
-      // 3. Draw Upper Arm with Unified Puffed Sleeve (sleeve cuff naturally wraps over forearm)
+      // 2. Draw Upper Arm with Unified Puffed Sleeve (vai áo gắn liền cánh tay, xoay tự nhiên tại khớp vai)
       if (assets.upper_arm) {
         const img = assets.upper_arm;
         ctx.save();
         ctx.translate(this.shoulderX, this.shoulderY);
         ctx.rotate(this.th1 - this.uBaseAng);
         ctx.drawImage(img, -this.uPiv.x, -this.uPiv.y, img.width * this.sUpper, img.height * this.sUpper);
+        ctx.restore();
+      }
+
+      // 3. Draw Forearm (pivoting at elbow)
+      if (assets.forearm) {
+        const img = assets.forearm;
+        ctx.save();
+        ctx.translate(this.elbowX, this.elbowY);
+        ctx.rotate(this.th2 - this.fBaseAng);
+        ctx.drawImage(img, -this.fPiv.x, -this.fPiv.y, img.width * this.sFore, img.height * this.sFore);
         ctx.restore();
       }
 
