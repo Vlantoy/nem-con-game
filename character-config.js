@@ -150,6 +150,15 @@ const CHARACTER_CONFIG = (() => {
    */
   function getActiveSkinId() {
     try {
+      // Hỗ trợ truyền ?skin=nam_tay_khoe_khoan trên URL để kích hoạt và lưu ngay vào localStorage
+      if (typeof window !== 'undefined' && window.location && window.location.search) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const qSkin = urlParams.get('skin');
+        if (qSkin && CHARACTER_SKINS[qSkin]) {
+          localStorage.setItem('nemcon_active_skin', qSkin);
+          return qSkin;
+        }
+      }
       const saved = localStorage.getItem('nemcon_active_skin');
       if (saved && CHARACTER_SKINS[saved]) {
         return saved;
