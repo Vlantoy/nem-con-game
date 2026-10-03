@@ -102,6 +102,7 @@ const CHARACTER_CONFIG = (() => {
       description: 'Trang phục áo chàm nam tính cộc tay hoa văn thổ cẩm đỏ xanh, sải tay dài.',
       scale: 0.21,
       standingAnchorX: 220,
+      drawForearmFirst: true, // Cẳng tay trần xoay tự nhiên bên dưới miệng ống tay áo bồng
       sprites: {
         body: 'assets/character/skins/nam_tay_moi/body.png',
         upper_arm: 'assets/character/skins/nam_tay_moi/upper_arm_unified.png',
@@ -109,26 +110,26 @@ const CHARACTER_CONFIG = (() => {
         hand: 'assets/character/skins/nam_tay_moi/hand.png'
       },
       anchors: {
-        footAnchor: { x: 512, y: 1470 },
-        shoulderJoint: { x: 392, y: 250 }
+        footAnchor: { x: 470, y: 1515 },
+        shoulderJoint: { x: 390, y: 348 }
       },
       kinematics: {
-        scaleUpper: 0.258,
-        scaleFore: 0.194,
-        scaleHand: 0.38,
+        scaleUpper: 1.0, // Tỷ lệ chuẩn 1:1 theo ảnh crop gốc
+        scaleFore: 1.0,
+        scaleHand: 1.0,
         upperArm: {
-          shoulderPivot: { x: 440, y: 200 },
-          elbowJoint: { x: 580, y: 1240 }
+          shoulderPivot: { x: 105, y: 35 },
+          elbowJoint: { x: 75, y: 355 }
         },
         forearm: {
-          elbowPivot: { x: 380, y: 260 },
-          wristJoint: { x: 448, y: 1640 }
+          elbowPivot: { x: 75, y: 48 },
+          wristJoint: { x: 77, y: 170 }
         },
         hand: {
-          wristPivot: { x: 132, y: 60 },
-          gripTunnel: { x: 132, y: 180 }
+          wristPivot: { x: 50, y: 10 },
+          gripTunnel: { x: 50, y: 55 }
         },
-        idleHandOffset: { x: 2, y: 110 }
+        idleHandOffset: { x: 0, y: 0 }
       },
       animation: {
         breathSpeed: 2.0,

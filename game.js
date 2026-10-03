@@ -901,24 +901,35 @@
       );
       ctx.restore();
 
-      // 2. Draw Upper Arm with Unified Puffed Sleeve (vai áo gắn liền cánh tay, xoay tự nhiên tại khớp vai)
-      if (assets.upper_arm) {
-        const img = assets.upper_arm;
-        ctx.save();
-        ctx.translate(this.shoulderX, this.shoulderY);
-        ctx.rotate(this.th1 - this.uBaseAng);
-        ctx.drawImage(img, -this.uPiv.x, -this.uPiv.y, img.width * this.sUpper, img.height * this.sUpper);
-        ctx.restore();
-      }
+      // 2. Draw Arm Components (Upper arm và Forearm theo thứ tự cấu hình skin)
+      const drawUpperArm = () => {
+        if (assets.upper_arm) {
+          const img = assets.upper_arm;
+          ctx.save();
+          ctx.translate(this.shoulderX, this.shoulderY);
+          ctx.rotate(this.th1 - this.uBaseAng);
+          ctx.drawImage(img, -this.uPiv.x, -this.uPiv.y, img.width * this.sUpper, img.height * this.sUpper);
+          ctx.restore();
+        }
+      };
 
-      // 3. Draw Forearm (pivoting at elbow)
-      if (assets.forearm) {
-        const img = assets.forearm;
-        ctx.save();
-        ctx.translate(this.elbowX, this.elbowY);
-        ctx.rotate(this.th2 - this.fBaseAng);
-        ctx.drawImage(img, -this.fPiv.x, -this.fPiv.y, img.width * this.sFore, img.height * this.sFore);
-        ctx.restore();
+      const drawForearm = () => {
+        if (assets.forearm) {
+          const img = assets.forearm;
+          ctx.save();
+          ctx.translate(this.elbowX, this.elbowY);
+          ctx.rotate(this.th2 - this.fBaseAng);
+          ctx.drawImage(img, -this.fPiv.x, -this.fPiv.y, img.width * this.sFore, img.height * this.sFore);
+          ctx.restore();
+        }
+      };
+
+      if (this.cfg && this.cfg.drawForearmFirst) {
+        drawForearm();
+        drawUpperArm();
+      } else {
+        drawUpperArm();
+        drawForearm();
       }
 
       // 4. Draw Hand (pivoting at wrist, rotating with dynamic wrist angle)
