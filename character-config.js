@@ -54,9 +54,9 @@ const CHARACTER_CONFIG = (() => {
 
       // Tỉ lệ kích thước từng bộ phận tay (so với scale chung của nhân vật)
       kinematics: {
-        scaleUpper: 0.53,  // Tỉ lệ bắp tay (upper arm)
-        scaleFore: 1.15,   // Tỉ lệ cẳng tay (forearm)
-        scaleHand: 0.35,   // Tỉ lệ bàn tay (hand)
+        scaleUpper: 0.477, // Tỉ lệ bắp tay (giảm 10%: 0.53 -> 0.477)
+        scaleFore: 1.035,  // Tỉ lệ cẳng tay (giảm 10%: 1.15 -> 1.035)
+        scaleHand: 0.385,  // Tỉ lệ bàn tay cầm còn (tăng 10%: 0.35 -> 0.385)
 
         // Bắp tay (upper_arm_unified.png - 322x648px)
         upperArm: {
@@ -74,7 +74,9 @@ const CHARACTER_CONFIG = (() => {
         hand: {
           wristPivot: { x: 25, y: 180 },      // Điểm nối vào cổ tay
           gripTunnel: { x: 165, y: 135 }      // Điểm luồn dây còn trong lòng bàn tay
-        }
+        },
+
+        idleHandOffset: { x: 1, y: 77 }       // Toạ độ tay đứng chờ tương ứng chiều dài tay mới
       },
 
       // Cấu hình chuyển động (Animation & Physics Feel)
