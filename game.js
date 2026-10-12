@@ -237,8 +237,10 @@
     }
 
     addConfetti(x, y, count = 75) {
+      if (this.particles.length > 250) return; // Ngăn spam hiệu ứng quá mức gây giật lag
       const colors = ['#f1c40f', '#e74c3c', '#2ecc71', '#3498db', '#e67e22', '#fd79a8', '#ffffff'];
-      for (let i = 0; i < count; i++) {
+      const spawnCount = Math.min(count, 350 - this.particles.length);
+      for (let i = 0; i < spawnCount; i++) {
         const angle = Math.random() * Math.PI * 2;
         const speed = 140 + Math.random() * 340;
         this.particles.push({
@@ -1633,6 +1635,7 @@
       this.windShiftTimer = 0;
       this.throwSpinCharge = 0;
       this.mirageProjectiles = null;
+      this.isMatchOver = false;
 
       // Bot AI State (Dynamic hit rate based on difficulty & personalized player adaptation)
       this.botState = null; // 'thinking' | 'swinging' | null
@@ -2776,6 +2779,8 @@
       this.extraThrowPending = null;
       this.extraThrowThisTurn = false;
       this.extraThrowReason = null;
+      this.isMatchOver = false;
+      if (this.particles) this.particles.particles = [];
 
       this.score = 0;
       this.streak = 0;
@@ -3212,13 +3217,11 @@
 
         const isTichDiemSkill = (this.skillUsedThisTurn[curThrower] === 'tich_diem');
 
-        // QUY TẮC TÍCH LŨY:
-        // 1. KHI KÍCH HOẠT CHIÊU TÍCH ĐIỂM (TÍCH LŨY):
-        //    - Tốc độ tay cực nhanh (human limit đỉnh điểm 80-120 rad/s, dưới 0.01s/vòng) mới đạt mốc tối đa 5 điểm!
-        //    - Xoay bình thường / chậm (<12 rad/s) chỉ tích lũy được 1 - 2 điểm.
-        //    - Dừng lại đột ngột (<3.0 rad/s) triệt tiêu toàn bộ lực tích lũy trong 0.1s.
-        // 2. KHI KHÔNG DÙNG CHIÊU TÍCH ĐIỂM (BÌNH THƯỜNG):
-        //    - Tích lũy đà xoay tự nhiên mượt mà để ném quả còn đạt tốc độ và đà vung.
+        // QUY TẮC TÍCH LŨY LỰC & ĐÀ XOAY:
+        // 1. CHIÊU TÍCH ĐIỂM (TÍCH LŨY): Tốc độ xoay cực hạn (<0.01s/vòng, 80-120 rad/s) mới đạt 5 điểm.
+        //    Dừng lại đột ngột triệt tiêu lực trong 0.1s.
+        // 2. XOAY BÌNH THƯỜNG: Bắt buộc phải xoay nhiều vòng liên tục (continuousRotation) mới tích đủ lực vung ném!
+        //    Xoay 1 nửa vòng hay quá ít vòng sẽ không đủ đà và ném bị rơi gần chân.
         if (isTichDiemSkill) {
           if (angularVelocity >= 12.0 && Math.abs(dAngle) > 0.04) {
             if (this.lastSpinDirection !== 0 && this.lastSpinDirection !== direction && Math.abs(dAngle) > 0.25) {
@@ -3230,25 +3233,22 @@
 
             if (this.continuousRotation >= Math.PI) {
               const effectiveAngle = Math.abs(dAngle);
-              // speedFactor: tốc độ cực hạn hướng tới human limit 75 - 120 rad/s mới đạt 5 điểm
               const speedFactor = Math.max(0, (angularVelocity - 10.0) / 75.0);
               this.spinCharge = Math.min(1.0, this.spinCharge + effectiveAngle * 0.08 * speedFactor * spinChargeGainMult);
             }
             this.recentSpinCharge = Math.max(this.spinCharge, this.recentSpinCharge - effectiveDt * 1.5);
           } else if (angularVelocity < 3.0) {
-            // DỪNG LẠI ĐỘT NGỘT: Triệt tiêu toàn bộ lực tích luỹ trong 0.1s
             this.continuousRotation = 0;
             this.spinCharge = Math.max(0, this.spinCharge - effectiveDt * 10.0);
             this.recentSpinCharge = Math.max(0, this.recentSpinCharge - effectiveDt * 10.0);
           } else {
-            // Xoay bình thường / chậm: Không tích đủ lực cao
             this.continuousRotation = Math.max(0, this.continuousRotation - effectiveDt * 4.0);
             this.spinCharge = Math.max(0, this.spinCharge - effectiveDt * (isHeavyRain ? 3.0 : 2.0));
             this.recentSpinCharge = Math.max(this.spinCharge, this.recentSpinCharge - effectiveDt * 2.0);
           }
         } else {
-          // Trạng thái bình thường không dùng chiêu: đà xoay chuẩn cho cú ném
-          if (angularVelocity > 2.0 && Math.abs(dAngle) > 0.02) {
+          // BÌNH THƯỜNG: Phải vung xoay đều tay qua nhiều vòng để tạo lực quán tính ly tâm
+          if (angularVelocity > 2.8 && Math.abs(dAngle) > 0.02) {
             if (this.lastSpinDirection !== 0 && this.lastSpinDirection !== direction && Math.abs(dAngle) > 0.25) {
               this.continuousRotation = 0;
               this.spinCharge = Math.max(0, this.spinCharge - 0.35);
@@ -3256,14 +3256,19 @@
             this.lastSpinDirection = direction;
             this.continuousRotation += Math.abs(dAngle);
 
-            const effectiveAngle = Math.abs(dAngle);
-            const speedFactor = Math.min(1.8, Math.max(0.4, angularVelocity / 9.0));
-            this.spinCharge = Math.min(1.0, this.spinCharge + effectiveAngle * 0.06 * speedFactor * spinChargeGainMult);
+            // Cần xoay ít nhất nửa vòng (PI) mới bắt đầu tích tụ lực, và phải xoay nhiều vòng liên tiếp mới đầy thanh lực!
+            if (this.continuousRotation >= Math.PI) {
+              const effectiveAngle = Math.abs(dAngle);
+              const speedFactor = Math.min(1.4, Math.max(0.6, angularVelocity / 7.5));
+              // Cần khoảng 3-4 vòng quay đầy đủ (6 - 8 PI) để đạt lực vung tối đa
+              this.spinCharge = Math.min(1.0, this.spinCharge + effectiveAngle * 0.05 * speedFactor * spinChargeGainMult);
+            }
             this.recentSpinCharge = Math.max(this.spinCharge, this.recentSpinCharge - effectiveDt * 0.8);
           } else {
-            this.continuousRotation = Math.max(0, this.continuousRotation - effectiveDt * 2.0);
-            this.spinCharge = Math.max(0, this.spinCharge - effectiveDt * 0.9);
-            this.recentSpinCharge = Math.max(this.spinCharge, this.recentSpinCharge - effectiveDt * 1.0);
+            // Ngừng xoay hoặc xoay quá chậm: đà quay tụt dần
+            this.continuousRotation = Math.max(0, this.continuousRotation - effectiveDt * 3.5);
+            this.spinCharge = Math.max(0, this.spinCharge - effectiveDt * 0.95);
+            this.recentSpinCharge = Math.max(this.spinCharge, this.recentSpinCharge - effectiveDt * 1.2);
           }
         }
 
@@ -3804,9 +3809,9 @@
               return;
             }
 
-            // ĐIỂM SỐ MẶC ĐỊNH LÀ 5 ĐIỂM!
-            // Chỉ khi kích hoạt chiêu TÍCH ĐIỂM (TÍCH LŨY) thì điểm mới phụ thuộc vào tốc độ xoay tay (1 - 5 điểm)!
-            let pts = 5;
+            // ĐIỂM SỐ MẶC ĐỊNH MỖI LẦN NÉM TRÚNG LÀ 1 ĐIỂM!
+            // Chỉ khi dùng chiêu TÍCH ĐIỂM (tich_diem) thì mới tích luỹ theo tốc độ xoay tay (1 - 5 điểm)
+            let pts = 1;
             if (usedSkill === 'tich_diem') {
               const charge = this.throwSpinCharge || 0;
               if (charge >= 0.90) pts = 5;       // Xoay cực hạn đỉnh điểm (<0.01s/vòng): 5 điểm!
@@ -3816,7 +3821,7 @@
               else pts = 1;                      // Chậm / bình thường: 1 điểm
               this.triggerSkillCardVisual('tich_diem', curP, `+${pts} ĐIỂM TÍCH LŨY!`);
             } else if (usedSkill === 'tang_diem') {
-              pts += 2;
+              pts += 1;
             } else if (usedSkill === 'nhan_doi') {
               pts = pts * 2;
             } else if (usedSkill === 'cuoc_diem') {
@@ -3838,15 +3843,22 @@
             }
             this.updateVersusUI();
             this.sound.playScoreCelebration();
-            this.particles.addConfetti(pole.x, pole.ringY, 90);
+            this.particles.addConfetti(pole.x, pole.ringY, 50);
 
             const pName = (this.currentTurn === 1) ? 'P1' : (this.gameMode === 'bot' ? 'Bot' : 'P2');
             this.showAnnouncement(`+${pts} ĐIỂM`, `${pName} • ${this.p1Score} - ${this.p2Score}`);
+
+            // Kiểm tra chiến thắng ngay khi ghi điểm
+            if (this.p1Score >= this.matchTargetScore) {
+              this.triggerMatchVictory(1);
+            } else if (this.p2Score >= this.matchTargetScore) {
+              this.triggerMatchVictory(2);
+            }
             return;
           }
 
-          // Single player mode: Mặc định 500 điểm (tương ứng 5 điểm chuẩn), chỉ tích lũy khi dùng chiêu Tích Điểm
-          let singlePts = 500;
+          // Single player mode: Mặc định 100 điểm (tương ứng 1 điểm chuẩn), chỉ tích lũy khi dùng chiêu Tích Điểm
+          let singlePts = 100;
           if (this.skillUsedThisTurn.p1 === 'tich_diem') {
             const chargeSingle = this.throwSpinCharge || 0;
             if (chargeSingle >= 0.90) singlePts = 500;
@@ -4052,6 +4064,8 @@
         this.gameMode = 'bot';
         this.p1Score = 0;
         this.p2Score = 0;
+        this.isMatchOver = false;
+        if (this.particles) this.particles.particles = [];
         const firstTurn = Math.random() < 0.5 ? 1 : 2;
         this.currentTurn = firstTurn;
         this.cameraX = (firstTurn === 1) ? 0 : MAX_CAMERA_X;
@@ -4094,6 +4108,8 @@
         this.gameMode = 'versus';
         this.p1Score = 0;
         this.p2Score = 0;
+        this.isMatchOver = false;
+        if (this.particles) this.particles.particles = [];
         const firstTurn = Math.random() < 0.5 ? 1 : 2;
         this.currentTurn = firstTurn;
         this.cameraX = (firstTurn === 1) ? 0 : MAX_CAMERA_X;
@@ -4965,6 +4981,11 @@
     }
 
     triggerMatchVictory(winner) {
+      if (this.isMatchOver) return; // Chỉ kích hoạt 1 lần duy nhất, tránh spam hiệu ứng vô hạn
+      this.isMatchOver = true;
+      this.state = STATE.IDLE;
+      this.botState = null;
+
       const vP1 = document.getElementById('v-p1-score');
       const vP2 = document.getElementById('v-p2-score');
       const vTitle = document.getElementById('victory-title');
@@ -4995,8 +5016,10 @@
         this.ui.modalVictory.classList.remove('hidden');
       }
 
+      // 1 lần pháo hoa vừa vặn khi kết thúc trận
       this.sound.playScoreCelebration();
-      this.particles.addConfetti(CANVAS_WIDTH / 2 + this.cameraX, CANVAS_HEIGHT / 2, 160);
+      this.particles.particles = []; // Dọn sạch particle cũ trước khi nổ
+      this.particles.addConfetti(CANVAS_WIDTH / 2 + this.cameraX, CANVAS_HEIGHT / 2, 70);
     }
 
     // ==========================================
