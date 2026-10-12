@@ -999,8 +999,8 @@
       tierLabel: 'Chí Mạng',
       weight: 12,
       img: 'vat_ly_an_do.png',
-      desc: 'Vật lý thần sầu: Tự động điều chỉnh lực ném và góc phóng chuẩn xác 80% xuyên tâm vòng còn!',
-      hint: 'Dùng ngay trong lượt • Tỉ lệ trúng 80%'
+      desc: 'Không cần xoay: Chỉ cần trỏ chuột định hướng và nhả tay là tự động phóng với max lực xuyên tâm!',
+      hint: 'Dùng trong lượt • Nhấp hướng nhả chuột là max lực'
     },
     tang_diem: {
       id: 'tang_diem',
@@ -3323,11 +3323,64 @@
       let vx, vy;
       let isDrop = false;
 
-      const activeRig = (this.gameMode === 'versus')
+      const activeRig = (this.isMultiplayerMode)
         ? (this.currentTurn === 1 ? this.rigP1 : this.rigP2)
         : this.rig;
 
-      if (this.controlMode === 'auto') {
+      const isVatLyAnDo = (this.skillUsedThisTurn[currentThrower] === 'vat_ly_an_do');
+
+      if (isVatLyAnDo) {
+        // SKILL EFFECT: VẬT LÝ ẤN ĐỘ
+        // "Không cần xoay chỉ cần hướng và thả chuột ra tự có max lực luôn"
+        // Lấy hướng chuột chỉ định từ vị trí tay/vai người chơi đến điểm nhả chuột
+        const handX = activeRig ? activeRig.shoulderX : ballPos.x;
+        const handY = activeRig ? activeRig.shoulderY : ballPos.y;
+        let aimDx = this.mouseWorldX - handX;
+        let aimDy = this.mouseWorldY - handY;
+
+        // Nếu người chơi chưa lia chuột xa, mặc định hướng về phía cột
+        if (Math.hypot(aimDx, aimDy) < 20) {
+          aimDx = (this.isMultiplayerMode && this.currentTurn === 2) ? -1 : 1;
+          aimDy = -0.65;
+        }
+
+        // Hướng bay tiến về phía trước theo hướng trỏ chuột
+        let dirX = (this.isMultiplayerMode && this.currentTurn === 2) ? -Math.abs(aimDx) : Math.abs(aimDx);
+        let dirY = aimDy;
+        const aimLen = Math.hypot(dirX, dirY) || 1;
+        dirX /= aimLen;
+        dirY /= aimLen;
+
+        // Tự động kích hoạt Max lực (1140 px/s)
+        const mappedSpeed = 1140;
+        this.spinCharge = 1.0;
+        this.recentSpinCharge = 1.0;
+        this.throwSpinCharge = 1.0;
+
+        // Tính quỹ đạo hoàn hảo xuyên tâm vòng còn
+        const startX = (this.isMultiplayerMode && this.currentTurn === 2) ? (2 * P2_ANCHOR_X - ballPos.x) : ballPos.x;
+        const startY = ballPos.y;
+        const targetPole = this.aoAnhPoles ? this.aoAnhPoles.find(p => p.isReal) : null;
+        const targetX = targetPole ? targetPole.x : RING_CENTER_X;
+        const targetY = targetPole ? targetPole.ringY : RING_CENTER_Y;
+        const dx = targetX - startX;
+        const dy = targetY - startY;
+        const T = 1.94;
+        const perfectVx = dx / T;
+        const perfectVy = (dy - 0.5 * GRAVITY * T * T) / T;
+
+        if (this.isMultiplayerMode && this.currentTurn === 2) {
+          vx = -perfectVx;
+          vy = perfectVy;
+        } else {
+          vx = perfectVx;
+          vy = perfectVy;
+        }
+        isDrop = false;
+        this.sound.playScoreCelebration();
+        this.particles.addConfetti(activeRig.shoulderX, activeRig.shoulderY - 30, 25);
+        this.triggerSkillCardVisual('vat_ly_an_do', currentThrower);
+      } else if (this.controlMode === 'auto') {
         const omega = Math.min(15.5, 5.0 + this.autoSpinTime * 5.8);
         const lag = Math.min(0.35, 0.12 + (omega / 15.5) * 0.18);
         const ballAngle = this.autoSpinAngle - lag;
@@ -3357,7 +3410,6 @@
           dirY /= len;
 
           // Speed scaled by accumulated spin energy:
-          // Boosted forward base momentum so the con effortlessly carries to the festival pole
           const baseSpeed = 460 + charge * 670;
           const mappedSpeed = Math.min(1140, baseSpeed);
 
@@ -3385,11 +3437,10 @@
           if (isIntentionalBackThrow) {
             dirX = -Math.abs(dirX);
           } else if (isHandInFront) {
-            dirX = Math.max(0.45, Math.abs(dirX));
-            // Softly bias towards sweet spot elevation (~50 deg, cos ~0.65)
-            dirX = dirX * 0.50 + 0.65 * 0.50;
-            if (dirY > -0.20) {
-              dirY = -Math.sqrt(Math.max(0.1, 1.0 - dirX * dirX));
+            dirX = Math.max(0.35, Math.abs(dirX));
+            // Cân bằng góc bay tự nhiên theo tay vung, không ép dựng đứng lên nóc màn hình
+            if (dirY > -0.15) {
+              dirY = -Math.sqrt(Math.max(0.08, 1.0 - dirX * dirX));
             }
           }
 
@@ -3432,27 +3483,8 @@
         this.sound.playGroundThud();
       }
 
-      // SKILL EFFECT: Vật Lý Ấn Định (Tự động cân chỉnh lực và góc bay hoàn hảo qua tâm vòng!)
-      if (this.skillUsedThisTurn[currentThrower] === 'vat_ly_an_do') {
-        const startX = (this.isMultiplayerMode && this.currentTurn === 2) ? (2 * P2_ANCHOR_X - ballPos.x) : ballPos.x;
-        const startY = ballPos.y;
-        const dx = RING_CENTER_X - startX;
-        const dy = RING_CENTER_Y - startY;
-        const T = 1.94;
-        const perfectVx = dx / T;
-        const perfectVy = (dy - 0.5 * GRAVITY * T * T) / T;
-
-        if (this.isMultiplayerMode && this.currentTurn === 2) {
-          vx = -perfectVx;
-          vy = perfectVy;
-        } else {
-          vx = perfectVx;
-          vy = perfectVy;
-        }
-        isDrop = false;
-        this.sound.playScoreCelebration();
-        this.particles.addConfetti(activeRig.shoulderX, activeRig.shoulderY - 30, 25);
-        this.triggerSkillCardVisual('vat_ly_an_do', currentThrower);
+      if (isVatLyAnDo) {
+        // Đã xử lý ở trên
       } else if (this.skillUsedThisTurn[currentThrower] === 'tam_nham' && !isDrop) {
         // Tâm Nhắm: Hỗ trợ nắn chỉnh góc bay về tâm vòng nếu đã vung đà hợp lý
         const startX = (this.isMultiplayerMode && this.currentTurn === 2) ? (2 * P2_ANCHOR_X - ballPos.x) : ballPos.x;
