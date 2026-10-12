@@ -990,12 +990,12 @@
     },
     vat_ly_an_do: {
       id: 'vat_ly_an_do',
-      name: 'Vật Lý Ấn Định',
+      name: 'Vật Lý Ấn Độ',
       type: 'support',
       typeLabel: 'Hỗ trợ',
       tier: 'epic',
       tierLabel: 'Chí Mạng',
-      weight: 2,
+      weight: 12,
       img: 'vat_ly_an_do.png',
       desc: 'Vật lý thần sầu: Tự động điều chỉnh lực ném và góc phóng chuẩn xác 80% xuyên tâm vòng còn!',
       hint: 'Dùng ngay trong lượt • Tỉ lệ trúng 80%'
