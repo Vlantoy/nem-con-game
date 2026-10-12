@@ -1452,13 +1452,13 @@
       id: 'bay_nguoc',
       name: 'Bẫy Ngược',
       type: 'shield',
-      typeLabel: 'Bảo vệ',
+      typeLabel: 'Phản đòn',
       tier: 'common',
       tierLabel: 'Cơ bản',
       weight: 14,
       img: 'bay_nguoc.png',
-      desc: 'Tự động kích hoạt khi đối thủ tung chiêu quấy nhiễu, khiến đối thủ tự chịu bão gió.',
-      hint: 'Tự kích hoạt phản kích đối thủ'
+      desc: 'Chiêu điều kiện: Tự động kích hoạt khi đối thủ tung chiêu gây nhiễu, phản gió bão ngược lại đối thủ.',
+      hint: 'Phản đòn khi bị gây nhiễu'
     },
     hap_thu: {
       id: 'hap_thu',
@@ -2499,16 +2499,6 @@
             : this.rig;
           const ballPos = this.cord.getEndPosition();
           this.prevBallAngle = Math.atan2(ballPos.y - activeRig.shoulderY, ballPos.x - activeRig.shoulderX);
-
-          // Kích hoạt hình ảnh kỹ năng gây nhiễu ngay khi người chơi bắt đầu vung đà!
-          const curP = (this.isMultiplayerMode) ? (this.currentTurn === 1 ? 'p1' : 'p2') : 'p1';
-          if (this.activeDebuff[curP] && !this.debuffVisualTriggered[curP]) {
-            this.debuffVisualTriggered[curP] = true;
-            this.triggerSkillCardVisual(this.activeDebuff[curP], curP);
-            if (this.activeDebuff[curP] === 'ao_anh' && !this.aoAnhPoles) {
-              this.initAoAnhPoles();
-            }
-          }
         }
       };
 
@@ -3211,33 +3201,43 @@
         }
 
 
-        // QUY TẮC TÍCH LŨY LỰC XOAY:
-        // 1. Tốc độ tay quay càng nhanh (angularVelocity >= 5.5 rad/s) thì lực tích lũy càng tăng mạnh (tối đa đạt 5 điểm khi ném trúng).
-        // 2. Ở trạng thái bình thường xoay quá chậm (angularVelocity < 5.5 rad/s) không thể tích lũy đủ lực.
-        // 3. Khi đang xoay mà dừng lại đột ngột (angularVelocity < 2.0 rad/s), toàn bộ lực tích lũy bị triệt tiêu rất nhanh chỉ trong 0.1s!
-        if (angularVelocity >= 5.5 && Math.abs(dAngle) > 0.04) {
+        // KÍCH HOẠT HIỆU ỨNG GÂY NHIỄU: Chỉ khi người chơi đã thực sự xoay đà (continuousRotation >= PI / 3) mới lộ diện chiêu gây nhiễu!
+        if (this.activeDebuff[curThrower] && !this.debuffVisualTriggered[curThrower] && this.continuousRotation >= Math.PI / 3) {
+          this.debuffVisualTriggered[curThrower] = true;
+          this.triggerSkillCardVisual(this.activeDebuff[curThrower], curThrower);
+          if (this.activeDebuff[curThrower] === 'ao_anh' && !this.aoAnhPoles) {
+            this.initAoAnhPoles();
+          }
+        }
+
+        // QUY TẮC TÍCH LŨY LỰC XOAY (HUMAN LIMIT):
+        // 1. Tốc độ cực hạn (angularVelocity >= 50 rad/s ~ dưới 0.1s/vòng, đỉnh điểm 100+ rad/s ~ dưới 0.01s/vòng) mới đạt mốc tối đa 5 điểm.
+        // 2. Xoay bình thường / trung bình (angularVelocity < 12 rad/s): chỉ đạt 1 - 2 điểm, không tích lũy đủ lực.
+        // 3. Khi dừng lại đột ngột (angularVelocity < 3.0 rad/s), toàn bộ lực tích lũy triệt tiêu hoàn toàn trong 0.1s!
+        if (angularVelocity >= 12.0 && Math.abs(dAngle) > 0.04) {
           if (this.lastSpinDirection !== 0 && this.lastSpinDirection !== direction && Math.abs(dAngle) > 0.25) {
             this.continuousRotation = 0;
-            this.spinCharge = Math.max(0, this.spinCharge - 0.35);
+            this.spinCharge = Math.max(0, this.spinCharge - 0.45);
           }
           this.lastSpinDirection = direction;
           this.continuousRotation += Math.abs(dAngle);
 
           if (this.continuousRotation >= Math.PI) {
             const effectiveAngle = Math.abs(dAngle);
-            const speedFactor = Math.min(2.4, Math.max(0.6, (angularVelocity - 4.5) / 3.8));
-            this.spinCharge = Math.min(1.0, this.spinCharge + effectiveAngle * 0.12 * speedFactor * spinChargeGainMult);
+            // speedFactor: tốc độ càng vượt trội (hướng tới human limit 80 - 150 rad/s) thì mới sạc đầy lên 1.0 (5 điểm)
+            const speedFactor = Math.max(0, (angularVelocity - 10.0) / 75.0);
+            this.spinCharge = Math.min(1.0, this.spinCharge + effectiveAngle * 0.08 * speedFactor * spinChargeGainMult);
           }
           this.recentSpinCharge = Math.max(this.spinCharge, this.recentSpinCharge - effectiveDt * 1.5);
-        } else if (angularVelocity < 2.0) {
+        } else if (angularVelocity < 3.0) {
           // DỪNG LẠI ĐỘT NGỘT: Triệt tiêu toàn bộ lực tích luỹ trong 0.1s (1.0 / 0.1s = 10.0 * dt)
           this.continuousRotation = 0;
           this.spinCharge = Math.max(0, this.spinCharge - effectiveDt * 10.0);
           this.recentSpinCharge = Math.max(0, this.recentSpinCharge - effectiveDt * 10.0);
         } else {
-          // Xoay quá chậm (2.0 <= angularVelocity < 5.5): Không tích lũy đủ lực, hao hụt dần
+          // Xoay bình thường / chậm (3.0 <= angularVelocity < 12.0): Không thể tích lũy lực cao, chỉ duy trì tối thiểu 1 - 2 điểm
           this.continuousRotation = Math.max(0, this.continuousRotation - effectiveDt * 4.0);
-          this.spinCharge = Math.max(0, this.spinCharge - effectiveDt * (isHeavyRain ? 2.5 : 1.8));
+          this.spinCharge = Math.max(0, this.spinCharge - effectiveDt * (isHeavyRain ? 3.0 : 2.0));
           this.recentSpinCharge = Math.max(this.spinCharge, this.recentSpinCharge - effectiveDt * 2.0);
         }
 
@@ -3436,51 +3436,36 @@
         vy = vy * 0.35 + idealVy * 0.65;
         this.triggerSkillCardVisual('tam_nham', currentThrower);
       } else if (!isDrop && Math.abs(vx) > 180) {
-        // CÂN CHỈNH GÓC & QUỸ ĐẠO CÂN BẰNG:
-        // Căn góc và đà tốt sẽ ăn điểm giòn giã (~55-65%), ném ẩu/sai góc sẽ đập vành tre nảy ra!
+        // CÂN CHỈNH VẬT LÝ NÉM CHUẨN XÁC:
+        // Quỹ đạo tuân theo góc và lực vung thực tế của người chơi.
+        // Ném quá cao, quá thấp hoặc quá yếu sẽ bay trượt tự nhiên; chỉ khi vung chuẩn góc và đủ lực mới ăn điểm.
         const isHumanThrow = (!this.isMultiplayerMode) || (this.gameMode === 'versus') || (this.currentTurn === 1);
         if (isHumanThrow) {
-          const startX = (this.isMultiplayerMode && this.currentTurn === 2) ? (2 * P2_ANCHOR_X - ballPos.x) : ballPos.x;
-          const startY = ballPos.y;
-          const targetPole = this.aoAnhPoles ? this.aoAnhPoles.find(p => p.isReal) : null;
-          const poleX = targetPole ? targetPole.x : RING_CENTER_X;
-          const poleY = targetPole ? targetPole.ringY : RING_CENTER_Y;
-          const dx = (this.isMultiplayerMode && this.currentTurn === 2) ? (startX - poleX) : (poleX - startX);
-          const dy = poleY - startY;
-
-          // Vận tốc phóng và góc phóng tự nhiên:
-          // Chỉ hỗ trợ khi người chơi có chủ ý vung đà hợp lý (forwardSpeed >= 480)
-          const forwardSpeed = Math.abs(vx);
-          if (forwardSpeed >= 480) {
-            const adjustedVx = Math.max(580, forwardSpeed);
-            const T = dx / adjustedVx;
-
-            if (T >= 1.2 && T <= 2.8) {
-              const debuff = this.activeDebuff[currentThrower];
-              const flightGravity = (debuff === 'mua_nang_hat' || debuff === 'phat_kep') ? (GRAVITY * 1.15) : (GRAVITY * 1.05);
-              // Vận tốc phóng thẳng đứng lý tưởng bù trừ lực cản khí động học để xuyên tâm vòng
-              const idealVy = (dy - 0.5 * flightGravity * T * T) / T - 32;
-              // Độ lệch tự nhiên vi mô (±32px) tạo cảm giác phân tán tự nhiên của tay người ném
-              const naturalJitter = (Math.random() - 0.5) * 64;
-              const targetVy = idealVy + naturalJitter;
-
-              if (debuff === 'mua_nang_hat') {
-                // Chiêu mưa nặng hạt: nếu ném đúng góc bay xa nhất (~40 - 54 độ) và đủ lực thì vẫn có cơ hội ăn điểm!
-                const launchAngleDeg = Math.atan2(-vy, Math.abs(vx)) * (180 / Math.PI);
-                if (launchAngleDeg >= 40 && launchAngleDeg <= 54 && forwardSpeed >= 540) {
-                  vy = vy * 0.25 + targetVy * 0.75;
-                } else {
-                  vy = vy * 0.85 + targetVy * 0.15;
-                }
-              } else if (debuff) {
-                // Khi dính chiêu quấy nhiễu, giảm hỗ trợ để giữ độ khó của debuff
-                vy = vy * 0.75 + targetVy * 0.25;
-              } else {
-                // Cân bằng thực tế: 55% nắn chuẩn + 45% lực tay thực tế của người chơi.
-                // Đạt độ khó vừa vặn: ném chuẩn mới vào, không bị tình trạng "ném phát nào cũng vào"!
-                vy = vy * 0.45 + targetVy * 0.55;
+          const debuff = this.activeDebuff[currentThrower];
+          if (debuff === 'mua_nang_hat') {
+            // Mưa Nặng Hạt: Quả còn nặng trĩu. Nếu ném góc bay xa nhất (~42 - 52 độ) và lực vung mạnh thì vẫn có thể tới đích!
+            const launchAngleDeg = Math.atan2(-vy, Math.abs(vx)) * (180 / Math.PI);
+            if (launchAngleDeg < 38 || launchAngleDeg > 56) {
+              // Ngoài góc lý tưởng, trọng lượng nước kéo quả còn chúc xuống nhanh hơn
+              vy += 65;
+            }
+          }
+          // Chế độ ném Dễ: Hỗ trợ nhẹ hướng bay nếu người chơi chọn chế độ Dễ
+          if (this.throwDifficulty === 'easy') {
+            const startX = (this.isMultiplayerMode && this.currentTurn === 2) ? (2 * P2_ANCHOR_X - ballPos.x) : ballPos.x;
+            const startY = ballPos.y;
+            const targetPole = this.aoAnhPoles ? this.aoAnhPoles.find(p => p.isReal) : null;
+            const poleX = targetPole ? targetPole.x : RING_CENTER_X;
+            const poleY = targetPole ? targetPole.ringY : RING_CENTER_Y;
+            const dx = (this.isMultiplayerMode && this.currentTurn === 2) ? (startX - poleX) : (poleX - startX);
+            const dy = poleY - startY;
+            const forwardSpeed = Math.abs(vx);
+            if (forwardSpeed >= 420) {
+              const T = dx / forwardSpeed;
+              if (T >= 1.2 && T <= 2.8) {
+                const idealVy = (dy - 0.5 * GRAVITY * T * T) / T;
+                vy = vy * 0.40 + idealVy * 0.60;
               }
-              vx = (forwardSpeed < 580) ? (vx * 0.35 + adjustedVx * 0.65) : vx;
             }
           }
         }
@@ -3827,11 +3812,8 @@
             this.sound.playScoreCelebration();
             this.particles.addConfetti(pole.x, pole.ringY, 90);
 
-            const pName = (this.currentTurn === 1)
-              ? 'NGƯỜI CHƠI 1 (NAM) 👦'
-              : (this.gameMode === 'bot' ? 'MÁY (BOT AI) 🤖' : 'NGƯỜI CHƠI 2 (NỮ) 👧');
-            const bonusTxt = pts > 1 ? ` (+${pts} ĐIỂM - ĐỘ NHANH: ${Math.round(charge * 100)}%)` : '';
-            this.showAnnouncement(`${pName} GHI ĐIỂM!${bonusTxt}`, `Tỉ số: ${this.p1Score} - ${this.p2Score} (Mục tiêu: 10 điểm)`);
+            const pName = (this.currentTurn === 1) ? 'P1' : (this.gameMode === 'bot' ? 'Bot' : 'P2');
+            this.showAnnouncement(`+${pts} ĐIỂM`, `${pName} • ${this.p1Score} - ${this.p2Score}`);
             return;
           }
 
@@ -4554,8 +4536,7 @@
           this.extraThrowThisTurn = true;
           this.triggerSkillCardVisual('song_nem', player);
         } else if (skillKey === 'doi_luot' || skillKey === 'doi_diem') {
-          this.triggerSkillCardVisual('doi_diem', player, 'ĐỔI ĐIỂM KHI TRÚNG!');
-          this.showAnnouncement('🔄 ĐỔI ĐIỂM ĐÃ KÍCH HOẠT!', 'Nếu ném trúng đích ở lượt này, bạn sẽ hoán đổi toàn bộ điểm số với đối phương!');
+          this.triggerSkillCardVisual('doi_diem', player);
           this.sound.playWhoosh(1.2);
         } else if (skillKey === 'chiem_nhip') {
           this.triggerSkillCardVisual('chiem_nhip', player);
@@ -4565,7 +4546,6 @@
         } else if (skillKey === 'cuop_co_hoi') {
           this.opportunityStealActive[player] = true;
           this.triggerSkillCardVisual('cuop_co_hoi', player);
-          this.showAnnouncement('⚡ CƯỚP CƠ HỘI ĐÃ KÍCH HOẠT!', 'Nếu đối phương ném hụt ở lượt tới, bạn sẽ nhận 2 lượt ném liên tiếp!');
         } else if (skillKey === 'luat_nguoc_doi') {
           this.inverseRulesActive = true;
           this.triggerSkillCardVisual('luat_nguoc_doi', player);
@@ -4674,42 +4654,36 @@
           return;
         }
 
-        // Nếu đối phương không có khiên chủ động, gài chiêu vào pendingDebuff
+        // Nếu đối phương không có khiên chủ động, gài chiêu vào pendingDebuff âm thầm (hoàn toàn mù bí mật)
         if (skillKey === 'hoan_doi') {
           this.replaceUsedSkill(player);
           const temp = this.skills.p1;
           this.skills.p1 = this.skills.p2;
           this.skills.p2 = temp;
           this.renderSkillTrays();
-          this.triggerSkillCardVisual('hoan_doi', player);
           this.sound.playScoreCelebration();
         } else if (skillKey === 'thach_dau') {
           this.activeChallenge = { challenger: player, target: opponent };
           this.pendingDebuff[opponent] = 'thach_dau';
           this.debuffCaster[opponent] = player;
-          this.triggerSkillCardVisual('thach_dau', player);
           this.sound.playWhoosh(1.4);
         } else if (skillKey === 'bay_ngam') {
           this.pendingDebuff[opponent] = 'bay_ngam';
           this.debuffCaster[opponent] = player;
           this.trapTriggeredThisTurn = false;
-          this.triggerSkillCardVisual('bay_ngam', player);
           this.sound.playWhoosh(1.4);
         } else if (skillKey === 'cong_don') {
           this.debuffMultiplier = 2.0;
           this.pendingDebuff[opponent] = 'cong_don';
           this.debuffCaster[opponent] = player;
-          this.triggerSkillCardVisual('cong_don', player);
           this.sound.playWhoosh(1.4);
         } else if (skillKey === 'ap_luc_thoi_gian') {
           this.pendingDebuff[opponent] = 'ap_luc_thoi_gian';
           this.debuffCaster[opponent] = player;
-          this.triggerSkillCardVisual('ap_luc_thoi_gian', player);
           this.sound.playWhoosh(1.4);
         } else {
           this.pendingDebuff[opponent] = skillKey;
           this.debuffCaster[opponent] = player;
-          this.triggerSkillCardVisual(skillKey, player);
           this.sound.playWhoosh(1.4);
         }
       }
@@ -4759,23 +4733,20 @@
         }
       });
 
-      // Update Tray Status Badges
+      // Update Tray Status Badges (Tối giản hoàn toàn, không lộ bài đối thủ)
       if (this.ui.p1TrayStatus) {
         const isSecretP1 = this.isOpponentHand('p1');
-        if (this.skillUsedThisTurn.p1) {
-          const sName = isSecretP1 ? 'Chiêu Bí Mật' : (SKILLS_CATALOG[this.skillUsedThisTurn.p1]?.name || 'Kỹ Năng');
+        if (this.skillUsedThisTurn.p1 && !isSecretP1) {
+          const sName = SKILLS_CATALOG[this.skillUsedThisTurn.p1]?.name || '';
           this.ui.p1TrayStatus.className = 'tray-status-badge active-support';
           this.ui.p1TrayStatus.textContent = '⚡ ' + sName;
-        } else if (this.activeDebuff.p1 && (this.debuffDetected.p1 || this.activeDebuff.p1 !== 'ap_luc_thoi_gian')) {
-          const dName = isSecretP1 ? 'Hiệu Ứng Lạ' : (SKILLS_CATALOG[this.activeDebuff.p1]?.name || 'Gây Nhiễu');
+        } else if (this.activeDebuff.p1 && this.debuffVisualTriggered.p1 && !isSecretP1) {
+          const dName = SKILLS_CATALOG[this.activeDebuff.p1]?.name || '';
           this.ui.p1TrayStatus.className = 'tray-status-badge active-debuff';
           this.ui.p1TrayStatus.textContent = '⚠️ ' + dName;
-        } else if (this.activeDebuff.p2 === 'ap_luc_thoi_gian' && this.debuffCaster.p2 === 'p1' && this.timePressureTimer > 0) {
-          this.ui.p1TrayStatus.className = 'tray-status-badge active-support';
-          this.ui.p1TrayStatus.textContent = '⏳ Đếm ngược: ' + Math.max(0, this.timePressureTimer).toFixed(1) + 's';
-        } else if (this.shieldActive.p1) {
+        } else if (this.shieldActive.p1 && !isSecretP1) {
           this.ui.p1TrayStatus.className = 'tray-status-badge active-shield';
-          this.ui.p1TrayStatus.textContent = '🛡️ Khiên Bảo Hộ';
+          this.ui.p1TrayStatus.textContent = '🛡️ Khiên';
         } else {
           this.ui.p1TrayStatus.className = 'tray-status-badge';
           this.ui.p1TrayStatus.textContent = '';
@@ -4784,20 +4755,17 @@
 
       if (this.ui.p2TrayStatus) {
         const isSecretP2 = this.isOpponentHand('p2');
-        if (this.skillUsedThisTurn.p2) {
-          const sName = isSecretP2 ? 'Chiêu Bí Mật' : (SKILLS_CATALOG[this.skillUsedThisTurn.p2]?.name || 'Kỹ Năng');
+        if (this.skillUsedThisTurn.p2 && !isSecretP2) {
+          const sName = SKILLS_CATALOG[this.skillUsedThisTurn.p2]?.name || '';
           this.ui.p2TrayStatus.className = 'tray-status-badge active-support';
           this.ui.p2TrayStatus.textContent = '⚡ ' + sName;
-        } else if (this.activeDebuff.p2 && (this.debuffDetected.p2 || this.activeDebuff.p2 !== 'ap_luc_thoi_gian')) {
-          const dName = isSecretP2 ? 'Hiệu Ứng Lạ' : (SKILLS_CATALOG[this.activeDebuff.p2]?.name || 'Gây Nhiễu');
+        } else if (this.activeDebuff.p2 && this.debuffVisualTriggered.p2 && !isSecretP2) {
+          const dName = SKILLS_CATALOG[this.activeDebuff.p2]?.name || '';
           this.ui.p2TrayStatus.className = 'tray-status-badge active-debuff';
           this.ui.p2TrayStatus.textContent = '⚠️ ' + dName;
-        } else if (this.activeDebuff.p1 === 'ap_luc_thoi_gian' && this.debuffCaster.p1 === 'p2' && this.timePressureTimer > 0) {
-          this.ui.p2TrayStatus.className = 'tray-status-badge active-support';
-          this.ui.p2TrayStatus.textContent = '⏳ Đếm ngược: ' + Math.max(0, this.timePressureTimer).toFixed(1) + 's';
-        } else if (this.shieldActive.p2) {
+        } else if (this.shieldActive.p2 && !isSecretP2) {
           this.ui.p2TrayStatus.className = 'tray-status-badge active-shield';
-          this.ui.p2TrayStatus.textContent = '🛡️ Khiên Bảo Hộ';
+          this.ui.p2TrayStatus.textContent = '🛡️ Khiên';
         } else {
           this.ui.p2TrayStatus.className = 'tray-status-badge';
           this.ui.p2TrayStatus.textContent = '';
@@ -4820,6 +4788,7 @@
       }
 
       // Handle extra throw from Song Ném or Cướp Cơ Hội (Lượt 2)
+      // Gây nhiễu chỉ gây nhiễu 1 lần: lượt 2 hoàn toàn sạch bóng debuff!
       if (this.extraThrowThisTurn) {
         this.extraThrowThisTurn = false;
         this.botState = null;
@@ -4827,11 +4796,14 @@
         this.botSkillEvaluated = false;
         this.skillUsedThisTurn.p1 = null;
         this.skillUsedThisTurn.p2 = null;
+        const curP = (this.currentTurn === 1) ? 'p1' : 'p2';
+        this.activeDebuff[curP] = null;
+        this.aoAnhPoles = null;
+        this.mirageProjectiles = null;
         this.state = STATE.IDLE;
         this.resetTurnCord();
-        const pName = (this.currentTurn === 1) ? 'P1' : (this.gameMode === 'bot' ? 'Bot AI' : 'P2');
-        const title = (this.extraThrowReason === 'cuop_co_hoi') ? '⚡ CƯỚP CƠ HỘI (LƯỢT 2/2)!' : 'SONG NÉM LIÊN HOÀN!';
-        this.showAnnouncement(title, `${pName} tiếp tục thực hiện cú ném thứ 2 liên tiếp!`);
+        const pName = (this.currentTurn === 1) ? 'P1' : (this.gameMode === 'bot' ? 'Bot' : 'P2');
+        this.showAnnouncement('LƯỢT 2/2', `${pName} ném tiếp`);
         this.extraThrowReason = null;
         this.updateSkillsUI();
         return;
