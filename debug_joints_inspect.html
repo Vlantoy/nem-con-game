@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>So Sánh Khớp Nối Chi Tiết - Nữ vs Nam</title>
+  <style>
+    body { background: #111827; color: #f3f4f6; font-family: -apple-system, sans-serif; padding: 20px; }
+    h1 { color: #facc15; font-size: 20px; margin-bottom: 5px; }
+    p { color: #9ca3af; font-size: 13px; margin-bottom: 20px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .card { background: #1f2937; border: 1px solid #374151; border-radius: 8px; padding: 15px; }
+    .card h2 { font-size: 16px; color: #38bdf8; margin-bottom: 10px; display: flex; justify-content: space-between; }
+    canvas { background: #18202f; border: 1px dashed #4b5563; border-radius: 6px; display: block; margin: 0 auto; }
+    .legend { display: flex; gap: 15px; margin-top: 10px; font-size: 12px; }
+    .legend span { display: flex; align-items: center; gap: 5px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+    .findings { background: #1e1b4b; border: 1px solid #4338ca; padding: 15px; border-radius: 8px; margin-top: 20px; font-size: 13px; line-height: 1.6; }
+    .findings h3 { color: #a5b4fc; margin-bottom: 8px; font-size: 15px; }
+    .findings ul { margin-left: 20px; }
+    .findings li { margin-bottom: 6px; }
+  </style>
+</head>
+<body>
+  <h1>🔍 SO SÁNH VỊ TRÍ KHỚP NỐI & KIỂM TRA "THỪA KHỚP": NHÂN VẬT NỮ VS NAM</h1>
+  <p>Đối chiếu chi tiết 3 khớp (Vai, Khuỷu tay, Cổ tay) ở 3 tư thế: Đứng chờ, Vung chéo, và Giơ cao.</p>
+
+  <div class="legend">
+    <span><span class="dot" style="background: #ef4444;"></span> Khớp Vai (Shoulder Joint)</span>
+    <span><span class="dot" style="background: #3b82f6;"></span> Khớp Khuỷu (Elbow Joint)</span>
+    <span><span class="dot" style="background: #10b981;"></span> Khớp Cổ Tay (Wrist Joint)</span>
+    <span><span class="dot" style="background: #f59e0b;"></span> Điểm Cầm Dây (Grip Tunnel)</span>
+  </div>
+
+  <div class="grid" style="margin-top: 15px;">
+    <div class="card">
+      <h2>🌸 Nhân Vật Nữ (Skin Gốc Chuẩn) <span>IDLE + VUNG TAY</span></h2>
+      <canvas id="cvs_female" width="600" height="700"></canvas>
+    </div>
+    <div class="card">
+      <h2>🏹 Nhân Vật Nam (Skin Mới AI Tạo) <span>IDLE + VUNG TAY</span></h2>
+      <canvas id="cvs_male" width="600" height="700"></canvas>
+    </div>
+  </div>
+
+  <div class="findings" id="findingsBox">
+    <h3>📋 Báo Cáo Phân Tích Thực Tế Từng Khớp:</h3>
+    <ul id="analysisList">
+      <li>Đang nạp ảnh và dựng mô hình khớp...</li>
+    </ul>
+  </div>
+
+  <script src="character-config.js"></script>
+  <script>
+    async function loadImg(src) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = src;
+      });
+    }
+
+    function solveIK(l1, l2, tx, ty) {
+      const dist = Math.hypot(tx, ty);
+      const targetAngle = Math.atan2(ty, tx);
+      const clampedDist = Math.max(Math.abs(l1 - l2) + 0.001, Math.min(l1 + l2 - 0.001, dist));
+      const cosA = (l1 * l1 + clampedDist * clampedDist - l2 * l2) / (2 * l1 * clampedDist);
+      const angleA = Math.acos(Math.max(-1, Math.min(1, cosA)));
+      const cosB = (l1 * l1 + l2 * l2 - clampedDist * clampedDist) / (2 * l1 * l2);
+      const angleB = Math.acos(Math.max(-1, Math.min(1, cosB)));
+      const a1 = targetAngle + angleA;
+      const a2 = a1 - (Math.PI - angleB);
+      return { a1, a2 };
+    }
+
+    function renderRig(ctx, assets, cfg, targetHandX, targetHandY, offsetX = 0, offsetY = 0, label = '') {
+      const sBody = cfg.scale * 1.5; // zoom in slightly for clear inspection
+      const footAnchor = cfg.anchors.footAnchor;
+      const shoulderJoint = cfg.anchors.shoulderJoint;
+
+      const groundX = offsetX + 200;
+      const groundY = offsetY + 650;
+
+      const bodyDrawX = groundX - footAnchor.x * sBody;
+      const bodyDrawY = groundY - footAnchor.y * sBody;
+
+      // 1. Draw Body
+      ctx.drawImage(assets.body, bodyDrawX, bodyDrawY, assets.body.width * sBody, assets.body.height * sBody);
+
+      // Shoulder world position
+      const shX = bodyDrawX + shoulderJoint.x * sBody;
+      const shY = bodyDrawY + shoulderJoint.y * sBody;
+
+      const sUpper = cfg.kinematics.scaleUpper * sBody;
+      const sFore = cfg.kinematics.scaleFore * sBody;
+      const sHand = cfg.kinematics.scaleHand * sBody;
+
+      const uP = cfg.kinematics.upperArm.shoulderPivot;
+      const uE = cfg.kinematics.upperArm.elbowJoint;
+      const L1 = Math.hypot((uE.x - uP.x) * sUpper, (uE.y - uP.y) * sUpper);
+      const uBaseAng = Math.atan2((uE.y - uP.y) * sUpper, (uE.x - uP.x) * sUpper);
+
+      const fP = cfg.kinematics.forearm.elbowPivot;
+      const fW = cfg.kinematics.forearm.wristJoint;
+      const L2 = Math.hypot((fW.x - fP.x) * sFore, (fW.y - fP.y) * sFore);
+      const fBaseAng = Math.atan2((fW.y - fP.y) * sFore, (fW.x - fP.x) * sFore);
+
+      const hP = cfg.kinematics.hand.wristPivot;
+      const hG = cfg.kinematics.hand.gripTunnel;
+      const hDist = Math.hypot((hG.x - hP.x) * sHand, (hG.y - hP.y) * sHand);
+      const hBaseAng = Math.atan2((hG.y - hP.y) * sHand, (hG.x - hP.x) * sHand);
+
+      // Solve IK
+      const ik = solveIK(L1, L2, targetHandX - shX, targetHandY - shY);
+      const th1 = ik.a1;
+      const th2 = ik.a2;
+
+      // Draw Upper Arm
+      ctx.save();
+      ctx.translate(shX, shY);
+      ctx.rotate(th1 - uBaseAng);
+      ctx.drawImage(assets.upper, -uP.x * sUpper, -uP.y * sUpper, assets.upper.width * sUpper, assets.upper.height * sUpper);
+      
+      // Outline Upper Arm boundary for inspection
+      ctx.strokeStyle = 'rgba(239, 68, 68, 0.4)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(-uP.x * sUpper, -uP.y * sUpper, assets.upper.width * sUpper, assets.upper.height * sUpper);
+      ctx.restore();
+
+      // Elbow
+      const elbX = shX + L1 * Math.cos(th1);
+      const elbY = shY + L1 * Math.sin(th1);
+
+      // Draw Forearm
+      ctx.save();
+      ctx.translate(elbX, elbY);
+      ctx.rotate(th2 - fBaseAng);
+      ctx.drawImage(assets.fore, -fP.x * sFore, -fP.y * sFore, assets.fore.width * sFore, assets.fore.height * sFore);
+      
+      // Outline Forearm boundary for inspection
+      ctx.strokeStyle = 'rgba(59, 130, 246, 0.4)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(-fP.x * sFore, -fP.y * sFore, assets.fore.width * sFore, assets.fore.height * sFore);
+      ctx.restore();
+
+      // Wrist
+      const wrX = elbX + L2 * Math.cos(th2);
+      const wrY = elbY + L2 * Math.sin(th2);
+
+      // Hand
+      ctx.save();
+      ctx.translate(wrX, wrY);
+      ctx.rotate(th2 - hBaseAng);
+      ctx.drawImage(assets.hand, -hP.x * sHand, -hP.y * sHand, assets.hand.width * sHand, assets.hand.height * sHand);
+      
+      // Outline Hand boundary for inspection
+      ctx.strokeStyle = 'rgba(16, 185, 129, 0.4)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(-hP.x * sHand, -hP.y * sHand, assets.hand.width * sHand, assets.hand.height * sHand);
+      ctx.restore();
+
+      // Draw Joint Markers
+      // 1. Shoulder (Red)
+      ctx.fillStyle = '#ef4444';
+      ctx.beginPath(); ctx.arc(shX, shY, 5, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+
+      // 2. Elbow (Blue)
+      ctx.fillStyle = '#3b82f6';
+      ctx.beginPath(); ctx.arc(elbX, elbY, 5, 0, Math.PI * 2); ctx.fill();
+      ctx.stroke();
+
+      // 3. Wrist (Green)
+      ctx.fillStyle = '#10b981';
+      ctx.beginPath(); ctx.arc(wrX, wrY, 5, 0, Math.PI * 2); ctx.fill();
+      ctx.stroke();
+
+      // 4. Grip Tunnel (Amber)
+      const gripX = wrX + Math.cos(th2) * hDist;
+      const gripY = wrY + Math.sin(th2) * hDist;
+      ctx.fillStyle = '#f59e0b';
+      ctx.beginPath(); ctx.arc(gripX, gripY, 4, 0, Math.PI * 2); ctx.fill();
+      ctx.stroke();
+
+      // Label pose
+      ctx.fillStyle = '#f3f4f6';
+      ctx.font = '12px sans-serif';
+      ctx.fillText(label, shX - 40, shY - 20);
+    }
+
+    async function init() {
+      // Load female assets
+      const fAssets = {
+        body: await loadImg('assets/character/skins/skin_template/body.png'),
+        upper: await loadImg('assets/character/skins/skin_template/upper_arm_unified.png'),
+        fore: await loadImg('assets/character/skins/skin_template/forearm.png'),
+        hand: await loadImg('assets/character/skins/skin_template/hand.png')
+      };
+
+      // Load male assets
+      const mAssets = {
+        body: await loadImg('assets/character/skins/nam_tay_moi/body.png'),
+        upper: await loadImg('assets/character/skins/nam_tay_moi/upper_arm_unified.png'),
+        fore: await loadImg('assets/character/skins/nam_tay_moi/forearm.png'),
+        hand: await loadImg('assets/character/skins/nam_tay_moi/hand.png')
+      };
+
+      const fCfg = CHARACTER_CONFIG.CHARACTER_SKINS['nu_tay_truyen_thong'];
+      const mCfg = CHARACTER_CONFIG.CHARACTER_SKINS['nam_tay_khoe_khoan'];
+
+      const cvsF = document.getElementById('cvs_female');
+      const ctxF = cvsF.getContext('2d');
+      const cvsM = document.getElementById('cvs_male');
+      const ctxM = cvsM.getContext('2d');
+
+      // Render Female (Left: Idle, Right: Swing Up)
+      renderRig(ctxF, fAssets, fCfg, 170, 430, -80, 0, '1. Đứng chờ (Idle)');
+      renderRig(ctxF, fAssets, fCfg, 450, 240, 160, 0, '2. Vung tay lên (Swing Up)');
+      
+      // Render Male (Left: Idle, Right: Swing Up)
+      renderRig(ctxM, mAssets, mCfg, 170, 430, -80, 0, '1. Đứng chờ (Idle)');
+      renderRig(ctxM, mAssets, mCfg, 450, 240, 160, 0, '2. Vung tay lên (Swing Up)');
+
+      // Populate analysis list
+      const list = document.getElementById('analysisList');
+      list.innerHTML = `
+        <li><strong>1. Khớp Vai (Shoulder Joint):</strong><br>
+        - <em>Ở nhân vật Nữ:</em> Phần thân (<code>body.png</code>) bị khoét sạch toàn bộ tay phải vào trong nách áo. Ống tay áo bồng (<code>upper_arm_unified.png</code>) là vật thể duy nhất xoay quanh tâm vai <code>(429, 360)</code> -> Khớp sạch, không để lại vết tì vết.<br>
+        - <em>Ở nhân vật Nam:</em> Phần thân (<code>body.png</code>) do AI vẽ <strong>CÒN NGUYÊN MỘT KHÚC ỐNG TAY ÁO MÀU TRẮNG DÀI ~120px</strong> nhô ra từ áo gile đen. Khi ráp <code>upper_arm_unified.png</code> đè lên, khúc ống tay trắng tĩnh này bị lòi ra bên dưới -> <strong>ĐÂY LÀ CHỖ "THỪA KHỚP VAI" (BỊ 2 TẦNG ỐNG TAY ÁO)!</strong></li>
+        
+        <li><strong>2. Khớp Khuỷu Tay (Elbow Joint):</strong><br>
+        - <em>Ở nhân vật Nữ:</em> <code>upper_arm_unified.png</code> gồm ống tay bồng kết thúc bằng 1 đoạn bắp tay da người có đầu tròn bo. <code>forearm.png</code> là cẳng tay bắt đầu từ đầu tròn bo nối tiếp -> Khi gập góc nào thì 2 đầu tròn che khít nhau.<br>
+        - <em>Ở nhân vật Nam:</em> <code>upper_arm_unified.png</code> của AI vẽ <strong>nguyên một ống tay áo dài đến tận cổ tay kèm viền thổ cẩm và 1 mẩu da thò ra</strong>. Trong khi đó, <code>forearm.png</code> lại là <strong>một cái cẳng tay trần hoàn chỉnh</strong>. Ráp 2 mảnh này lại với nhau sẽ bị <strong>CHỒNG CHÉO (Ống tay áo có mẩu thịt thò ra đè lên cẳng tay trần)</strong> -> Khi tay co gập lại, mẩu thịt thừa ở ống tay áo chỉ theo hướng bắp tay, trong khi cẳng tay xoay hướng khác -> Trông như tay bị gãy hoặc có 2 cùi chỏ!</li>
+
+        <li><strong>3. Khớp Cổ Tay (Wrist Joint) & Bàn Tay:</strong><br>
+        - <em>Ở nhân vật Nữ:</em> <code>forearm.png</code> thon dần về cổ tay, <code>hand.png</code> nắm khum có khớp xoay ăn khớp với cổ tay.<br>
+        - <em>Ở nhân vật Nam:</em> <code>forearm.png</code> phía dưới bị phẳng ngang (flat cut) chứ không bo tròn cap, còn <code>hand.png</code> phần cuống tay lại ngắn và hơi to so với đầu cẳng tay.</li>
+      `;
+    }
+
+    window.addEventListener('load', init);
+  </script>
+</body>
+</html>

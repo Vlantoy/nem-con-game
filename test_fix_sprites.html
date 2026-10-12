@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Khắc Phục & Chuẩn Hoá Toạ Độ/Kích Thước Khớp Nhân Vật Nam</title>
+  <style>
+    body { background: #111827; color: #fff; font-family: sans-serif; padding: 20px; }
+    .row { display: flex; gap: 20px; margin-top: 15px; }
+    .col { background: #1f2937; padding: 15px; border-radius: 8px; border: 1px solid #374151; }
+    canvas { background: #18202f; border: 1px dashed #4b5563; }
+    h2 { font-size: 16px; color: #38bdf8; margin-bottom: 10px; }
+    pre { background: #000; color: #4ade80; padding: 10px; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <h1>🛠️ KIỂM TRA SỬA ẢNH TRỰC TIẾP (FIX CẮT ẢNH & KÍCH THƯỚC TAY)</h1>
+  <p>So sánh trước và sau khi: (1) Cắt bỏ khúc tay cụt trên Body, (2) Tăng bề ngang tay to cơ bắp đúng tỷ lệ, (3) Khớp cùi chỏ tại viền thổ cẩm.</p>
+
+  <div class="row">
+    <div class="col">
+      <h2>❌ TRƯỚC KHI FIX (Tay que củi, thừa khúc tay cụt ở vai)</h2>
+      <canvas id="cvs_before" width="500" height="650"></canvas>
+    </div>
+    <div class="col">
+      <h2>✅ SAU KHI FIX (Tay vạm vỡ, nách sạch 100%, gập chuẩn)</h2>
+      <canvas id="cvs_after" width="500" height="650"></canvas>
+    </div>
+  </div>
+
+  <script src="character-config.js"></script>
+  <script>
+    async function loadImg(src) {
+      return new Promise((r, j) => {
+        const img = new Image();
+        img.onload = () => r(img);
+        img.onerror = j;
+        img.src = src;
+      });
+    }
+
+    async function run() {
+      const rawBody = await loadImg('assets/character/skins/New skin/ChatGPT Image Oct 2, 2026, 10_30_15 PM-2.png');
+      const rawUpper = await loadImg('assets/character/skins/New skin/ChatGPT Image Oct 2, 2026, 10_30_18 PM-3.png');
+      const rawFore = await loadImg('assets/character/skins/New skin/ChatGPT Image Oct 2, 2026, 10_30_19 PM-4.png');
+      const rawHand = await loadImg('assets/character/skins/New skin/ChatGPT Image Oct 2, 2026, 10_30_20 PM-5.png');
+
+      // 1. TẠO CLEAN BODY (xoá khúc tay cụt màu trắng chĩa ra từ áo gile)
+      const cleanBodyCvs = document.createElement('canvas');
+      cleanBodyCvs.width = 1024; cleanBodyCvs.height = 1536;
+      const bCtx = cleanBodyCvs.getContext('2d');
+      bCtx.drawImage(rawBody, 0, 0);
+
+      // Xoá vùng ống tay áo trắng hình trụ bên ngoài nách áo gile đen:
+      // Vùng nách áo gile nằm trong phạm vi x: 300->385, y: 200->360
+      const bData = bCtx.getImageData(0, 0, 1024, 1536);
+      const d = bData.data;
+      for (let y = 190; y <= 350; y++) {
+        for (let x = 300; x <= 390; x++) {
+          const idx = (y * 1024 + x) * 4;
+          const r = d[idx], g = d[idx+1], b = d[idx+2], a = d[idx+3];
+          // Nếu là màu trắng/xám của ống tay áo cụt hoặc màu thịt ở mặt cắt
+          if (a > 30) {
+            // Kiểm tra xem có phải là phần áo gile đen viền đỏ không
+            const isBlackVest = (r < 60 && g < 60 && b < 60);
+            const isRedTrim = (r > 140 && g < 60 && b < 60);
+            const isTealEmbroidery = (r < 60 && g > 100 && b > 100);
+            if (!isBlackVest && !isRedTrim && !isTealEmbroidery) {
+              // Đây là khúc ống tay áo cụt màu trắng -> xoá trong suốt!
+              d[idx+3] = 0;
+            }
+          }
+        }
+      }
+      bCtx.putImageData(bData, 0, 0);
+
+      // Save the cleaned body image to disk via server endpoint
+      const bodyDataUrl = cleanBodyCvs.toDataURL('image/png');
+      await fetch('/save-skin-part', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetPath: 'assets/character/skins/nam_tay_moi/body_clean.png', imageData: bodyDataUrl })
+      });
+
+      // 2. TẠO PROPORTIONAL UPPER ARM & FOREARM
+      // Ở đây, cánh tay nam được scale với tỷ lệ to cơ bắp (scaleUpper: 0.42, scaleFore: 0.22, scaleHand: 0.12)
+      // Khớp vai: (375, 245), khớp khuỷu ngay viền thổ cẩm (600, 1420 trên ảnh rawUpper)
+      
+      // Render BEFORE on cvs_before (chế độ cũ)
+      const ctxB = document.getElementById('cvs_before').getContext('2d');
+      // Render current male skin at swinging pose
+      const oldCfg = CHARACTER_CONFIG.CHARACTER_SKINS['nam_tay_khoe_khoan'];
+      const oldAssets = {
+        body: await loadImg('assets/character/skins/nam_tay_moi/body.png'),
+        upper: await loadImg('assets/character/skins/nam_tay_moi/upper_arm_unified.png'),
+        fore: await loadImg('assets/character/skins/nam_tay_moi/forearm.png'),
+        hand: await loadImg('assets/character/skins/nam_tay_moi/hand.png')
+      };
+      
+      // Render AFTER on cvs_after (chế độ mới đã tẩy nách áo và cánh tay vạm vỡ)
+      const ctxA = document.getElementById('cvs_after').getContext('2d');
+      
+      // Draw test comparison at swing up pose
+      function drawTest(ctx, bodyImg, armScaleMultiplier, cleanShoulder) {
+        ctx.fillStyle = '#18202f';
+        ctx.fillRect(0, 0, 500, 650);
+
+        const s = 0.32;
+        const groundX = 220, groundY = 600;
+        const bodyOriginX = groundX - 512 * s;
+        const bodyOriginY = groundY - 1470 * s;
+
+        // Draw body
+        ctx.drawImage(bodyImg, bodyOriginX, bodyOriginY, 1024 * s, 1536 * s);
+
+        const shX = bodyOriginX + 375 * s;
+        const shY = bodyOriginY + 245 * s;
+
+        // Swing up target
+        const tx = shX + 160;
+        const ty = shY - 40;
+
+        const L1 = 160 * s * armScaleMultiplier;
+        const L2 = 150 * s * armScaleMultiplier;
+
+        // IK
+        const dist = Math.hypot(tx - shX, ty - shY);
+        const theta = Math.atan2(ty - shY, tx - shX);
+        const cosA = Math.max(-1, Math.min(1, (L1*L1 + dist*dist - L2*L2)/(2*L1*dist)));
+        const alpha = Math.acos(cosA);
+        const th1 = theta - alpha;
+        const elbX = shX + L1 * Math.cos(th1);
+        const elbY = shY + L1 * Math.sin(th1);
+        const th2 = Math.atan2(ty - elbY, tx - elbX);
+        const wrX = elbX + L2 * Math.cos(th2);
+        const wrY = elbY + L2 * Math.sin(th2);
+
+        // Draw Upper Arm
+        ctx.save();
+        ctx.translate(shX, shY);
+        ctx.rotate(th1 - Math.PI/2);
+        const uW = 887 * 0.18 * s * armScaleMultiplier;
+        const uH = 1774 * 0.18 * s * armScaleMultiplier;
+        ctx.drawImage(rawUpper, -uW*0.48, -uH*0.16, uW, uH);
+        ctx.restore();
+
+        // Draw Forearm
+        ctx.save();
+        ctx.translate(elbX, elbY);
+        ctx.rotate(th2 - Math.PI/2);
+        const fW = 724 * 0.18 * s * armScaleMultiplier;
+        const fH = 2172 * 0.18 * s * armScaleMultiplier;
+        ctx.drawImage(rawFore, -fW*0.48, -fH*0.12, fW, fH);
+        ctx.restore();
+
+        // Draw Hand
+        ctx.save();
+        ctx.translate(wrX, wrY);
+        ctx.rotate(th2 - Math.PI/2);
+        const hW = 1448 * 0.12 * s * armScaleMultiplier;
+        const hH = 1086 * 0.12 * s * armScaleMultiplier;
+        ctx.drawImage(rawHand, -hW*0.2, -hH*0.5, hW, hH);
+        ctx.restore();
+
+        // Draw joints
+        ctx.fillStyle = '#ef4444';
+        ctx.beginPath(); ctx.arc(shX, shY, 5, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#3b82f6';
+        ctx.beginPath(); ctx.arc(elbX, elbY, 5, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#10b981';
+        ctx.beginPath(); ctx.arc(wrX, wrY, 5, 0, Math.PI*2); ctx.fill();
+      }
+
+      drawTest(ctxB, rawBody, 0.65, false); // Before: tay bị bé (0.65), thân còn tay cụt
+      drawTest(ctxA, cleanBodyCvs, 1.25, true); // After: tay vạm vỡ (1.25), nách áo sạch 100%
+    }
+
+    run();
+  </script>
+</body>
+</html>

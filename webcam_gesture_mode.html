@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>🎮 Chế Độ Cử Chỉ Tay Webcam (MediaPipe Motion Control) - Ném Còn Dân Tộc</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Styling riêng cho Webcam Mode */
+    .webcam-hud-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, #1e3a8a, #065f46);
+      color: #fef08a;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-weight: 700;
+      font-size: 13px;
+      border: 1px solid rgba(254, 240, 138, 0.4);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      animation: pulseGlow 2s infinite alternate;
+    }
+
+    @keyframes pulseGlow {
+      from { box-shadow: 0 0 8px rgba(16, 185, 129, 0.4); }
+      to { box-shadow: 0 0 16px rgba(250, 204, 21, 0.7); }
+    }
+
+    /* Picture-in-Picture Webcam Box */
+    #webcam-pip-container {
+      position: absolute;
+      bottom: 24px;
+      right: 24px;
+      width: 280px;
+      height: 210px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 2px solid #38bdf8;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(8px);
+    }
+
+    #webcam-pip-container.minimized {
+      width: 160px;
+      height: 48px;
+      overflow: hidden;
+    }
+
+    .pip-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 10px;
+      background: rgba(30, 41, 59, 0.9);
+      color: #e2e8f0;
+      font-size: 12px;
+      font-weight: bold;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .pip-header button {
+      background: none;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 0 4px;
+    }
+    .pip-header button:hover { color: #ffffff; }
+
+    .pip-view {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #webcam-video {
+      display: none; /* Video chạy ngầm, hiển thị qua canvas skeleton */
+    }
+
+    #webcam-canvas {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .gesture-live-pill {
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.75);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 9999px;
+      pointer-events: none;
+      white-space: nowrap;
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    /* Motion Control Guide Floating Overlay */
+    #motion-guide-overlay {
+      position: absolute;
+      top: 75px;
+      left: 24px;
+      background: rgba(15, 23, 42, 0.88);
+      border: 1px solid rgba(56, 189, 248, 0.5);
+      border-radius: 12px;
+      padding: 12px 16px;
+      color: #f8fafc;
+      font-size: 13px;
+      max-width: 320px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      backdrop-filter: blur(6px);
+      z-index: 90;
+      pointer-events: auto;
+    }
+
+    #motion-guide-overlay h4 {
+      margin: 0 0 6px 0;
+      color: #38bdf8;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .guide-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 6px;
+      line-height: 1.35;
+    }
+    .guide-step:last-child { margin-bottom: 0; }
+    .step-num {
+      background: #0284c7;
+      color: #fff;
+      border-radius: 50%;
+      width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      flex-shrink: 0;
+      font-weight: bold;
+    }
+
+    /* Sensitivity control slider */
+    .sensitivity-row {
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+    }
+    .sensitivity-row input[type="range"] {
+      flex: 1;
+      cursor: pointer;
+    }
+
+    /* Loading overlay */
+    #ai-loading-modal {
+      position: absolute;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.88);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      color: #f8fafc;
+      text-align: center;
+      padding: 20px;
+      backdrop-filter: blur(10px);
+    }
+    .ai-modal-card {
+      background: rgba(30, 41, 59, 0.95);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      border-radius: 16px;
+      padding: 28px;
+      max-width: 520px;
+      width: 90%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+    }
+    .ai-spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid rgba(56, 189, 248, 0.2);
+      border-top-color: #38bdf8;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .permission-blocked-box {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin: 14px 0;
+      text-align: left;
+      font-size: 13px;
+      color: #fca5a5;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .blocked-alert-title {
+      font-weight: 800;
+      color: #f87171;
+      font-size: 14px;
+      margin-bottom: 6px;
+    }
+    .blocked-alert-subtitle {
+      color: #cbd5e1;
+      margin: 0 0 10px 0;
+      line-height: 1.4;
+      font-size: 12.5px;
+    }
+    .unblock-steps {
+      margin: 0;
+      padding-left: 20px;
+      color: #f1f5f9;
+      line-height: 1.6;
+      font-size: 12.5px;
+    }
+    .unblock-steps code {
+      background: rgba(0, 0, 0, 0.4);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #38bdf8;
+      font-family: monospace;
+    }
+    .modal-actions-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 14px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .btn-primary-action {
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      color: #fff;
+      font-weight: 700;
+      padding: 9px 18px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .btn-primary-action:hover {
+      background: linear-gradient(135deg, #0369a1, #075985);
+    }
+    .btn-secondary-action {
+      background: rgba(71, 85, 105, 0.7);
+      color: #cbd5e1;
+      padding: 9px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .btn-secondary-action:hover {
+      background: rgba(100, 116, 139, 0.9);
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    <!-- Top HUD Bar -->
+    <header id="hud-top">
+      <div class="hud-group">
+        <div class="hud-card">
+          <span class="hud-label">ĐIỂM SỐ</span>
+          <span id="score-val" class="hud-num">0</span>
+        </div>
+        <div class="hud-card">
+          <span class="hud-label">KỶ LỤC</span>
+          <span id="highscore-val" class="hud-num">0</span>
+        </div>
+        <div class="hud-card" id="streak-card">
+          <span class="hud-label">CHUỖI TRÚNG</span>
+          <span id="streak-val" class="hud-num">0</span>
+        </div>
+      </div>
+
+      <div class="title-banner">
+        <span class="webcam-hud-badge">📷 MOTION CONTROL 1:1</span>
+        <h1>NÉM CÒN CỬ CHỈ TAY</h1>
+        <p class="subtitle">MediaPipe Hand Tracking • Nắm Xoay / Thả Ném</p>
+      </div>
+
+      <div class="hud-group hud-controls">
+        <button id="btn-skin" class="btn-tool btn-skin" title="Chọn nhân vật">
+          <span class="icon">👘</span> <span id="skin-label" class="btn-text">Nhân Vật</span>
+        </button>
+        <button id="btn-toggle-cam" class="btn-tool" style="border-color: #38bdf8;" title="Bật / Tắt Webcam">
+          <span class="icon">📷</span> <span id="cam-label" class="btn-text">Tắt Camera</span>
+        </button>
+        <button id="btn-back-classic" class="btn-tool" title="Trở về chế độ chuột truyền thống">
+          <span class="icon">🖱️</span> <span class="btn-text">Bản Chuột</span>
+        </button>
+        <button id="btn-audio" class="btn-tool" title="Bật/Tắt âm thanh">
+          <span class="icon" id="audio-icon">🔊</span> <span class="btn-text">Âm Thanh</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Canvas Viewport -->
+    <div id="canvas-wrapper">
+      <canvas id="gameCanvas" width="1672" height="941"></canvas>
+
+      <!-- Floating Score Announcement Popup -->
+      <div id="announcement-banner">
+        <div id="announce-title">XUYÊN TÂM VÒNG CÒN!</div>
+        <div id="announce-score">+100 ĐIỂM • MƯA THUẬN GIÓ HÒA!</div>
+      </div>
+
+      <!-- Motion Control Guide Overlay -->
+      <div id="motion-guide-overlay">
+        <h4>🖐️ HƯỚNG DẪN CỬ CHỈ TAY 1:1</h4>
+        <div class="guide-step">
+          <div class="step-num">1</div>
+          <div>Đưa bàn tay lên trước Webcam (cách 0.5m - 1m).</div>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">2</div>
+          <div><strong>Nắm chặt tay (✊ Fist):</strong> Nhân vật sẽ ghì chặt dây còn.</div>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">3</div>
+          <div><strong>Quay tay tròn ngoài đời:</strong> Cánh tay & quả còn sẽ xoay tròn tích lũy lực ly tâm 1:1!</div>
+        </div>
+        <div class="guide-step">
+          <div class="step-num">4</div>
+          <div><strong>Bung xòe tay (✋ Open):</strong> Quả còn sẽ bay vút xuyên qua vòng còn!</div>
+        </div>
+        <div class="sensitivity-row">
+          <label>Độ nhạy vung:</label>
+          <input type="range" id="slider-sens" min="1.0" max="3.5" step="0.1" value="2.2">
+          <span id="sens-val">2.2x</span>
+        </div>
+        <div style="background: rgba(56, 189, 248, 0.12); padding: 8px 10px; border-radius: 8px; margin-top: 8px; border: 1px dashed rgba(56, 189, 248, 0.4);">
+          <div style="font-size: 11.5px; color: #bae6fd; line-height: 1.4;">
+            ⚡ <strong>Bù Motion Blur:</strong> Đã kích hoạt cơ chế <em>Bù quán tính</em> & <em>60 FPS</em>. Bạn chỉ cần xoay cổ tay theo vòng tròn đều đặn là đà tích luỹ liên tục, không bị đứt đoạn!
+          </div>
+        </div>
+      </div>
+
+      <!-- Picture-in-Picture Webcam Tracking Window -->
+      <div id="webcam-pip-container">
+        <div class="pip-header">
+          <span>📷 WEBCAM TRACKING</span>
+          <div>
+            <button id="btn-pip-min" title="Thu nhỏ / Phóng to">_</button>
+          </div>
+        </div>
+        <div class="pip-view">
+          <video id="webcam-video" playsinline></video>
+          <canvas id="webcam-canvas"></canvas>
+          <div id="gesture-pill" class="gesture-live-pill">🔍 Đang tìm bàn tay...</div>
+        </div>
+      </div>
+
+      <!-- Loading / Permission Screen -->
+      <div id="ai-loading-modal">
+        <div class="ai-modal-card">
+          <div class="ai-spinner" id="loading-spinner"></div>
+          <h3 id="loading-title">Đang kích hoạt Camera & AI MediaPipe...</h3>
+          <p id="loading-desc" style="max-width: 450px; margin-top: 8px; color: #94a3b8; font-size: 14px;">
+            Vui lòng bấm <strong>"Cho phép" (Allow)</strong> khi trình duyệt hỏi quyền sử dụng Camera để trải nghiệm điều khiển cử chỉ 1:1!
+          </p>
+
+          <!-- Guide box shown when permission is blocked -->
+          <div id="permission-blocked-guide" style="display: none;" class="permission-blocked-box">
+            <div class="blocked-alert-title">🚫 TRÌNH DUYỆT ĐANG CHẶN QUYỀN CAMERA</div>
+            <p class="blocked-alert-subtitle">
+              Do trình duyệt đang lưu cài đặt <em>"Chặn" (Block)</em> cho trang này nên <strong>sẽ không tự hiện lại thông báo hỏi</strong>. Bạn có thể mở lại chỉ trong vài giây:
+            </p>
+            <ol class="unblock-steps">
+              <li>
+                <strong>Bước 1:</strong> Nhìn lên thanh địa chỉ (URL) ở trên cùng trình duyệt.
+              </li>
+              <li>
+                <strong>Bước 2:</strong> Bấm vào biểu tượng <strong>Camera 📷 có dấu gạch chéo đỏ</strong> (hoặc biểu tượng <strong>Tùy chỉnh trang web 🎛️ / Ổ khóa 🔒</strong> bên cạnh <code>localhost:8080</code>).
+              </li>
+              <li>
+                <strong>Bước 3:</strong> Chuyển mục <strong>Camera</strong> từ <strong>Chặn (Block)</strong> sang <strong>Cho phép (Allow)</strong>.
+              </li>
+            </ol>
+          </div>
+
+          <div class="modal-actions-row">
+            <button id="btn-request-cam" class="btn-primary-action" style="display: none;">📷 Bật Camera Ngay</button>
+            <button id="btn-retry-cam" class="btn-primary-action" style="display: none;">🔄 Thử lại kết nối Camera</button>
+            <button id="btn-fallback-mouse" class="btn-secondary-action">🖱️ Chơi Chế Độ Chuột</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Status Footer -->
+    <footer id="hud-bottom">
+      <div class="tip-box" id="culture-ticker">
+        <span class="tip-badge">🌾 TRẢI NGHIỆM THỰC TẾ:</span>
+        <span class="tip-text">Động tác vung tay và buông ngón tay ngoài đời thực truyền thẳng lực vật lý vào quả còn trong game!</span>
+      </div>
+      <div class="footer-stats">
+        <span>Lượt ném: <strong id="throws-count">0</strong></span>
+        <span>|</span>
+        <span>Tỉ lệ trúng: <strong id="accuracy-val">0%</strong></span>
+        <button id="btn-reset" class="btn-small" title="Chơi lại từ đầu">↺ Chơi lại</button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Skin Selection Modal -->
+  <div id="modal-skin" class="modal-overlay hidden">
+    <div class="modal-box modal-skin-box">
+      <div class="modal-header">
+        <span class="modal-header-title">👘 CHỌN NHÂN VẬT & TRANG PHỤC HỘI</span>
+        <button id="btn-close-skin" class="modal-close" title="Đóng">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="skin-selection-grid" id="skin-grid-container"></div>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-skin-done" class="btn-primary">HOÀN TẤT & TRỞ LẠI SÂN HỘI 🎯</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Load Game Engine & Audio & Rig -->
+  <script src="character-config.js"></script>
+  <script src="game.js"></script>
+
+  <!-- Load Webcam Controller and Bridge to Game -->
+  <script type="module">
+    import { WebcamGestureController } from './webcam-controller.js';
+
+    let game = null;
+    let webcamCtrl = null;
+    let sensitivity = 2.2;
+    let isWebcamActive = false;
+    let handLostTimeout = null;
+
+    // Center reference for relative hand movement
+    let baseHandX = 0.5;
+    let baseHandY = 0.5;
+
+    // Elements
+    const videoEl = document.getElementById('webcam-video');
+    const canvasEl = document.getElementById('webcam-canvas');
+    const gesturePill = document.getElementById('gesture-pill');
+    const loadingModal = document.getElementById('ai-loading-modal');
+    const loadingSpinner = document.getElementById('loading-spinner');
+    const loadingTitle = document.getElementById('loading-title');
+    const loadingDesc = document.getElementById('loading-desc');
+    const blockedGuide = document.getElementById('permission-blocked-guide');
+    const btnRequestCam = document.getElementById('btn-request-cam');
+    const btnRetry = document.getElementById('btn-retry-cam');
+    const btnFallbackMouse = document.getElementById('btn-fallback-mouse');
+    const btnToggleCam = document.getElementById('btn-toggle-cam');
+    const camLabel = document.getElementById('cam-label');
+    const btnBackClassic = document.getElementById('btn-back-classic');
+    const sliderSens = document.getElementById('slider-sens');
+    const sensVal = document.getElementById('sens-val');
+    const pipContainer = document.getElementById('webcam-pip-container');
+    const btnPipMin = document.getElementById('btn-pip-min');
+
+    // Sensitivity slider
+    sliderSens.addEventListener('input', (e) => {
+      sensitivity = parseFloat(e.target.value);
+      sensVal.innerText = sensitivity.toFixed(1) + 'x';
+    });
+
+    // PiP minimize button
+    btnPipMin.addEventListener('click', () => {
+      pipContainer.classList.toggle('minimized');
+      btnPipMin.innerText = pipContainer.classList.contains('minimized') ? '🗖' : '_';
+    });
+
+    // Back to classic mouse mode
+    const goToClassic = () => {
+      if (webcamCtrl) webcamCtrl.stopWebcam();
+      window.location.href = 'index.html';
+    };
+    btnBackClassic.addEventListener('click', goToClassic);
+    if (btnFallbackMouse) btnFallbackMouse.addEventListener('click', goToClassic);
+
+    // Initialize Game
+    window.addEventListener('load', async () => {
+      // Connect to global game instance created by game.js, or instantiate
+      game = window.game || (window.Game ? new Game() : null);
+      if (game) {
+        // Set to manual physics mode so direct (X, Y) target coordinates drive the arm IK
+        game.applyControlMode('manual');
+        if (game.closeModeModal) game.closeModeModal();
+      }
+
+      // Initialize Webcam Controller
+      webcamCtrl = new WebcamGestureController({
+        videoElement: videoEl,
+        canvasElement: canvasEl,
+        onStatus: (msg, type) => {
+          loadingTitle.innerText = msg;
+          if (type === 'error') {
+            loadingDesc.innerText = msg;
+          }
+        },
+        onGesture: (data) => {
+          handleHandGesture(data);
+        }
+      });
+
+      // Start webcam
+      await startTracking();
+    });
+
+    async function startTracking() {
+      // Reset UI state
+      if (loadingSpinner) loadingSpinner.style.display = 'block';
+      if (blockedGuide) blockedGuide.style.display = 'none';
+      if (btnRetry) btnRetry.style.display = 'none';
+      if (btnRequestCam) btnRequestCam.style.display = 'none';
+      loadingModal.style.display = 'flex';
+
+      // Check browser camera permission status ahead of time
+      const permState = await WebcamGestureController.checkCameraPermission();
+      if (permState === 'denied') {
+        if (loadingSpinner) loadingSpinner.style.display = 'none';
+        loadingTitle.innerText = 'Trình duyệt đang chặn Camera';
+        loadingDesc.innerText = 'Trình duyệt đã lưu cài đặt chặn quyền camera cho trang web này.';
+        if (blockedGuide) blockedGuide.style.display = 'block';
+        if (btnRetry) btnRetry.style.display = 'inline-block';
+        return;
+      }
+
+      loadingTitle.innerText = 'Đang kích hoạt Camera & AI MediaPipe...';
+      loadingDesc.innerHTML = 'Vui lòng bấm <strong>"Cho phép" (Allow)</strong> khi trình duyệt hỏi quyền sử dụng Camera!';
+
+      const result = await webcamCtrl.startWebcam(videoEl, canvasEl);
+      if (result && result.success) {
+        isWebcamActive = true;
+        loadingModal.style.display = 'none';
+        camLabel.innerText = 'Tắt Camera';
+      } else {
+        isWebcamActive = false;
+        if (loadingSpinner) loadingSpinner.style.display = 'none';
+        if (btnRetry) btnRetry.style.display = 'inline-block';
+
+        if (result && result.errorType === 'denied') {
+          loadingTitle.innerText = 'Quyền Camera đang bị chặn';
+          loadingDesc.innerText = 'Trình duyệt không thể mở camera vì quyền đã bị từ chối.';
+          if (blockedGuide) blockedGuide.style.display = 'block';
+        } else if (result && result.errorType === 'in_use') {
+          loadingTitle.innerText = 'Camera đang bị ứng dụng khác chiếm dụng';
+          loadingDesc.innerText = 'Hãy tắt các ứng dụng đang dùng camera (Zoom, Teams, Zalo, ứng dụng Camera...) rồi thử lại.';
+        } else if (result && result.errorType === 'not_found') {
+          loadingTitle.innerText = 'Không tìm thấy Webcam';
+          loadingDesc.innerText = 'Hãy kiểm tra cáp cắm webcam hoặc bật công tắc camera trên laptop của bạn.';
+        } else {
+          loadingTitle.innerText = 'Không thể kết nối Camera';
+          loadingDesc.innerText = result ? result.errorMsg : 'Lỗi kết nối camera.';
+        }
+      }
+    }
+
+    if (btnRetry) {
+      btnRetry.addEventListener('click', () => {
+        startTracking();
+      });
+    }
+
+    if (btnRequestCam) {
+      btnRequestCam.addEventListener('click', () => {
+        startTracking();
+      });
+    }
+
+    btnToggleCam.addEventListener('click', () => {
+      if (isWebcamActive) {
+        webcamCtrl.stopWebcam();
+        isWebcamActive = false;
+        camLabel.innerText = 'Bật Camera';
+        gesturePill.innerText = '⏹️ Camera đang tắt';
+      } else {
+        startTracking();
+      }
+    });
+
+    /**
+     * Bridge from MediaPipe Hand Gestures to Game Physics Engine:
+     * 1. normX, normY: Real hand position in webcam (0.0 to 1.0)
+     * 2. isFist: true = grabbing / spinning, false = release / throw
+     */
+    function handleHandGesture(data) {
+      if (!game) return;
+
+      if (!data.hasHand) {
+        gesturePill.innerText = '🔍 Đang tìm bàn tay...';
+        gesturePill.style.background = 'rgba(0, 0, 0, 0.75)';
+        gesturePill.style.color = '#cbd5e1';
+
+        // CHỐNG RƠI BÓNG / NÉM HỤT DO MOTION BLUR:
+        // Đặt bộ đệm chờ 450ms. Chỉ khi bàn tay biến mất hoàn toàn quá 450ms mới kết thúc đà xoay!
+        if (handLostTimeout === null && game.isMouseDown && game.state === game.STATE.SWINGING) {
+          handLostTimeout = setTimeout(() => {
+            if (game.isMouseDown && game.state === game.STATE.SWINGING) {
+              game.handlePointerUp();
+            }
+            handLostTimeout = null;
+          }, 450);
+        }
+        return;
+      }
+
+      // Khi đã có lại tín hiệu bàn tay, lập tức hủy bộ đếm timeout
+      if (handLostTimeout !== null) {
+        clearTimeout(handLostTimeout);
+        handLostTimeout = null;
+      }
+
+      // Update Live Pill Status with high-speed indicators
+      if (data.isInertial) {
+        gesturePill.innerText = '⚡ BÙ QUÁN TÍNH TỐC ĐỘ CAO';
+        gesturePill.style.background = 'linear-gradient(135deg, #eab308, #ca8a04)';
+        gesturePill.style.color = '#000';
+      } else if (data.isSpinningFast && data.isFist) {
+        gesturePill.innerText = '⚡ QUAY TỐC ĐỘ CAO (GIỮ DÂY)';
+        gesturePill.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
+        gesturePill.style.color = '#000';
+      } else if (data.isFist) {
+        gesturePill.innerText = '✊ NẮM TAY (QUAY ĐÀ)';
+        gesturePill.style.background = 'rgba(220, 38, 38, 0.85)';
+        gesturePill.style.color = '#fff';
+      } else {
+        gesturePill.innerText = '✋ THẢ TAY (PHÓNG CÒN)';
+        gesturePill.style.background = 'rgba(16, 185, 129, 0.85)';
+        gesturePill.style.color = '#fff';
+      }
+
+      // Map hand movement around character shoulder
+      const shoulderX = game.rig ? game.rig.shoulderX : 296;
+      const shoulderY = game.rig ? game.rig.shoulderY : 550;
+
+      // Delta from center of camera frame
+      const dx = (data.normX - 0.5) * sensitivity;
+      const dy = (data.normY - 0.45) * sensitivity;
+
+      // Scale to arm reach circle (radius ~160px)
+      const targetWorldX = shoulderX + dx * 220;
+      const targetWorldY = shoulderY + dy * 220;
+
+      // GESTURE ACTION 1: Nắm tay (Closed_Fist) -> Bắt đầu giữ dây hoặc tiếp tục quay
+      if (data.isFist) {
+        if (!game.isMouseDown && game.state === game.STATE.IDLE) {
+          // Trigger Grab & start swing
+          game.sound.init();
+          game.isMouseDown = true;
+          game.state = game.STATE.SWINGING;
+          
+          game.mouseWorldX = targetWorldX;
+          game.mouseWorldY = targetWorldY;
+          game.prevMouseX = targetWorldX;
+          game.prevMouseY = targetWorldY;
+
+          game.spinCharge = 0;
+          game.recentSpinCharge = 0;
+          game.continuousRotation = 0;
+          game.totalRotations = 0;
+          game.lastSpinDirection = 0;
+          game.whooshCooldown = 0.25;
+
+          const ballPos = game.cord.getEndPosition();
+          game.prevBallAngle = Math.atan2(ballPos.y - shoulderY, ballPos.x - shoulderX);
+        } else if (game.isMouseDown && game.state === game.STATE.SWINGING) {
+          // Continuously update hand target in 1:1 motion
+          game.mouseWorldX = targetWorldX;
+          game.mouseWorldY = targetWorldY;
+        }
+      } 
+      // GESTURE ACTION 2: Thả tay (Open_Palm) -> Buông quả còn phóng đi
+      else {
+        if (game.isMouseDown && game.state === game.STATE.SWINGING) {
+          game.isMouseDown = false;
+          game.performThrow();
+        }
+      }
+    }
+  </script>
+</body>
+</html>

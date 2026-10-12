@@ -17,7 +17,7 @@ Tài liệu này cung cấp **Bộ Master Prompt AI (ChatGPT / DALL-E 3 / Midjou
 | **`body.png`** | **`1024 × 1536 px`** | Gót chân: `(565, 1510)`<br>Khớp vai: `(429, 360)` | **THÂN THỂ:** Đứng góc 3/4 nhìn sang phải, tay trái ôm hông.<br>⚠️ **BẮT BUỘC:** Vai bên phải khoét nách áo cong tròn sạch sẽ (sleeveless armhole seam). **TUYỆT ĐỐI KHÔNG CÓ CÁNH TAY PHẢI, KHÔNG CÓ MẨU CỤT THÒ RA**! |
 | **`upper_arm_unified.png`** | **`322 × 648 px`** | Khớp vai: `(206, 208)`<br>Viền cùi chỏ: `(228, 603)` | **BẮP TAY ÁO:** Ống tay áo bồng vẽ riêng đặt thẳng đứng.<br>⚠️ **BẮT BUỘC:** Đáy ống tay áo cắt phẳng ngang tại viền cùi chỏ. **KHÔNG vẽ mẩu thịt thò ra dưới viền áo**! |
 | **`forearm.png`** | **`69 × 221 px`** | Khớp cùi chỏ: `(29, 20)`<br>Khớp cổ tay: `(49, 200)` | **CẲNG TAY:** Cẳng tay da trần đặt thẳng đứng.<br>⚠️ **BẮT BUỘC:** Đỉnh cùi chỏ bo tròn hình bán nguyệt mịn (half-circle dome) để xoay kín khít. **Đáy dừng tại ngấn cổ tay, TUYỆT ĐỐI KHÔNG vẽ bàn tay/nắm đấm**! |
-| **`hand.png`** | **`325 × 270 px`** | Cổ tay: `(25, 180)`<br>Lỗ xỏ dây còn: `(165, 135)` | **BÀN TAY:** Bàn tay khum tròn nắm giữ dây quả còn.<br>⚠️ **BẮT BUỘC:** Cuống cổ tay ở góc trên bên trái, ngón tay hướng vào trong. |
+| **`hand.png`** | **`325 × 270 px`** | Cổ tay: `(25, 180)`<br>Lỗ xỏ dây còn: `(255, 68)` | **BÀN TAY:** Bàn tay khum tròn nắm giữ dây quả còn.<br>⚠️ **BẮT BUỘC:** Cuống cổ tay ở góc trên bên trái, ngón tay hướng vào trong. |
 
 ---
 

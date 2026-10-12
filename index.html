@@ -4,51 +4,130 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Lễ Hội Ném Còn - Trò Chơi Dân Gian Việt Nam</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div id="game-container">
     <!-- Top HUD Bar -->
     <header id="hud-top">
-      <div class="hud-group">
-        <div class="hud-card">
-          <span class="hud-label">ĐIỂM SỐ</span>
-          <span id="score-val" class="hud-num">0</span>
+      <!-- 1. Left: Stylized Ném Còn Graphic Logo (Overhanging slightly into background) -->
+      <div class="hud-logo-wrap">
+        <img src="assets/items/logo_nem_con.png" alt="Ném Còn Dân Tộc" class="hud-game-logo" id="hud-game-logo" title="Ném Còn Dân Tộc - Lễ Hội Lồng Tồng">
+      </div>
+
+      <!-- 2. Center: Prominent Centered Score Displays -->
+      <div class="hud-center-score-wrap">
+        <!-- 1-Player Standard Score Group -->
+        <div class="hud-group single-score-group" id="single-hud-group">
+          <div class="hud-card score-card-main">
+            <span class="hud-label">ĐIỂM SỐ</span>
+            <span id="score-val" class="hud-num">0</span>
+          </div>
+          <div class="hud-card">
+            <span class="hud-label">KỶ LỤC</span>
+            <span id="highscore-val" class="hud-num">0</span>
+          </div>
+          <div class="hud-card" id="streak-card">
+            <span class="hud-label">CHUỖI</span>
+            <span id="streak-val" class="hud-num">0</span>
+          </div>
         </div>
-        <div class="hud-card">
-          <span class="hud-label">KỶ LỤC</span>
-          <span id="highscore-val" class="hud-num">0</span>
-        </div>
-        <div class="hud-card" id="streak-card">
-          <span class="hud-label">CHUỖI TRÚNG</span>
-          <span id="streak-val" class="hud-num">0</span>
+
+        <!-- 2-Player Versus Scoreboard (Thi đấu 1v1 đối kháng 10 điểm) -->
+        <div class="hud-group versus-scoreboard" id="versus-hud-group" style="display: none;">
+          <div class="player-hud-card p1-hud-card active" id="p1-hud-card">
+            <span class="p-avatar">👦</span>
+            <div class="p-info">
+              <span class="p-name">NGƯỜI CHƠI 1</span>
+              <span class="p-score" id="p1-score-display">0 / 10</span>
+            </div>
+          </div>
+          <div class="versus-vs-badge">
+            <span class="vs-label">⚔️ ĐỐI ĐẦU</span>
+            <span class="turn-badge" id="hud-turn-badge">LƯỢT P1</span>
+          </div>
+          <div class="player-hud-card p2-hud-card" id="p2-hud-card">
+            <span class="p-avatar">👧</span>
+            <div class="p-info">
+              <span class="p-name">NGƯỜI CHƠI 2</span>
+              <span class="p-score" id="p2-score-display">0 / 10</span>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="title-banner">
-        <h1>NÉM CÒN DÂN TỘC</h1>
-        <p class="subtitle">Lễ Hội Lồng Tồng Vùng Cao</p>
-      </div>
+      <!-- 3. Right: Minimalist Audio & Unified Menu -->
+      <div class="hud-right-wrap">
+        <button id="btn-audio" class="btn-tool btn-audio-mini" title="Bật/Tắt âm thanh">
+          <span class="icon" id="audio-icon">🔊</span>
+        </button>
 
-      <div class="hud-group hud-controls">
-        <button id="btn-skin" class="btn-tool btn-skin" title="Chọn nhân vật & Đổi trang phục">
-          <span class="icon">👘</span> <span id="skin-label" class="btn-text">Nhân Vật</span>
-        </button>
-        <button id="btn-mode" class="btn-tool btn-mode" title="Đổi chế độ chơi: Giữ tự xoay hoặc Xoay chuột">
-          <span class="icon" id="mode-icon">⚡</span> <span id="mode-label" class="btn-text">Tự Xoay</span>
-        </button>
-        <button id="btn-grip" class="btn-tool btn-grip" title="Đổi vị trí cầm dây còn: Đuôi dây, Giữa dây hoặc Gần quả">
-          <span class="icon">🧵</span> <span id="grip-label" class="btn-text">Đuôi Dây</span>
-        </button>
-        <button id="btn-culture" class="btn-tool btn-culture" title="Khám phá nét đẹp văn hóa Ném Còn">
-          <span class="icon">🌾</span> <span class="btn-text">Văn Hóa</span>
-        </button>
-        <button id="btn-help" class="btn-tool" title="Hướng dẫn cách chơi">
-          <span class="icon">🎯</span> <span class="btn-text">Luật Chơi</span>
-        </button>
-        <button id="btn-audio" class="btn-tool" title="Bật/Tắt âm thanh">
-          <span class="icon" id="audio-icon">🔊</span> <span class="btn-text">Âm Thanh</span>
-        </button>
+        <div class="menu-dropdown-container">
+          <button id="btn-menu-toggle" class="btn-tool btn-menu-toggle" title="Menu chức năng & Tùy chọn">
+            <span class="icon">☰</span> <span class="btn-text" id="menu-toggle-label">MENU</span>
+          </button>
+
+          <!-- Dropdown Menu Box -->
+          <div id="hud-menu-dropdown" class="hud-menu-dropdown hidden">
+            <div class="menu-sec-title">🎮 CHẾ ĐỘ CHƠI</div>
+            <div class="menu-mode-list">
+              <button class="menu-btn-item active" id="btn-bot">
+                <span class="icon">🤖</span>
+                <span class="label" id="bot-label">Đấu Máy (Thích Ứng Trình Độ)</span>
+              </button>
+
+              <button class="menu-btn-item" id="btn-versus">
+                <span class="icon">👥</span>
+                <span class="label" id="versus-label">Đấu 2 Người (1v1)</span>
+              </button>
+
+              <button class="menu-btn-item" id="btn-mode-single">
+                <span class="icon">🎯</span>
+                <span class="label">Luyện Tập (Chơi Đơn)</span>
+              </button>
+            </div>
+
+            <div class="menu-hr"></div>
+
+            <div class="menu-sec-title">🎯 ĐỘ KHÓ KHI NÉM</div>
+            <div class="menu-diff-pills" id="menu-diff-pills" style="margin-bottom: 8px;">
+              <button class="diff-pill" data-diff="easy" id="diff-pill-easy" title="Trợ lực vành, thả nhẹ là trúng">Dễ (Trợ lực)</button>
+              <button class="diff-pill active" data-diff="medium" id="diff-pill-medium" title="Chuẩn vật lý thực tế">Vừa (Chuẩn)</button>
+              <button class="diff-pill" data-diff="hard" id="diff-pill-hard" title="Căn góc và lực cực kỳ chính xác">Khó (Chính xác)</button>
+            </div>
+
+            <div class="menu-hr"></div>
+
+            <div class="menu-sec-title">⚙️ TÙY CHỌN & TRỢ GIÚP</div>
+            <div class="menu-opt-grid">
+              <button class="menu-opt-btn" id="btn-skin">
+                <span class="icon">👘</span>
+                <span class="label" id="skin-label">Nhân Vật</span>
+              </button>
+              <button class="menu-opt-btn" id="btn-grip">
+                <span class="icon">🧵</span>
+                <span class="label" id="grip-label">Đuôi Dây</span>
+              </button>
+              <button class="menu-opt-btn" id="btn-help">
+                <span class="icon">📖</span>
+                <span class="label">Hướng Dẫn</span>
+              </button>
+              <button class="menu-opt-btn" id="btn-culture">
+                <span class="icon">🌾</span>
+                <span class="label">Văn Hóa</span>
+              </button>
+            </div>
+
+            <div class="menu-hr"></div>
+
+            <button class="menu-reset-btn" id="btn-reset">
+              <span class="icon">🔄</span> Chơi Lại Lượt Này
+            </button>
+          </div>
+        </div>
       </div>
     </header>
 
@@ -56,11 +135,41 @@
     <div id="canvas-wrapper">
       <canvas id="gameCanvas" width="1672" height="941"></canvas>
 
+      <!-- Player 1 Skills Tray (Top-Left Corner - Vertical Compact) -->
+      <div id="p1-skills-tray" class="skills-tray p1-tray" style="display: none;">
+        <div class="tray-header">
+          <span class="tray-icon">⚡</span>
+          <span class="tray-title">P1</span>
+          <span class="tray-dot turn-active" id="p1-tray-dot" title="Lượt của bạn"></span>
+        </div>
+        <div class="skills-slots" id="p1-skills-slots">
+          <!-- Dynamically populated 3 random skill icons -->
+        </div>
+        <div class="tray-status-badge" id="p1-tray-status"></div>
+      </div>
+
+      <!-- Player 2 / Bot Skills Tray (Top-Right Corner - Vertical Compact) -->
+      <div id="p2-skills-tray" class="skills-tray p2-tray" style="display: none;">
+        <div class="tray-header">
+          <span class="tray-icon">⚡</span>
+          <span class="tray-title" id="p2-tray-title">BOT</span>
+          <span class="tray-dot" id="p2-tray-dot" title="Chờ lượt"></span>
+        </div>
+        <div class="skills-slots" id="p2-skills-slots">
+          <!-- Dynamically populated 3 random skill icons -->
+        </div>
+        <div class="tray-status-badge" id="p2-tray-status"></div>
+      </div>
+
       <!-- Floating Score Announcement Popup -->
       <div id="announcement-banner">
         <div id="announce-title">XUYÊN TÂM VÒNG CÒN!</div>
         <div id="announce-score">+100 ĐIỂM • MƯA THUẬN GIÓ HÒA!</div>
       </div>
+
+      <!-- Skill Card Visual Popups (Replaces text banners for skill triggers) -->
+      <div id="skill-card-popups" class="skill-card-popups-container"></div>
+
     </div>
 
     <!-- Bottom Status / Dynamic Culture Ticker Footer -->
@@ -76,6 +185,39 @@
         <button id="btn-reset" class="btn-small" title="Chơi lại từ đầu">↺ Chơi lại</button>
       </div>
     </footer>
+  </div>
+
+  <!-- Interactive Wager Modal for Cuoc Diem Skill (Minimalist Slider) -->
+  <div id="wager-modal" class="modal-overlay wager-modal-overlay hidden">
+    <div class="wager-modal-box">
+      <div class="wager-modal-header">
+        <div class="wager-header-left">
+          <span class="wager-modal-title">🎲 CƯỢC ĐIỂM</span>
+          <div class="wager-help-container">
+            <button type="button" class="wager-help-btn" id="wager-help-btn" title="Xem luật cược">?</button>
+            <div class="wager-help-tooltip" id="wager-help-tooltip">
+              <div class="wager-help-item win">🎯 <strong>Thắng:</strong> Thu hồi vốn + nhận thêm điểm cược (x2)</div>
+              <div class="wager-help-item lose">❌ <strong>Thua:</strong> Mất số điểm đã cược</div>
+            </div>
+          </div>
+        </div>
+        <button class="wager-btn-close" id="wager-btn-cancel" aria-label="Đóng">✕</button>
+      </div>
+
+      <div class="wager-slider-container">
+        <div class="wager-value-badge" id="wager-val-display">1</div>
+        <div class="wager-value-unit">ĐIỂM CƯỢC</div>
+
+        <div class="wager-slider-row">
+          <span class="wager-slider-edge min">1</span>
+          <input type="range" id="wager-slider" class="wager-slider-range" min="1" max="1" value="1" step="1">
+          <span class="wager-slider-edge max" id="wager-slider-max">1</span>
+        </div>
+        <div class="wager-balance-hint" id="wager-balance-hint">Tổng điểm hiện có: <strong id="wager-balance-val">1</strong></div>
+      </div>
+
+      <button class="wager-btn-confirm" id="wager-btn-confirm">CƯỢC 1 ĐIỂM</button>
+    </div>
   </div>
 
   <!-- Help & Cultural Heritage Modal -->
@@ -461,6 +603,36 @@
             <p>Quả còn chui lọt qua vòng búp còn: <strong>+100 điểm</strong>, vòng còn bừng sáng, pháo giấy mừng hội và đón nhận lời chúc phúc lành truyền thống!</p>
           </div>
         </div>
+
+        <div class="guide-item">
+          <div class="guide-icon">👥</div>
+          <div class="guide-desc">
+            <h4>5. Hai Chế Độ Chơi: Đơn Đấu & Đối Kháng 1v1</h4>
+            <p><strong>Chơi Đơn:</strong> Thử thách cá nhân, tính chuỗi trúng liên tiếp và phá kỷ lục điểm số.<br>
+            <strong>Đấu 2 Người:</strong> Chàng trai Mường & Cô gái Thái so tài luân phiên 2 đầu sân, bên nào đạt 10 điểm trước sẽ giành chiến thắng!</p>
+          </div>
+        </div>
+
+        <div class="guide-item">
+          <div class="guide-icon">🧵</div>
+          <div class="guide-desc">
+            <h4>6. Tùy Chọn Cầm Dây Còn (Nút [🧵 Cầm Dây] trên thanh công cụ)</h4>
+            <p><strong>Đuôi Dây (Sải Dài):</strong> Bán kính quay lớn, lực ly tâm cực đại, bay cao và xa nhất.<br>
+            <strong>Giữa Dây (Sải Vừa):</strong> Cân bằng nhịp vung, ổn định và dễ điều khiển.<br>
+            <strong>Gần Quả Còn (Sải Ngắn):</strong> Vung nhanh thoăn thoắt, quỹ đạo bay căng và trực diện.</p>
+          </div>
+        </div>
+
+        <div class="guide-item">
+          <div class="guide-icon">⚡</div>
+          <div class="guide-desc">
+            <h4>7. Hệ Thống 3 Kỹ Năng Độc Bản (Khay Kỹ Năng Góc Màn Hình)</h4>
+            <p>Mỗi bên sở hữu 3 kỹ năng dùng 1 lần (dùng xong sẽ biến mất), mỗi lượt chỉ kích hoạt tối đa 1 kỹ năng:<br>
+            • <strong>🎯 Tâm Nhắm (Hỗ Trợ):</strong> Kích hoạt ngay trong lượt — Hiện đường ngắm bay laser chuẩn xác xuyên tâm vòng! (Bot dùng: tăng tỉ lệ trúng lên 55-60%).<br>
+            • <strong>🌪️ Gió Mạnh (Gây Nhiễu):</strong> Kích hoạt để phóng bão gió sang lượt kế tiếp của đối thủ — Bẻ cong quỹ đạo quả còn! (Bot dính bão sẽ trượt 100%).<br>
+            • <strong>🛡️ Khiên Chắn (Bảo Vệ):</strong> Dựng hào quang hoàng kim bảo hộ — Chặn đứng và giải trừ 100% kỹ năng gây nhiễu của đối thủ!</p>
+          </div>
+        </div>
       </div>
 
       <div class="modal-footer">
@@ -471,79 +643,64 @@
 
   <!-- Mode Selection Modal (Hiển thị khi mới vào game hoặc khi nhấn nút Đổi Chế Độ) -->
   <div id="modal-mode" class="modal-overlay hidden">
-    <div class="modal-box modal-mode-box">
-      <div class="modal-header">
-        <div class="modal-tabs">
-          <span class="modal-header-title">🎋 CHỌN CHẾ ĐỘ NÉM CÒN</span>
+    <div class="modal-box modal-start-box">
+      <div class="modal-header start-modal-header">
+        <div class="start-title-wrap">
+          <span class="start-fest-badge">🎋 LỄ HỘI LỒNG TỒNG VÙNG CAO</span>
+          <h2 class="start-main-title">NÉM CÒN DÂN TỘC</h2>
+          <p class="start-sub-desc">Chọn chế độ để bắt đầu trẩy hội</p>
         </div>
-        <button id="btn-quick-skin" class="btn-tool btn-skin" style="margin-left: auto; margin-right: 12px; padding: 4px 10px;" title="Chọn nhân vật">
-          <span class="icon">👘</span> <span class="btn-text">Đổi Nhân Vật</span>
-        </button>
         <button id="btn-close-mode" class="modal-close" title="Đóng">&times;</button>
       </div>
-      <div class="modal-body">
-        <p class="modal-intro">Chào mừng bạn đến với Lễ hội Lồng Tồng! Hãy chọn chế độ chơi và vị trí cầm dây còn phù hợp:</p>
 
-        <div class="mode-options-grid">
-          <!-- Option 1: Auto Spin (Recommended for Mobile) -->
-          <div class="mode-card active" id="card-mode-auto" data-mode="auto">
-            <div class="mode-badge">📱 KHUYÊN DÙNG CHO ĐIỆN THOẠI</div>
-            <div class="mode-icon-circle">⚡</div>
-            <h3>Chế Độ 1: Giữ Nút Tự Xoay</h3>
-            <p class="mode-desc"><strong>Nhấn giữ chuột hoặc chạm giữ màn hình:</strong> Cánh tay tự động xoay tròn đều đặn và tăng tốc dần theo thời gian. Buông tay đúng nhịp vung lên để phóng quả còn đi!</p>
-            <ul class="mode-perks">
-              <li>✔ Cực kỳ mượt mà, chơi hoàn hảo trên điện thoại</li>
-              <li>✔ Không bị ngón tay che khuất nhân vật</li>
-              <li>✔ Tự động tích luỹ động năng tăng tốc dần</li>
-            </ul>
-            <button class="btn-select-mode btn-mode-choice">ĐANG CHỌN</button>
+      <div class="modal-body start-modal-body">
+        <div class="start-modes-grid">
+          <!-- Card 1: Đấu Với Máy (Bot AI) - MẶC ĐỊNH ĐẦU TIÊN -->
+          <div class="start-mode-card active" id="card-mode-bot" data-mode="bot">
+            <div class="start-card-badge start-badge-bot">🤖 ĐẤU VỚI MÁY (HOT)</div>
+            <div class="start-card-icon start-icon-bot">🤖</div>
+            <h3>Đấu Với Máy (Bot AI)</h3>
+            <p class="start-card-desc" id="bot-card-desc">Thi đấu đối kháng 10 điểm với Bot AI tự động học tập và thích ứng theo tỉ lệ ném của bạn!</p>
+            <button class="btn-start-choice btn-choice-bot">ĐẤU VỚI MÁY 🤖</button>
           </div>
 
-          <!-- Option 2: Manual Whirl (Getting Over It Style) -->
-          <div class="mode-card" id="card-mode-manual" data-mode="manual">
-            <div class="mode-badge">🖱️ PHÙ HỢP CHUỘT MÁY TÍNH</div>
-            <div class="mode-icon-circle">🔄</div>
-            <h3>Chế Độ 2: Xoay Chuột Thủ Công</h3>
-            <p class="mode-desc"><strong>Tự rê chuột hoặc lướt ngón tay theo vòng tròn:</strong> Vung xoay 2-3 vòng để tích luỹ lực ly tâm thực tế, sau đó buông chuột hướng về phía trước để phóng còn.</p>
-            <ul class="mode-perks">
-              <li>✔ Trải nghiệm vật lý Getting Over It 1:1</li>
-              <li>✔ Thử thách cảm giác tay và kỹ năng khéo léo</li>
-              <li>✔ Tự do điều khiển góc và bán kính xoay</li>
-            </ul>
-            <button class="btn-select-mode btn-mode-choice">CHỌN CHẾ ĐỘ NÀY</button>
+          <!-- Card 2: Thi Đấu 2 Người (1v1) -->
+          <div class="start-mode-card" id="card-mode-versus" data-mode="versus">
+            <div class="start-card-badge start-badge-vs">⚔️ ĐỐI KHÁNG 1V1</div>
+            <div class="start-card-icon start-icon-vs">👥</div>
+            <h3>Thi Đấu 2 Người</h3>
+            <p class="start-card-desc">Chàng trai Mường & Cô gái Thái so tài luân phiên 2 đầu sân, vận dụng kỹ năng để chạm mốc 10 điểm trước!</p>
+            <button class="btn-start-choice btn-choice-vs">THI ĐẤU 2 NGƯỜI 👥</button>
+          </div>
+
+          <!-- Card 3: Chơi Đơn (Tập Luyện) -->
+          <div class="start-mode-card" id="card-mode-single" data-mode="single">
+            <div class="start-card-badge">🎯 TẬP LUYỆN</div>
+            <div class="start-card-icon">🎯</div>
+            <h3>Chơi Đơn (1 Người)</h3>
+            <p class="start-card-desc">Tự do luyện vung tay xoay còn, làm quen bộ kỹ năng, tích luỹ chuỗi trúng liên hoàn và lập kỷ lục điểm cao.</p>
+            <button class="btn-start-choice">VÀO TẬP LUYỆN 🎯</button>
           </div>
         </div>
 
-        <!-- Grip Position Selection inside Modal -->
-        <div class="grip-section">
-          <label class="grip-title">🧵 Thay Đổi Vị Trí Cầm Dây Còn:</label>
-          <div class="grip-options">
-            <button class="btn-grip-opt active" data-grip="long">
-              <span class="grip-opt-icon">🎋</span>
-              <div class="grip-opt-text">
-                <strong>Đuôi Dây (Sải Dài)</strong>
-                <small>Bán kính lớn, lực ly tâm cực đại, bay cao xa</small>
-              </div>
-            </button>
-            <button class="btn-grip-opt" data-grip="mid">
-              <span class="grip-opt-icon">🌾</span>
-              <div class="grip-opt-text">
-                <strong>Giữa Dây (Sải Vừa)</strong>
-                <small>Cân bằng, dễ căn nhịp vung, ổn định</small>
-              </div>
-            </button>
-            <button class="btn-grip-opt" data-grip="short">
-              <span class="grip-opt-icon">✨</span>
-              <div class="grip-opt-text">
-                <strong>Gần Quả Còn (Sải Ngắn)</strong>
-                <small>Vung nhanh thoăn thoắt, quỹ đạo căng</small>
-              </div>
-            </button>
+        <div class="bot-diff-selector" id="bot-diff-selector" style="margin-top: 14px; width: 100%;">
+          <span class="diff-title">🎯 Độ khó khi ném:</span>
+          <div class="diff-btn-group">
+            <button type="button" class="btn-diff" data-diff="easy" title="Trợ lực vành, thả nhẹ là trúng">Dễ (Trợ lực)</button>
+            <button type="button" class="btn-diff active" data-diff="medium" title="Chuẩn vật lý thực tế">Vừa (Chuẩn)</button>
+            <button type="button" class="btn-diff" data-diff="hard" title="Căn góc và lực cực kỳ chính xác">Khó (Chính xác)</button>
           </div>
         </div>
       </div>
-      <div class="modal-footer">
-        <button id="btn-start-game" class="btn-primary">VÀO HỘI NÉM CÒN 🎯</button>
+
+      <div class="modal-footer start-modal-footer">
+        <button id="btn-start-help" class="btn-tool btn-start-tool" title="Xem hướng dẫn chi tiết cách chơi">
+          <span class="icon">📖</span> <span class="btn-text">Hướng Dẫn Chơi</span>
+        </button>
+        <button id="btn-start-skin" class="btn-tool btn-start-tool" title="Chọn nhân vật & trang phục hội">
+          <span class="icon">👘</span> <span class="btn-text">Chọn Nhân Vật</span>
+        </button>
+        <button id="btn-start-game" class="btn-primary" style="margin-left: auto;">VÀO CHƠI NGAY 🎯</button>
       </div>
     </div>
   </div>
@@ -566,6 +723,37 @@
       </div>
       <div class="modal-footer">
         <button id="btn-skin-done" class="btn-primary">HOÀN TẤT & TRỞ LẠI SÂN HỘI 🎯</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2-Player Match Victory Modal (Bảng vinh danh chiến thắng đua 10 điểm) -->
+  <div id="modal-match-victory" class="modal-overlay hidden">
+    <div class="modal-box modal-victory-box">
+      <div class="victory-header">
+        <span class="victory-crown">🏆</span>
+        <h2 id="victory-title">NGƯỜI CHƠI 1 CHIẾN THẮNG!</h2>
+        <p id="victory-subtitle" class="victory-subtitle">Đã xuất sắc đạt 10 điểm trước trong Lễ Hội Ném Còn!</p>
+      </div>
+      <div class="victory-scores-summary">
+        <div class="v-card v-p1">
+          <span class="v-avatar">👦</span>
+          <span class="v-label">NGƯỜI CHƠI 1 (NAM)</span>
+          <span class="v-score" id="v-p1-score">10</span>
+        </div>
+        <div class="v-divider">
+          <span>⚔️</span>
+          <small>TỈ SỐ</small>
+        </div>
+        <div class="v-card v-p2">
+          <span class="v-avatar">👧</span>
+          <span class="v-label">NGƯỜI CHƠI 2 (NỮ)</span>
+          <span class="v-score" id="v-p2-score">8</span>
+        </div>
+      </div>
+      <div class="modal-footer" style="justify-content: center; gap: 16px;">
+        <button id="btn-rematch" class="btn-primary">↺ Chơi Lại Trận Mới</button>
+        <button id="btn-exit-versus" class="btn-secondary" style="background: rgba(255,255,255,0.15); color: #fff; padding: 10px 18px; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; cursor: pointer;">👤 Về Chế Độ 1 Người</button>
       </div>
     </div>
   </div>

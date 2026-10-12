@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Perfect Arm Processor</title>
+</head>
+<body>
+  <h1>Processing clean sprites...</h1>
+  <canvas id="cUpper"></canvas>
+  <canvas id="cFore"></canvas>
+  <div id="status"></div>
+
+  <script>
+    async function loadImg(src) {
+      return new Promise((res, rej) => {
+        const img = new Image();
+        img.onload = () => res(img);
+        img.onerror = rej;
+        img.src = src;
+      });
+    }
+
+    async function process() {
+      // 1. Process Upper Arm from raw PM-3
+      const rawUpper = await loadImg('assets/character/skins/New skin/ChatGPT Image Oct 2, 2026, 10_30_18 PM-3.png');
+      const cUpper = document.getElementById('cUpper');
+      cUpper.width = rawUpper.width;   // 887
+      cUpper.height = 1530;            // Cut off skin below cuff at y = 1525
+      const ctxU = cUpper.getContext('2d');
+      ctxU.drawImage(rawUpper, 0, 0);
+
+      // Clean bottom row fade
+      const uData = ctxU.getImageData(0, 0, cUpper.width, cUpper.height);
+      const uPix = uData.data;
+      for (let y = 1520; y < 1530; y++) {
+        for (let x = 0; x < cUpper.width; x++) {
+          const idx = (y * cUpper.width + x) * 4;
+          uPix[idx + 3] = 0;
+        }
+      }
+      ctxU.putImageData(uData, 0, 0);
+
+      // 2. Process Forearm from raw PM-4
+      const rawFore = await loadImg('assets/character/skins/New skin/ChatGPT Image Oct 2, 2026, 10_30_19 PM-4.png');
+      const cFore = document.getElementById('cFore');
+      cFore.width = rawFore.width;     // 724
+      cFore.height = 1750;             // Cut off the fist below y = 1720!
+      const ctxF = cFore.getContext('2d');
+
+      // Add smooth rounded dome cap on top of elbow (above y = 200)
+      ctxF.fillStyle = '#f5c6aa';
+      ctxF.beginPath();
+      ctxF.arc(360, 200, 150, Math.PI, 0, false);
+      ctxF.fill();
+
+      // Draw forearm on top of dome
+      ctxF.drawImage(rawFore, 0, 0);
+
+      // Erase anything below wrist y = 1680
+      const fData = ctxF.getImageData(0, 0, cFore.width, cFore.height);
+      const fPix = fData.data;
+      for (let y = 1680; y < cFore.height; y++) {
+        for (let x = 0; x < cFore.width; x++) {
+          const idx = (y * cFore.width + x) * 4;
+          fPix[idx + 3] = 0;
+        }
+      }
+      ctxF.putImageData(fData, 0, 0);
+
+      // Save via server
+      async function savePart(targetPath, canvas) {
+        const dataUrl = canvas.toDataURL('image/png');
+        await fetch('/save-skin-part', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ targetPath, imageData: dataUrl })
+        });
+      }
+
+      await savePart('assets/character/skins/nam_tay_moi/upper_arm_unified.png', cUpper);
+      await savePart('assets/character/skins/nam_tay_moi/forearm.png', cFore);
+
+      document.getElementById('status').innerText = 'PROCESSED_AND_SAVED_SUCCESSFULLY';
+      console.log('DONE!');
+    }
+
+    window.addEventListener('load', process);
+  </script>
+</body>
+</html>

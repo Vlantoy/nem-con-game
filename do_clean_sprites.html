@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>Clean Sprites Final</title></head>
+<body>
+  <script>
+    async function loadImg(src) {
+      return new Promise((res, rej) => {
+        const img = new Image();
+        img.onload = () => res(img);
+        img.onerror = rej;
+        img.src = src;
+      });
+    }
+
+    async function run() {
+      // 1. Clean Upper Arm (Cut at y = 1240, clean cuff with NO skin)
+      const rawUpper = await loadImg('assets/character/skins/New skin/ChatGPT Image Oct 2, 2026, 10_30_18 PM-3.png');
+      const uCvs = document.createElement('canvas');
+      uCvs.width = rawUpper.width; // 887
+      uCvs.height = 1245;          // Exact bottom of white fluffy cuff
+      const uCtx = uCvs.getContext('2d');
+      uCtx.drawImage(rawUpper, 0, 0);
+
+      // 2. Clean Forearm (Rounded cap at y = 260, cut at y = 1650 for wrist)
+      const rawFore = await loadImg('assets/character/skins/New skin/ChatGPT Image Oct 2, 2026, 10_30_19 PM-4.png');
+      const fCvs = document.createElement('canvas');
+      fCvs.width = rawFore.width; // 724
+      fCvs.height = 1650;         // Wrist line
+      const fCtx = fCvs.getContext('2d');
+
+      // First draw rawFore
+      fCtx.drawImage(rawFore, 0, 0);
+
+      // Draw seamless dome cap anchored at y = 260 into the arm
+      fCtx.fillStyle = '#efc1a2';
+      fCtx.beginPath();
+      fCtx.arc(380, 260, 135, Math.PI, 0, false);
+      fCtx.fill();
+
+      // Erase below wrist (y > 1640)
+      const fData = fCtx.getImageData(0, 0, fCvs.width, fCvs.height);
+      const fPix = fData.data;
+      for (let y = 1640; y < fCvs.height; y++) {
+        for (let x = 0; x < fCvs.width; x++) {
+          fPix[(y * fCvs.width + x) * 4 + 3] = 0;
+        }
+      }
+      fCtx.putImageData(fData, 0, 0);
+
+      async function savePart(targetPath, canvas) {
+        const dataUrl = canvas.toDataURL('image/png');
+        await fetch('/save-skin-part', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ targetPath, imageData: dataUrl })
+        });
+      }
+
+      await savePart('assets/character/skins/nam_tay_moi/upper_arm_unified.png', uCvs);
+      await savePart('assets/character/skins/nam_tay_moi/forearm.png', fCvs);
+
+      console.log('CLEAN_SPRITES_SAVED!');
+    }
+
+    window.addEventListener('load', run);
+  </script>
+</body>
+</html>

@@ -73,7 +73,7 @@ const CHARACTER_CONFIG = (() => {
         // Bàn tay (hand.png - 325x270px)
         hand: {
           wristPivot: { x: 25, y: 180 },      // Điểm nối vào cổ tay
-          gripTunnel: { x: 165, y: 135 }      // Điểm luồn dây còn trong lòng bàn tay
+          gripTunnel: { x: 255, y: 68 }       // Điểm kẹp dây giữa đầu ngón cái và đầu ngón trỏ
         },
 
         idleHandOffset: { x: 1, y: 77 }       // Toạ độ tay đứng chờ tương ứng chiều dài tay mới
@@ -103,6 +103,7 @@ const CHARACTER_CONFIG = (() => {
       scale: 0.21,
       standingAnchorX: 220,
       drawForearmFirst: false,
+      drawHandUnderForearm: true,
       sprites: {
         body: 'assets/character/skins/nam_tay_moi/body.png',
         upper_arm: 'assets/character/skins/nam_tay_moi/upper_arm_unified.png',
@@ -111,7 +112,7 @@ const CHARACTER_CONFIG = (() => {
       },
       anchors: {
         footAnchor: { x: 470, y: 1520 },
-        shoulderJoint: { x: 363, y: 379 } // Tâm chính xác của ô tròn trên vai
+        shoulderJoint: { x: 363, y: 371 } // Nâng vai cao lên 8px khớp vòm nách áo tự nhiên
       },
       kinematics: {
         scaleUpper: 1.0,
@@ -122,14 +123,14 @@ const CHARACTER_CONFIG = (() => {
           elbowJoint: { x: 78, y: 258 }     // Khớp cùi chỏ đáy bắp tay
         },
         forearm: {
-          elbowPivot: { x: 78, y: 0 },      // Khớp cùi chỏ đỉnh cẳng tay
-          wristJoint: { x: 113, y: 218 }    // Khớp cổ tay đáy cẳng tay
+          elbowPivot: { x: 78, y: 7 },      // Khớp cùi chỏ đỉnh cẳng tay (tâm vòm đỏ viền cúp)
+          wristJoint: { x: 113, y: 225 }    // Khớp cổ tay đáy cẳng tay (tâm vòm tròn da)
         },
         hand: {
-          wristPivot: { x: 36, y: 4 },      // Khớp cổ tay trên bàn tay
-          gripTunnel: { x: 45, y: 60 }      // Điểm xỏ dây quả còn
+          wristPivot: { x: 36, y: 35 },     // Khớp cổ tay trên bàn tay (tâm vòm da nối khớp)
+          gripTunnel: { x: 78, y: 119 }     // Điểm kẹp dây giữa đầu ngón cái và đầu ngón trỏ
         },
-        idleHandOffset: { x: 0, y: 0 }
+        idleHandOffset: { x: 7, y: 84 }     // Trạng thái ban đầu: Cánh tay thả lỏng xuôi thẳng tự nhiên dọc thân người
       },
       animation: {
         breathSpeed: 2.0,

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Xác minh Cả 2 Skin Nhân Vật (Nam & Nữ)</title>
+  <style>
+    body { background: #0f172a; color: #fff; font-family: monospace; margin: 0; padding: 25px; }
+    h1 { color: #f59e0b; margin-top: 0; font-size: 20px; }
+    .compare-container { display: flex; gap: 30px; }
+    .char-card { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 20px; text-align: center; }
+    .char-card h2 { font-size: 16px; color: #38bdf8; margin-top: 0; margin-bottom: 12px; }
+    canvas { background: radial-gradient(circle, #2d5a3f 0%, #152e20 100%); border-radius: 8px; border: 1px solid #475569; }
+    .badge { background: #10b981; color: #fff; padding: 3px 10px; border-radius: 12px; font-weight: bold; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <h1>✨ KIỂM TRA ĐỐI CHIẾU CẢ 2 SKIN (CÔ GÁI TÀY & CHÀNG TRAI TÀY)</h1>
+  <p style="color: #94a3b8; font-size: 13px; margin-bottom: 20px;">Đảm bảo khớp nối, nách áo, cùi chỏ, bàn tay và tỷ lệ cơ bắp hoàn hảo trên cả 2 nhân vật.</p>
+
+  <div class="compare-container">
+    <div class="char-card">
+      <h2>1. CÔ GÁI TÀY (TRUYỀN THỐNG) <span class="badge">CHUẨN</span></h2>
+      <canvas id="cvsFemale" width="380" height="520"></canvas>
+    </div>
+    <div class="char-card">
+      <h2>2. CHÀNG TRAI BẢN TÀY (MỚI HIỆU CHỈNH) <span class="badge">HOÀN HẢO</span></h2>
+      <canvas id="cvsMale" width="380" height="520"></canvas>
+    </div>
+  </div>
+
+  <script src="character-config.js"></script>
+  <script>
+    async function loadImg(s) {
+      return new Promise((res, rej) => {
+        const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = s;
+      });
+    }
+
+    async function drawSkin(canvasId, skinId) {
+      const cfg = CHARACTER_CONFIG.getSkinConfig(skinId);
+      const cvs = document.getElementById(canvasId);
+      const ctx = cvs.getContext('2d');
+
+      const body = await loadImg(cfg.sprites.body);
+      const upper = await loadImg(cfg.sprites.upper_arm);
+      const fore = await loadImg(cfg.sprites.forearm);
+      const hand = await loadImg(cfg.sprites.hand);
+
+      const sBody = 0.28;
+      const groundX = cvs.width / 2;
+      const groundY = 490;
+
+      // Ground shadow
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+      ctx.beginPath();
+      ctx.ellipse(groundX, groundY, 70, 14, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      const bodyDrawX = groundX - cfg.anchors.footAnchor.x * sBody;
+      const bodyDrawY = groundY - cfg.anchors.footAnchor.y * sBody;
+
+      // 1. Body
+      ctx.drawImage(body, bodyDrawX, bodyDrawY, body.width * sBody, body.height * sBody);
+
+      // Shoulder
+      const shoulderX = bodyDrawX + cfg.anchors.shoulderJoint.x * sBody;
+      const shoulderY = bodyDrawY + cfg.anchors.shoulderJoint.y * sBody;
+
+      // Kinematics
+      const sUpper = (cfg.kinematics.scaleUpper || 0.53) * sBody;
+      const sFore = (cfg.kinematics.scaleFore || 1.15) * sBody;
+      const sHand = (cfg.kinematics.scaleHand || 0.35) * sBody;
+
+      const uP = cfg.kinematics.upperArm.shoulderPivot;
+      const uE = cfg.kinematics.upperArm.elbowJoint;
+      const uPiv = { x: uP.x * sUpper, y: uP.y * sUpper };
+      const uElb = { x: uE.x * sUpper, y: uE.y * sUpper };
+      const uVec = { x: uElb.x - uPiv.x, y: uElb.y - uPiv.y };
+      const L1 = Math.hypot(uVec.x, uVec.y);
+      const uBaseAng = Math.atan2(uVec.y, uVec.x);
+
+      const fP = cfg.kinematics.forearm.elbowPivot;
+      const fW = cfg.kinematics.forearm.wristJoint;
+      const fPiv = { x: fP.x * sFore, y: fP.y * sFore };
+      const fWri = { x: fW.x * sFore, y: fW.y * sFore };
+      const fVec = { x: fWri.x - fPiv.x, y: fWri.y - fPiv.y };
+      const L2 = Math.hypot(fVec.x, fVec.y);
+      const fBaseAng = Math.atan2(fVec.y, fVec.x);
+
+      const hP = cfg.kinematics.hand.wristPivot;
+      const hG = cfg.kinematics.hand.gripTunnel;
+      const hPiv = { x: hP.x * sHand, y: hP.y * sHand };
+      const hGrip = { x: hG.x * sHand, y: hG.y * sHand };
+      const hVec = { x: hGrip.x - hPiv.x, y: hGrip.y - hPiv.y };
+      const hBaseAng = Math.atan2(hVec.y, hVec.x);
+
+      // Solve IK for Idle
+      const idleOff = (cfg.kinematics.idleHandOffset) || { x: 1, y: 86 };
+      // scale idle offset proportionally
+      const tgtX = shoulderX + idleOff.x * (sBody / 0.21);
+      const tgtY = shoulderY + idleOff.y * (sBody / 0.21);
+
+      const dx = tgtX - shoulderX;
+      const dy = tgtY - shoulderY;
+      let d = Math.hypot(dx, dy);
+      const minD = Math.abs(L1 - L2) + 2;
+      const maxD = L1 + L2 - 1.5;
+      d = Math.max(minD, Math.min(maxD, d));
+
+      const cosA = Math.max(-1, Math.min(1, (L1*L1 + d*d - L2*L2)/(2*L1*d)));
+      const alpha = Math.acos(cosA);
+      const cosB = Math.max(-1, Math.min(1, (L1*L1 + L2*L2 - d*d)/(2*L1*L2)));
+      const beta = Math.acos(cosB);
+      const theta = Math.atan2(dy, dx);
+
+      const th1 = theta + alpha;
+      const th2 = th1 - (Math.PI - beta);
+
+      const elbowX = shoulderX + L1 * Math.cos(th1);
+      const elbowY = shoulderY + L1 * Math.sin(th1);
+      const wristX = elbowX + L2 * Math.cos(th2);
+      const wristY = elbowY + L2 * Math.sin(th2);
+
+      // 2. Draw Upper Arm (Original order)
+      ctx.save();
+      ctx.translate(shoulderX, shoulderY);
+      ctx.rotate(th1 - uBaseAng);
+      ctx.drawImage(upper, -uPiv.x, -uPiv.y, upper.width * sUpper, upper.height * sUpper);
+      ctx.restore();
+
+      // 3. Draw Forearm (Original order)
+      ctx.save();
+      ctx.translate(elbowX, elbowY);
+      ctx.rotate(th2 - fBaseAng);
+      ctx.drawImage(fore, -fPiv.x, -fPiv.y, fore.width * sFore, fore.height * sFore);
+      ctx.restore();
+
+      // 4. Draw Hand
+      ctx.save();
+      ctx.translate(wristX, wristY);
+      ctx.rotate(th2 - hBaseAng);
+      ctx.drawImage(hand, -hPiv.x, -hPiv.y, hand.width * sHand, hand.height * sHand);
+      ctx.restore();
+    }
+
+    async function init() {
+      await drawSkin('cvsFemale', 'nu_tay_truyen_thong');
+      await drawSkin('cvsMale', 'nam_tay_khoe_khoan');
+    }
+
+    window.addEventListener('load', init);
+  </script>
+</body>
+</html>

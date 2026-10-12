@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Đo Đạc Chính Xác Từng Pixel Của Nhân Vật</title>
+  <style>
+    body { background: #111; color: #fff; font-family: monospace; padding: 20px; }
+    canvas { border: 1px solid #444; background: #222; }
+    #info { font-size: 14px; line-height: 1.6; color: #4ade80; }
+  </style>
+</head>
+<body>
+  <h1>ĐO ĐẠC TOẠ ĐỘ KHỚP TRÊN ẢNH GỐC CHÀNG TRAI (1024 x 1536)</h1>
+  <canvas id="c" width="1024" height="1536"></canvas>
+  <pre id="info"></pre>
+
+  <script>
+    const cvs = document.getElementById('c');
+    const ctx = cvs.getContext('2d');
+
+    const imgRef = new Image();
+    imgRef.src = 'assets/character/skins/New skin/ChatGPT Image Oct 2, 2026, 10_30_13 PM-1.png';
+
+    imgRef.onload = () => {
+      ctx.drawImage(imgRef, 0, 0);
+
+      // In the full character drawing (1024 x 1536):
+      // Let's locate the visual anatomical points:
+      // 1. Foot ground anchor (between the feet):
+      // Left shoe bottom: ~ (450, 960) in canvas coords
+      // Let's find non-transparent bounding box and joints
+      const imgData = ctx.getImageData(0, 0, 1024, 1536).data;
+
+      // Find bottom of feet
+      let footBottomY = 0;
+      let footCenterX = 0;
+      let footPixels = 0;
+      for (let y = 1535; y >= 0; y--) {
+        for (let x = 0; x < 1024; x++) {
+          const a = imgData[(y * 1024 + x) * 4 + 3];
+          if (a > 50) {
+            if (footBottomY === 0) footBottomY = y;
+            if (y >= footBottomY - 10) {
+              footCenterX += x;
+              footPixels++;
+            }
+          }
+        }
+        if (footBottomY > 0 && y < footBottomY - 10) break;
+      }
+      footCenterX = Math.round(footCenterX / footPixels);
+
+      // Anatomical joints in the original reference drawing:
+      // Right shoulder center (inside vest seam):
+      // Head top is around y ~ 50, eyes y ~ 150, neck y ~ 200.
+      // Vest right shoulder seam is around x ~ 370, y ~ 240.
+      // Arm sleeve cuff (elbow joint): x ~ 340, y ~ 410.
+      // Wrist (where arm meets hand): x ~ 395, y ~ 530.
+      // Hand center: x ~ 405, y ~ 560.
+
+      // Let's mark these exact measured points
+      const joints = {
+        footAnchor: { x: footCenterX, y: footBottomY },
+        shoulder: { x: 375, y: 245 },
+        elbow: { x: 345, y: 405 },
+        wrist: { x: 395, y: 535 },
+        handCenter: { x: 405, y: 565 }
+      };
+
+      // Measure lengths:
+      // L1 (Upper arm): shoulder to elbow
+      const L1 = Math.hypot(joints.elbow.x - joints.shoulder.x, joints.elbow.y - joints.shoulder.y);
+      // L2 (Forearm): elbow to wrist
+      const L2 = Math.hypot(joints.wrist.x - joints.elbow.x, joints.wrist.y - joints.elbow.y);
+      // Hand length: wrist to fingertips
+      const Lhand = Math.hypot(joints.handCenter.x - joints.wrist.x, joints.handCenter.y - joints.wrist.y);
+
+      // Draw markers on image
+      ctx.strokeStyle = '#ef4444'; ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(joints.shoulder.x, joints.shoulder.y);
+      ctx.lineTo(joints.elbow.x, joints.elbow.y);
+      ctx.lineTo(joints.wrist.x, joints.wrist.y);
+      ctx.stroke();
+
+      function drawDot(p, col, name) {
+        ctx.fillStyle = col;
+        ctx.beginPath(); ctx.arc(p.x, p.y, 8, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 16px sans-serif';
+        ctx.fillText(name, p.x + 12, p.y + 5);
+      }
+
+      drawDot(joints.shoulder, '#ef4444', `Vai (Shoulder): (${joints.shoulder.x}, ${joints.shoulder.y})`);
+      drawDot(joints.elbow, '#3b82f6', `Khuỷu (Elbow): (${joints.elbow.x}, ${joints.elbow.y})`);
+      drawDot(joints.wrist, '#10b981', `Cổ tay (Wrist): (${joints.wrist.x}, ${joints.wrist.y})`);
+      drawDot(joints.handCenter, '#f59e0b', `Bàn tay: (${joints.handCenter.x}, ${joints.handCenter.y})`);
+      drawDot(joints.footAnchor, '#a855f7', `Gót chân (Foot): (${joints.footAnchor.x}, ${joints.footAnchor.y})`);
+
+      const out = {
+        canvasSize: '1024 x 1536',
+        footAnchor: joints.footAnchor,
+        shoulderJoint: joints.shoulder,
+        elbowJoint: joints.elbow,
+        wristJoint: joints.wrist,
+        handCenter: joints.handCenter,
+        upperArmLength_L1: Math.round(L1) + 'px',
+        forearmLength_L2: Math.round(L2) + 'px',
+        handLength: Math.round(Lhand) + 'px',
+        totalArmReach: Math.round(L1 + L2) + 'px'
+      };
+
+      document.getElementById('info').innerText = JSON.stringify(out, null, 2);
+    };
+  </script>
+</body>
+</html>
