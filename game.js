@@ -2908,10 +2908,10 @@
       const charAssets = (typeof CHARACTER_CONFIG !== 'undefined')
         ? CHARACTER_CONFIG.getCharacterAssetEntries()
         : [
-            { key: 'body',      src: 'assets/character/attempt/clean/body.png' },
-            { key: 'upper_arm', src: 'assets/character/attempt/clean/upper_arm_unified.png' },
-            { key: 'forearm',   src: 'assets/character/attempt/clean/forearm.png' },
-            { key: 'hand',      src: 'assets/character/attempt/clean/hand.png' }
+            { key: 'body',      src: 'assets/character/p1/body.png' },
+            { key: 'upper_arm', src: 'assets/character/p1/upper_arm_unified.png' },
+            { key: 'forearm',   src: 'assets/character/p1/forearm.png' },
+            { key: 'hand',      src: 'assets/character/p1/hand.png' }
           ];
 
       const assetList = [
@@ -2920,22 +2920,22 @@
         { key: 'pole',                src: 'assets/items/Pole_transparent.png' },
         ...charAssets,
         // Player 1 Sprites: Chàng Trai Mường (nam_tay_khoe_khoan)
-        { key: 'p1_body',             src: 'assets/character/skins/nam_tay_moi/body.png' },
-        { key: 'p1_upper_arm',        src: 'assets/character/skins/nam_tay_moi/upper_arm_unified.png' },
-        { key: 'p1_forearm',          src: 'assets/character/skins/nam_tay_moi/forearm.png' },
-        { key: 'p1_hand',             src: 'assets/character/skins/nam_tay_moi/hand.png' },
+        { key: 'p1_body',             src: 'assets/character/p1/body.png' },
+        { key: 'p1_upper_arm',        src: 'assets/character/p1/upper_arm_unified.png' },
+        { key: 'p1_forearm',          src: 'assets/character/p1/forearm.png' },
+        { key: 'p1_hand',             src: 'assets/character/p1/hand.png' },
         // Player 2 Sprites: Cô Gái Thái (nu_tay_truyen_thong)
-        { key: 'p2_body',             src: 'assets/character/skin/body.png' },
-        { key: 'p2_upper_arm',        src: 'assets/character/skin/upper_arm_unified.png' },
-        { key: 'p2_forearm',          src: 'assets/character/skin/forearm.png' },
-        { key: 'p2_hand',             src: 'assets/character/skin/hand.png' },
+        { key: 'p2_body',             src: 'assets/character/p2/body.png' },
+        { key: 'p2_upper_arm',        src: 'assets/character/p2/upper_arm_unified.png' },
+        { key: 'p2_forearm',          src: 'assets/character/p2/forearm.png' },
+        { key: 'p2_hand',             src: 'assets/character/p2/hand.png' },
         // Quả Còn & Streamers
-        { key: 'quacon_ball',         src: 'assets/character/attempt/clean/quacon_ball.png' },
-        { key: 'streamer_pink',       src: 'assets/character/attempt/clean/streamer_pink.png' },
-        { key: 'streamer_green_up',   src: 'assets/character/attempt/clean/streamer_green_up.png' },
-        { key: 'streamer_yellow_1',   src: 'assets/character/attempt/clean/streamer_yellow_1.png' },
-        { key: 'streamer_yellow_2',   src: 'assets/character/attempt/clean/streamer_yellow_2.png' },
-        { key: 'streamer_green_down', src: 'assets/character/attempt/clean/streamer_green_down.png' }
+        { key: 'quacon_ball',         src: 'assets/items/quacon/quacon_ball.png' },
+        { key: 'streamer_pink',       src: 'assets/items/quacon/streamer_pink.png' },
+        { key: 'streamer_green_up',   src: 'assets/items/quacon/streamer_green_up.png' },
+        { key: 'streamer_yellow_1',   src: 'assets/items/quacon/streamer_yellow_1.png' },
+        { key: 'streamer_yellow_2',   src: 'assets/items/quacon/streamer_yellow_2.png' },
+        { key: 'streamer_green_down', src: 'assets/items/quacon/streamer_green_down.png' }
       ];
 
       this.totalAssets = assetList.length;

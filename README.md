@@ -61,23 +61,115 @@ Cuộc so tài đỉnh cao giữa 2 người chơi (hoặc Đấu với Máy) v�
 
 ---
 
-## 🔬 Cơ Chế Vật Lý & Công Nghệ
+## ⚡ Cơ Chế Vật Lý & Chi Tiết Lực Ném (Throw Mechanics)
 
-### 1. Hệ Thống Vật Lý Quỹ Đạo Chân Thực
-* **Gia tốc trọng trường:** $g = 380\text{ px/s}^2$ tạo đường rơi đầm tay, vồng cung parabol hoàn toàn tự nhiên.
-* **Lực cản khí động học (Aerodynamic drag):** Mô phỏng lực cản không khí tác động lên quả còn và các dải tua rua chuyển động mềm mại theo nguyên lý Inverse Kinematics & Bezier Curves.
-* **Va chạm liên tục (Continuous Collision Detection - CCD):** Tính toán va chạm chính xác từng mili-giây giữa quả còn với tâm vòng còn, mép vành tre và thân cột bương già.
+Hệ thống vật lý của game được thiết kế chuyên sâu mô phỏng chân thực cảm giác cầm dây quay lấy đà và vung ném quả còn ngoài đời thực:
 
-### 2. Hoạt Họa Khung Xương 2D (Dynamic 2D Skeletal Rigging)
-* Mô hình nhân vật chia tách đa khớp nối (*Thân, Bắp tay, Cẳng tay, Bàn tay*).
-* Cánh tay co duỗi xoay tròn mượt mà 60 FPS theo góc đà vẩy chuột/cảm ứng, đồng bộ hoàn hảo tọa độ điểm buông quả còn từ lòng bàn tay.
+```
+                  ┌──────────────────────────────────────────────┐
+                  │          TỔNG LỰC NÉM (LAUNCH FORCE)         │
+                  └──────────────────────┬───────────────────────┘
+                                         │
+                 ┌───────────────────────┴───────────────────────┐
+                 ▼                                               ▼
+    ┌───────────────────────────┐                 ┌───────────────────────────┐
+    │     1. LỰC ĐÀ LY TÂM      │        +        │    2. GIA TỐC VẨY TAY     │
+    │   (Centrifugal Momentum)  │                 │    (Flick & Hand Accel)   │
+    │      v_whirl: 360-780     │                 │      v_hand: 0-100        │
+    └───────────────────────────┘                 └───────────────────────────┘
+                 │                                               │
+                 └───────────────────────┬───────────────────────┘
+                                         ▼
+                         VẬN TỐC PHÓNG: v0 = 420 - 880 px/s
+                         GÓC BUÔNG TỐI ƯU: θ ≈ 48° - 55°
+                         TRỌNG LỰC: g = 380 px/s²
+```
 
-### 3. Âm Thanh Tổng Hợp Thuần Túy (Web Audio API)
-* 100% âm thanh được sinh động theo thời gian thực bằng thuật toán dao động sóng âm (Oscillator & Pink Noise) — **hoàn toàn không cần tải file audio ngoài**:
-  * Tiếng gió rít (*whistle whoosh*) tăng dần theo tốc độ xoay quả còn.
-  * Tiếng phát lực vung tay dứt khoát khi buông còn.
-  * Tiếng lách cách chân thực khi quả còn va quẹt vào vành tre.
-  * Hồi trống hội vang dội hòa cùng âm sắc ngũ cung Đàn Tính rộn rã khi ném xuyên tâm vòng.
+### 1. Nguyên Lý Tích Đà Ly Tâm (Centrifugal Momentum)
+* **Tốc độ góc quay cánh tay:**
+  $$\omega(t) = \min(15.5,\, 5.0 + 5.8t) \quad (\text{rad/s})$$
+  Càng xoay đều tay, tốc độ góc của quả còn ở đầu dây càng tăng, tạo ra lực căng dây và quán tính ly tâm lớn.
+* **Độ trễ quán tính (Inertial Lag Angle):**
+  $$\Delta\theta = 0.12 + \left(\frac{\omega}{15.5}\right) \times 0.18 \quad (\text{rad})$$
+  Quả còn không dính cứng vào tay mà uốn lượn chậm hơn tay một góc trễ vật lý tự nhiên theo chiều dài sợi dây vải.
+* **Hệ số tích lực (Spin Charge $C \in [0.1,\, 1.0]$):**
+  * Tích lũy tối đa sau khoảng **1.5s - 2.5s** (tương đương 2 đến 3 vòng quay đà đều nhịp).
+  * Thành phần vận tốc xoay đà:
+    $$v_{\text{whirl}} = 360 + 420 \times C \quad (\text{px/s})$$
+    (Tạo ra dải lực nền từ $360\text{ px/s}$ khi mới vào đà đến $780\text{ px/s}$ khi đầy đà).
+
+### 2. Thành Phần Gia Tốc Vẩy Tay & Cổ Tay (Flick & Hand Acceleration)
+Ngoài lực đà xoay vòng, quả còn đón nhận thêm xung lực từ động tác hất vẩy cổ tay lúc buông chuột:
+* **Tốc độ vẩy chuột/vuốt màn hình:** $v_{\text{flick}} = \min\left(75,\, \frac{\|\vec{v}_{\text{mouse}}\|}{400} \times 75\right)\text{ px/s}$.
+* **Gia tốc giật cổ tay dứt khoát:** $a_{\text{bonus}} = \min\left(30,\, \frac{a_{\text{hand}}}{1000} \times 30\right)\text{ px/s}$.
+* **Tổng xung lực hỗ trợ vẩy:** $v_{\text{hand}} = \min(100,\, v_{\text{flick}} + a_{\text{bonus}})\text{ px/s}$.
+* **Vận tốc phóng cuối cùng:**
+  $$\vec{v}_0 = \vec{d}_{\text{launch}} \times \min(880,\, v_{\text{whirl}} + v_{\text{hand}})$$
+  (Vận tốc đạt cực đại $\approx 880\text{ px/s}$ khi kết hợp trọn vẹn cả đà xoay căng dây lẫn cú vẩy tay dứt khoát về phía trước).
+
+### 3. Cửa Sổ Góc Phóng Tối Ưu (Launch Angle Window)
+Góc buông quả còn $\theta$ quyết định hình dạng parabol của quỹ đạo:
+* **Góc Chuẩn Xác ($\theta \approx 48^\circ - 55^\circ$):** Quả còn vút lên tạo đường cong parabol tuyệt mỹ, đạt đỉnh cao nhất ngay trước cột và chui lọt ngọt ngào qua tâm vòng tre.
+* **Ném Quá Mạnh ($C > 90\%$ kèm vẩy mạnh):** Quả còn bay vọt qua xà ngang, rơi sâu ra phía sau bãi hội.
+* **Ném Thiếu Lực ($C < 55\%$):** Quả còn không thắng nổi trọng lực, rơi cắm xuống đất trước chân cột.
+* **Góc Quá Thấp ($\theta < 40^\circ$):** Quả còn bay lao thẳng, không đạt độ cao cần thiết.
+* **Góc Quá Cao ($\theta > 65^\circ$):** Quả còn bay bổng lên trời nhưng hụt tầm xa theo phương ngang.
+
+### 4. Cơ Chế Mất Đà Thực Tế (Loss of Momentum & Ground Drop)
+Tái hiện chính xác hiện tượng vật lý đời thực:
+* Nếu người chơi **dừng chuột trên không quá lâu** ($t_{\text{stop}} > 0.2\text{s} - 0.45\text{s}$ tùy độ khó) hoặc **nhấp thả quá nhanh khi chưa kịp xoay đà** ($C \le 0.08$):
+* Toàn bộ lực quán tính ly tâm bị triệt tiêu ngay lập tức. Quả còn mất lực căng dây và **rơi tự do thẳng đứng tại chân nhân vật** ($v_x \approx 0,\, v_y > 0$).
+
+### 5. Phương Trình Quỹ Đạo Khí Động Học
+Sau khi rời tay, chuyển động của quả còn chịu tác động của trọng lực và lực cản không khí:
+$$\vec{a}(t) = \vec{g} - k_{\text{drag}} \|\vec{v}\| \vec{v}$$
+* **Trọng lực:** $g = 380\text{ px/s}^2$ (đã cân chỉnh tạo cảm giác rơi đầm, tự nhiên, thời gian bay lý tưởng $T \approx 2.15\text{s} - 2.25\text{s}$).
+* **Hệ số cản khí động học:** $k_{\text{drag}} = 6 \times 10^{-5}$ (tạo độ võng mềm mại cho các dải tua rua bay theo).
+
+### 6. Cân Bằng Độ Khó (Difficulty Balancing)
+| Độ Khó | Tốc Độ Tích Đà | Ngưỡng Dừng Mất Đà | Đặc Điểm Cột Còn & Vành |
+| :--- | :--- | :--- | :--- |
+| **DỄ** | Nhanh hơn **+35%** | Rộng rãi (**0.45s**) | Vành mây hỗ trợ đón còn rộng (+50px) |
+| **VỪA** | Chuẩn thực tế (**1:1**) | Cân bằng (**0.30s**) | Vành tre kích thước chuẩn truyền thống |
+| **KHÓ** | Kỹ thuật hơn (**-12%**) | Khắt khe (**0.20s**) | Cột còn lay động dao động theo nhịp gió hội |
+
+---
+
+## 🎨 Cấu Trúc Tài Nguyên Chuẩn Hóa (Asset Organization)
+
+Toàn bộ hình ảnh trong dự án đã được sắp xếp tinh gọn, nhất quán và phân tách rõ ràng:
+
+```
+assets/
+  ├── character/
+  │     ├── p1/             # Bộ phận xương nhân vật Nam (Player 1)
+  │     │     ├── body.png
+  │     │     ├── upper_arm_unified.png
+  │     │     ├── forearm.png
+  │     │     └── hand.png
+  │     ├── p2/             # Bộ phận xương nhân vật Nữ (Player 2)
+  │     │     ├── body.png
+  │     │     ├── upper_arm_unified.png
+  │     │     ├── forearm.png
+  │     │     └── hand.png
+  │     └── attempt/        # 📁 THƯ MỤC DÀNH CHO ẢNH MỚI / THỬ NGHIỆM (WIP)
+  │           └── README.md # (Mọi ảnh nháp, bản cắt mới thêm vào đây trước khi duyệt)
+  ├── items/
+  │     ├── quacon/         # Quả còn & 5 dải tua rua ngũ sắc
+  │     │     ├── quacon_ball.png
+  │     │     ├── streamer_pink.png
+  │     │     ├── streamer_green_up.png
+  │     │     ├── streamer_yellow_1.png
+  │     │     ├── streamer_yellow_2.png
+  │     │     └── streamer_green_down.png
+  │     ├── Pole_transparent.png  # Cột còn bương già tách nền trong suốt
+  │     └── logo_nem_con.png      # Logo nhận diện trò chơi
+  ├── Skill/
+  │     ├── cards/          # 37 thẻ bài kỹ năng thi đấu đối kháng
+  │     └── [huy hiệu phân loại thẻ bài]
+  ├── background/           # Phông nền lễ hội vùng cao & thung lũng Tây Bắc
+  └── screenshots/          # Ảnh chụp màn hình chất lượng cao minh họa README
+```
 
 ---
 

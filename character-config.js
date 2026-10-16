@@ -29,7 +29,7 @@ const CHARACTER_CONFIG = (() => {
       name: 'Cô Gái Tày Lễ Hội',
       ethnicity: 'Dân tộc Tày - Nùng (Việt Bắc)',
       gender: 'female',
-      preview: 'assets/character/skins/skin_template/anh_mau_khi_ghep_hoan_chinh.png',
+      preview: 'assets/character/p2/body.png',
       description: 'Trang phục áo chàm truyền thống, khăn vấn, thắt lưng ngũ sắc trẩy hội Lồng Tồng.',
 
       // Tỉ lệ thu phóng và vị trí đứng trên sân ném
@@ -38,10 +38,10 @@ const CHARACTER_CONFIG = (() => {
 
       // Đường dẫn tài nguyên hình ảnh (Sprites)
       sprites: {
-        body: 'assets/character/skin/body.png',
-        upper_arm: 'assets/character/skin/upper_arm_unified.png',
-        forearm: 'assets/character/skin/forearm.png',
-        hand: 'assets/character/skin/hand.png'
+        body: 'assets/character/p2/body.png',
+        upper_arm: 'assets/character/p2/upper_arm_unified.png',
+        forearm: 'assets/character/p2/forearm.png',
+        hand: 'assets/character/p2/hand.png'
       },
 
       // Toạ độ điểm neo trên ảnh Thân (Body)
@@ -98,17 +98,17 @@ const CHARACTER_CONFIG = (() => {
       name: 'Chàng Trai Bản Tày',
       ethnicity: 'Dân tộc Tày (Việt Bắc)',
       gender: 'male',
-      preview: 'assets/character/skins/New skin/ChatGPT Image Oct 2, 2026, 10_30_13 PM-1.png',
+      preview: 'assets/character/p1/body.png',
       description: 'Trang phục áo chàm nam tính cộc tay hoa văn thổ cẩm đỏ xanh, sải tay dài.',
       scale: 0.21,
       standingAnchorX: 220,
       drawForearmFirst: false,
       drawHandUnderForearm: true,
       sprites: {
-        body: 'assets/character/skins/nam_tay_moi/body.png',
-        upper_arm: 'assets/character/skins/nam_tay_moi/upper_arm_unified.png',
-        forearm: 'assets/character/skins/nam_tay_moi/forearm.png',
-        hand: 'assets/character/skins/nam_tay_moi/hand.png'
+        body: 'assets/character/p1/body.png',
+        upper_arm: 'assets/character/p1/upper_arm_unified.png',
+        forearm: 'assets/character/p1/forearm.png',
+        hand: 'assets/character/p1/hand.png'
       },
       anchors: {
         footAnchor: { x: 470, y: 1520 },
