@@ -38,8 +38,8 @@
   const RING_OUTER_RY = 64; // Outer bamboo hoop rim
 
   // Physics constants
-  const GRAVITY = 580;      // px/s^2 (calibrated for high, floaty ceremonial silk arcs)
-  const AIR_DRAG = 0.00008; // aerodynamic drag
+  const GRAVITY = 380;      // px/s^2 (calibrated: firmer natural arc, floaty yet crisp)
+  const AIR_DRAG = 0.00006; // gentle aerodynamic drag
   const CORD_LENGTH = 68;   // px (proportionate to 1/2 character arm reach)
   const CORD_SEGMENTS = 8;
   const BALL_DIAMETER = 26; // px (proportionate to 1/2 character hand)
@@ -825,7 +825,7 @@
       this.wristY = this.elbowY + this.L2 * Math.sin(this.th2);
     }
 
-    update(dt, isInteracting, mouseWorldX, mouseWorldY, pullTargetX, pullTargetY) {
+    update(dt, isInteracting, mouseWorldX, mouseWorldY, pullTargetX, pullTargetY, directAimAngle = null) {
       this.animTimer += dt;
 
       const breathSpeed = (this.cfg.animation && this.cfg.animation.breathSpeed) || 2.2;
@@ -875,7 +875,10 @@
 
       // Dynamic wrist articulation: rotate wrist towards cord tension within anatomical limits
       let targetWristAngle = this.th2;
-      if (pullTargetX !== undefined && pullTargetY !== undefined) {
+      if (directAimAngle !== null) {
+        targetWristAngle = directAimAngle;
+        this.wristAngle = directAimAngle;
+      } else if (pullTargetX !== undefined && pullTargetY !== undefined) {
         const pullAngle = Math.atan2(pullTargetY - this.wristY, pullTargetX - this.wristX);
         let diff = (pullAngle - this.th2) % (Math.PI * 2);
         if (diff > Math.PI) diff -= Math.PI * 2;
@@ -884,11 +887,11 @@
         const clampedFlex = Math.max(-wristLimit, Math.min(wristLimit, diff));
         // Rotate hand with cord pull while keeping strong forearm connection
         targetWristAngle = this.th2 + clampedFlex * 0.75;
+        this.wristAngle = lerpAngle(this.wristAngle, targetWristAngle, Math.min(dt * 20, 1.0));
       } else {
         targetWristAngle = this.th2 + 0.15;
+        this.wristAngle = lerpAngle(this.wristAngle, targetWristAngle, Math.min(dt * 20, 1.0));
       }
-
-      this.wristAngle = lerpAngle(this.wristAngle, targetWristAngle, Math.min(dt * 20, 1.0));
 
       // Hand grip point in world: exactly at the curled fingers tunnel
       this.handGripX = this.wristX + Math.cos(this.wristAngle) * this.hDist;
@@ -999,8 +1002,8 @@
       tierLabel: 'Chí Mạng',
       weight: 12,
       img: 'vat_ly_an_do.png',
-      desc: 'Không cần xoay: Chỉ cần trỏ chuột định hướng và nhả tay là tự động phóng với max lực xuyên tâm!',
-      hint: 'Dùng trong lượt • Nhấp hướng nhả chuột là max lực'
+      desc: 'Càng xoay càng yếu. Không xoay có max lực, quả còn bay thẳng tắp như tên lửa.',
+      hint: 'Dùng trong lượt • Nhắm hướng chuột và thả là phóng thẳng'
     },
     tang_diem: {
       id: 'tang_diem',
@@ -1631,7 +1634,8 @@
       this.lastThrowData = null;
       this.aoAnhPoles = null;
       this.throwDifficulty = localStorage.getItem('nemcon_throw_difficulty') || 'medium';
-      this.windDirectionMultiplier = 1; // 1: thuận, -1: nghịch
+      this.botDifficulty = this.throwDifficulty;
+      this.windDirectionMultiplier = 1; // 1: thuận, -1: nghịch (cho chiêu Gió Mạnh)
       this.windShiftTimer = 0;
       this.throwSpinCharge = 0;
       this.mirageProjectiles = null;
@@ -1644,6 +1648,11 @@
       this.botSwingDuration = 1.4;
       this.botAngle = Math.PI / 2;
       this.botSkillEvaluated = false;
+
+      // Realtime player hit probability tracking (Thời gian thật)
+      this.realtimeHits = [];
+      this.p1MatchThrows = 0;
+      this.p1MatchHits = 0;
 
       // State variables
       this.state = STATE.LOADING;
@@ -1666,6 +1675,10 @@
       this.prevMouseX = this.mouseWorldX;
       this.prevMouseY = this.mouseWorldY;
       this.mouseVelocity = { x: 0, y: 0 };
+      this.handSpeed = 0;
+      this.handAccel = 0;
+      this.recentHandSpeed = 0;
+      this.recentHandAccel = 0;
 
       // Accumulated Kinetic Energy from continuous spinning (Động năng tích luỹ khi xoay)
       this.spinCharge = 0; // 0.0 to 1.0 (charges up with active circular revolutions)
@@ -1712,6 +1725,11 @@
         debuffStats: {
           none: { throws: 0, hits: 0, hitRate: 0.50 }
         },
+        diffStats: {
+          easy: { throws: 0, hits: 0, hitRate: 0.50 },
+          medium: { throws: 0, hits: 0, hitRate: 0.50 },
+          hard: { throws: 0, hits: 0, hitRate: 0.40 }
+        },
         angleStats: {
           low: { throws: 0, hits: 0, hitRate: 0.40 },    // < 42 deg
           sweet: { throws: 0, hits: 0, hitRate: 0.60 },  // 42 - 54 deg
@@ -1728,6 +1746,7 @@
             ...defaultProfile,
             ...parsed,
             debuffStats: { ...defaultProfile.debuffStats, ...(parsed.debuffStats || {}) },
+            diffStats: { ...defaultProfile.diffStats, ...(parsed.diffStats || {}) },
             angleStats: { ...defaultProfile.angleStats, ...(parsed.angleStats || {}) }
           };
         }
@@ -1759,11 +1778,13 @@
       else if (angleDeg > 54) bucket = 'high';
 
       const debuffKey = this.activeDebuff.p1 || 'none';
+      const currentDiff = this.throwDifficulty || 'medium';
       this.lastThrowData = {
         player: 'p1',
         angleDeg: Math.round(angleDeg),
         bucket: bucket,
-        debuff: debuffKey
+        debuff: debuffKey,
+        diff: currentDiff
       };
     }
 
@@ -1772,12 +1793,28 @@
         this.lastThrowData = null;
         return;
       }
-      const { bucket, debuff } = this.lastThrowData;
+      const { bucket, debuff, diff } = this.lastThrowData;
       const p = this.playerProfile;
 
       p.totalThrows = (p.totalThrows || 0) + 1;
       if (isHit) p.totalHits = (p.totalHits || 0) + 1;
       p.overallHitRate = p.totalThrows > 0 ? (p.totalHits / p.totalThrows) : 0.50;
+
+      // Track by difficulty
+      const targetDiff = diff || this.throwDifficulty || 'medium';
+      if (!p.diffStats) {
+        p.diffStats = {
+          easy: { throws: 0, hits: 0, hitRate: 0.50 },
+          medium: { throws: 0, hits: 0, hitRate: 0.50 },
+          hard: { throws: 0, hits: 0, hitRate: 0.40 }
+        };
+      }
+      if (!p.diffStats[targetDiff]) {
+        p.diffStats[targetDiff] = { throws: 0, hits: 0, hitRate: 0.50 };
+      }
+      p.diffStats[targetDiff].throws++;
+      if (isHit) p.diffStats[targetDiff].hits++;
+      p.diffStats[targetDiff].hitRate = p.diffStats[targetDiff].hits / p.diffStats[targetDiff].throws;
 
       if (!p.debuffStats) p.debuffStats = {};
       if (!p.debuffStats[debuff]) {
@@ -1805,8 +1842,34 @@
       p.recentThrows.push(isHit ? 1 : 0);
       if (p.recentThrows.length > 20) p.recentThrows.shift();
 
+      // Cập nhật thống kê phong độ thời gian thực (Real-time hit rate tracking)
+      this.p1MatchThrows = (this.p1MatchThrows || 0) + 1;
+      if (isHit) this.p1MatchHits = (this.p1MatchHits || 0) + 1;
+      if (!this.realtimeHits) this.realtimeHits = [];
+      this.realtimeHits.push(isHit ? 1 : 0);
+      if (this.realtimeHits.length > 8) this.realtimeHits.shift();
+
       this.savePlayerProfile();
       this.lastThrowData = null;
+    }
+
+    getRealtimePlayerHitRate() {
+      const hist = this.realtimeHits;
+      const botDiff = this.botDifficulty || this.throwDifficulty || 'medium';
+      if (!hist || hist.length === 0) {
+        if (this.playerProfile && this.playerProfile.totalThrows >= 3) {
+          return this.playerProfile.overallHitRate;
+        }
+        return (botDiff === 'easy' ? 0.38 : (botDiff === 'hard' ? 0.65 : 0.50));
+      }
+      const recentHits = hist.reduce((a, b) => a + b, 0);
+      const recentRate = recentHits / hist.length;
+      if (this.p1MatchThrows >= 2) {
+        const matchRate = this.p1MatchHits / this.p1MatchThrows;
+        // Trộn: 60% phong độ thời gian thực của 8 quả gần nhất + 40% cả trận
+        return recentRate * 0.6 + matchRate * 0.4;
+      }
+      return recentRate;
     }
 
     // ==========================================
@@ -2406,6 +2469,7 @@
 
       this.updateSkinUI();
       this.updateBotDifficultyUI();
+      this.initDevPanel();
 
       // Open Mode Modal on start: "mỗi khi vào sẽ được chọn 2 chế độ..."
       this.openModeModal();
@@ -2487,8 +2551,15 @@
           }
 
           // Reset spin momentum tracking for the new wind-up
-          this.spinCharge = 0;
-          this.recentSpinCharge = 0;
+          const currentThrower = (this.isMultiplayerMode) ? (this.currentTurn === 1 ? 'p1' : 'p2') : 'p1';
+          const isVatLyAnDo = (this.skillUsedThisTurn[currentThrower] === 'vat_ly_an_do');
+          if (isVatLyAnDo) {
+            this.spinCharge = 1.0;
+            this.recentSpinCharge = 1.0;
+          } else {
+            this.spinCharge = 0;
+            this.recentSpinCharge = 0;
+          }
           this.continuousRotation = 0;
           this.totalRotations = 0;
           this.lastSpinDirection = 0;
@@ -2566,6 +2637,8 @@
           target.closest('.modal-overlay') ||
           target.closest('.wager-modal-overlay') ||
           target.closest('#wager-modal') ||
+          target.closest('#dev-test-panel') ||
+          target.closest('.dev-panel') ||
           target.closest('#announcement-banner') ||
           target.closest('#hud-top') ||
           target.closest('#hud-bottom')
@@ -2791,6 +2864,10 @@
       this.continuousRotation = 0;
       this.totalRotations = 0;
       this.autoSpinTime = 0;
+      this.handSpeed = 0;
+      this.handAccel = 0;
+      this.recentHandSpeed = 0;
+      this.recentHandAccel = 0;
       this.updateStatsUI();
       this.state = STATE.IDLE;
       this.cord.reset(this.rig.handGripX, this.rig.handGripY);
@@ -2812,11 +2889,18 @@
 
     showAnnouncement(title, scoreText) {
       this.ui.announceTitle.textContent = title;
-      this.ui.announceScore.textContent = scoreText;
+      if (scoreText) {
+        this.ui.announceScore.textContent = scoreText;
+        this.ui.announceScore.style.display = 'block';
+      } else {
+        this.ui.announceScore.textContent = '';
+        this.ui.announceScore.style.display = 'none';
+      }
       this.ui.banner.classList.add('show');
-      setTimeout(() => {
+      if (this.announceTimer) clearTimeout(this.announceTimer);
+      this.announceTimer = setTimeout(() => {
         this.ui.banner.classList.remove('show');
-      }, 2200);
+      }, 1300);
     }
 
     loadAssets() {
@@ -2940,6 +3024,7 @@
     // ==========================================
     update(dt) {
       this.particles.update(dt);
+      this.updateDevTelemetry();
 
       if (this.shieldFlashTimer.p1 > 0) this.shieldFlashTimer.p1 -= dt;
       if (this.shieldFlashTimer.p2 > 0) this.shieldFlashTimer.p2 -= dt;
@@ -2957,11 +3042,12 @@
           const oldDir = this.windDirectionMultiplier;
           this.windDirectionMultiplier = (Math.random() < 0.5 ? 1 : -1);
           if (oldDir !== this.windDirectionMultiplier && (this.state === STATE.SWINGING || this.state === STATE.FLYING)) {
-            const dirLabel = this.windDirectionMultiplier === 1 ? 'THUẬN CHIỀU (HỖ TRỢ)' : 'NGHỊCH CHIỀU (CẢN TRỞ)';
-            this.showAnnouncement('💨 GIÓ ĐỔI CHIỀU!', `Gió giật chuyển sang: ${dirLabel}!`);
+            this.showAnnouncement('GIÓ ĐỔI CHIỀU', '');
           }
         }
       }
+
+
 
       // Smooth cinematic camera pan interpolation in 2-Player Versus Mode & Bot AI Mode
       if (this.isMultiplayerMode) {
@@ -2989,7 +3075,7 @@
         if (this.timePressureTimer <= 0) {
           this.timePressureTimer = 0;
           this.activeDebuff[curThrower] = null;
-          this.showAnnouncement('⏰ HẾT THỜI GIAN!', 'Áp lực thời gian bí mật khiến quả còn tuột tay rơi đất!');
+          this.showAnnouncement('HẾT GIỜ', '');
           this.isMouseDown = false;
           const wrapper = document.getElementById('canvas-wrapper');
           if (wrapper) wrapper.classList.remove('grabbing');
@@ -3022,11 +3108,38 @@
         this.mouseWorldY = handCenterY + Math.sin(this.autoSpinAngle) * handRadius;
       }
 
-      // Track mouse velocity
+      // Track realtime mouse displacement, velocity, and acceleration
+      const mouseDx = (this.prevMouseX !== undefined) ? (this.mouseWorldX - this.prevMouseX) : 0;
+      const mouseDy = (this.prevMouseY !== undefined) ? (this.mouseWorldY - this.prevMouseY) : 0;
+      const distMoved = Math.hypot(mouseDx, mouseDy);
+
+      // Deadzone clamp: if mouse moved less than 1.2px in this frame (16ms), hand is stationary
+      const isDeadzone = (distMoved < 1.2);
+      const rawVx = isDeadzone ? 0 : mouseDx / Math.max(dt, 0.001);
+      const rawVy = isDeadzone ? 0 : mouseDy / Math.max(dt, 0.001);
+      const currentHandSpeed = Math.hypot(rawVx, rawVy);
+
+      // Realtime acceleration: a = (v - v_prev) / dt
+      const prevHandSpeed = this.handSpeed || 0;
+      this.handAccel = (currentHandSpeed - prevHandSpeed) / Math.max(dt, 0.001);
+      this.handSpeed = currentHandSpeed;
+
+      // Lưu lại đỉnh tốc độ và gia tốc vung tay gần nhất (rolling peak decay ~150ms)
+      // Giúp bảo toàn 100% động năng cú vẩy tay (flick) ngay cả khi tay khựng lại đúng khoảnh khắc thả chuột
+      if (this.state === STATE.SWINGING && this.isMouseDown) {
+        const decay = Math.exp(-Math.max(dt, 0.001) * 6.0);
+        this.recentHandSpeed = Math.max(currentHandSpeed, (this.recentHandSpeed || 0) * decay);
+        this.recentHandAccel = Math.max(Math.max(0, this.handAccel), (this.recentHandAccel || 0) * decay);
+      } else {
+        this.recentHandSpeed = 0;
+        this.recentHandAccel = 0;
+      }
+
       this.mouseVelocity = {
-        x: (this.mouseWorldX - this.prevMouseX) / Math.max(dt, 0.001),
-        y: (this.mouseWorldY - this.prevMouseY) / Math.max(dt, 0.001)
+        x: rawVx,
+        y: rawVy
       };
+      this.distMovedThisFrame = distMoved;
       this.prevMouseX = this.mouseWorldX;
       this.prevMouseY = this.mouseWorldY;
 
@@ -3053,7 +3166,17 @@
           this.slipperyVelocityX = 0;
         }
 
-        activeRig.update(dt, isInteracting, targetHandX, targetHandY, pullX, pullY);
+        let directAimAngle = null;
+        if (this.skillUsedThisTurn[curThrower] === 'vat_ly_an_do') {
+          // VẬT LÝ ẤN ĐỘ: Cổ tay ngắm thẳng tắp theo hướng trỏ chuột
+          const dx = targetHandX - activeRig.shoulderX;
+          const dy = targetHandY - activeRig.shoulderY;
+          if (Math.hypot(dx, dy) >= 15) {
+            directAimAngle = Math.atan2(dy, dx);
+          }
+        }
+
+        activeRig.update(dt, isInteracting, targetHandX, targetHandY, pullX, pullY, directAimAngle);
       }
 
       // In versus or bot mode, keep the waiting character naturally idling with breathing motion
@@ -3089,11 +3212,32 @@
       const activeRig = (this.isMultiplayerMode)
         ? (this.currentTurn === 1 ? this.rigP1 : this.rigP2)
         : this.rig;
-      // Cord hangs gently from hand
-      this.cord.update(activeRig.handGripX, activeRig.handGripY, dt, true);
-      const ballPos = this.cord.getEndPosition();
-      const ballVel = this.cord.getEndVelocity(dt);
-      this.quacon.update(dt, ballVel.vx, ballVel.vy);
+      const curThrower = (this.isMultiplayerMode) ? (this.currentTurn === 1 ? 'p1' : 'p2') : 'p1';
+      const isVatLyAnDo = (this.skillUsedThisTurn[curThrower] === 'vat_ly_an_do');
+
+      if (isVatLyAnDo) {
+        // VẬT LÝ ẤN ĐỘ: Quả còn duỗi thẳng tắp theo cổ tay
+        const wristAng = activeRig.wristAngle;
+        const dirX = Math.cos(wristAng);
+        const dirY = Math.sin(wristAng);
+        const cordLen = this.cord.totalLength;
+        for (let i = 0; i < this.cord.numNodes; i++) {
+          const frac = i / (this.cord.numNodes - 1);
+          const nx = activeRig.handGripX + dirX * (cordLen * frac);
+          const ny = activeRig.handGripY + dirY * (cordLen * frac);
+          this.cord.nodes[i].x = nx;
+          this.cord.nodes[i].y = ny;
+          this.cord.nodes[i].oldX = nx;
+          this.cord.nodes[i].oldY = ny;
+        }
+        this.quacon.update(dt, dirX * 100, dirY * 100);
+      } else {
+        // Cord hangs gently from hand
+        this.cord.update(activeRig.handGripX, activeRig.handGripY, dt, true);
+        const ballPos = this.cord.getEndPosition();
+        const ballVel = this.cord.getEndVelocity(dt);
+        this.quacon.update(dt, ballVel.vx, ballVel.vy);
+      }
     }
 
     updateSwinging(dt) {
@@ -3103,10 +3247,18 @@
         : this.rig;
 
       if (this.controlMode === 'auto') {
-        // MODE 1: AUTO-SPIN (Hold to whirl smoothly & accelerate)
-        // Full momentum reached in ~1.7 seconds of holding
-        this.spinCharge = Math.min(1.0, this.autoSpinTime / 1.7);
-        this.recentSpinCharge = this.spinCharge;
+        const curThrower = (this.isMultiplayerMode) ? (this.currentTurn === 1 ? 'p1' : 'p2') : 'p1';
+        const isVatLyAnDo = (this.skillUsedThisTurn[curThrower] === 'vat_ly_an_do');
+        if (isVatLyAnDo) {
+          // VẬT LÝ ẤN ĐỘ: Thả ngay có max lực 100%, giữ càng lâu lực càng giảm
+          this.spinCharge = Math.max(0.10, 1.0 - this.autoSpinTime / 1.5);
+          this.recentSpinCharge = this.spinCharge;
+        } else {
+          // MODE 1: AUTO-SPIN (Hold to whirl smoothly & accelerate)
+          // Full momentum reached in ~1.7 seconds of holding
+          this.spinCharge = Math.min(1.0, this.autoSpinTime / 1.7);
+          this.recentSpinCharge = this.spinCharge;
+        }
         this.continuousRotation = this.autoSpinTime * 12.0;
 
         // Dynamic whistling / whoosh sound rhythmically triggered by accumulated momentum!
@@ -3160,28 +3312,62 @@
         // MODE 2: MANUAL WHIRL (Getting Over It 1:1 Physics)
         const curThrower = (this.isMultiplayerMode) ? (this.currentTurn === 1 ? 'p1' : 'p2') : 'p1';
         const isLamCham = (this.skillUsedThisTurn[curThrower] === 'lam_cham');
-        const effectiveDt = isLamCham ? dt * 0.45 : dt; // Bullet Time Slow-Motion for easy aiming
+        const isVatLyAnDo = (this.skillUsedThisTurn[curThrower] === 'vat_ly_an_do');
+        const effectiveDt = isLamCham ? (dt * 0.45) : dt; // Bullet Time Slow-Motion for easy aiming
 
-        this.cord.update(activeRig.handGripX, activeRig.handGripY, effectiveDt, true);
+        if (isVatLyAnDo) {
+          // VẬT LÝ ẤN ĐỘ: Quả còn và dây còn duỗi thẳng tắp theo hướng cổ tay
+          const wristAng = activeRig.wristAngle;
+          const dirX = Math.cos(wristAng);
+          const dirY = Math.sin(wristAng);
+          const cordLen = this.cord.totalLength;
+
+          for (let i = 0; i < this.cord.numNodes; i++) {
+            const frac = i / (this.cord.numNodes - 1);
+            const nx = activeRig.handGripX + dirX * (cordLen * frac);
+            const ny = activeRig.handGripY + dirY * (cordLen * frac);
+            this.cord.nodes[i].x = nx;
+            this.cord.nodes[i].y = ny;
+            this.cord.nodes[i].oldX = nx;
+            this.cord.nodes[i].oldY = ny;
+          }
+          this.quacon.update(effectiveDt, dirX * 120, dirY * 120);
+        } else {
+          this.cord.update(activeRig.handGripX, activeRig.handGripY, effectiveDt, true);
+        }
+
         const ballPos = this.cord.getEndPosition();
         const ballVel = this.cord.getEndVelocity(effectiveDt);
         const rawSpeed = Math.hypot(ballVel.vx, ballVel.vy);
 
-        // Track angular momentum around active character shoulder
-        const curAngle = Math.atan2(ballPos.y - activeRig.shoulderY, ballPos.x - activeRig.shoulderX);
-        let dAngle = curAngle - this.prevBallAngle;
-        if (!isFinite(dAngle)) {
-          dAngle = 0;
-        } else {
-          dAngle = Math.atan2(Math.sin(dAngle), Math.cos(dAngle));
-        }
-        this.prevBallAngle = curAngle;
+        // Theo dõi chuyển động góc xoay quanh cổ tay/bàn tay và vòng xoay chuột
+        const ballAngle = Math.atan2(ballPos.y - activeRig.handGripY, ballPos.x - activeRig.handGripX);
+        let dBallAngle = (this.prevBallAngle !== undefined) ? (ballAngle - this.prevBallAngle) : 0;
+        dBallAngle = Math.atan2(Math.sin(dBallAngle), Math.cos(dBallAngle));
+        this.prevBallAngle = ballAngle;
 
-        const angularVelocity = effectiveDt > 0.001 ? Math.abs(dAngle) / effectiveDt : 0; // rad/s
-        const direction = dAngle >= 0 ? 1 : -1;
+        const mouseAngle = Math.atan2(this.mouseWorldY - activeRig.shoulderY, this.mouseWorldX - activeRig.shoulderX);
+        let dMouseAngle = (this.prevMouseAngleRad !== undefined) ? (mouseAngle - this.prevMouseAngleRad) : 0;
+        dMouseAngle = Math.atan2(Math.sin(dMouseAngle), Math.cos(dMouseAngle));
+        this.prevMouseAngleRad = mouseAngle;
+
+        // Bắt điểm dừng tay tức thì: Nếu chuột di chuyển < 1.2px hoặc góc chuột đổi < 0.012 rad
+        // Bàn tay người chơi đã DỪNG THỰC SỰ! Không lấy quán tính con lắc dây làm trễ cảm biến.
+        const isHandStationary = (this.distMovedThisFrame !== undefined && this.distMovedThisFrame < 1.2) || Math.abs(dMouseAngle) < 0.012;
+        let dAngle = isHandStationary ? 0 : dMouseAngle;
+        if (!isFinite(dAngle)) dAngle = 0;
+
+        const angularVelocity = (effectiveDt > 0.001 && !isHandStationary) ? Math.abs(dAngle) / effectiveDt : 0; // rad/s
+        const direction = dMouseAngle >= 0 ? 1 : -1;
 
         const isHeavyRain = (this.activeDebuff[curThrower] === 'mua_nang_hat' || this.activeDebuff[curThrower] === 'phat_kep');
         let spinChargeGainMult = isHeavyRain ? 0.65 : 1.0; // Waterlogged quả còn charges slower
+        const curDiff = this.throwDifficulty || 'medium';
+        if (curDiff === 'easy') {
+          spinChargeGainMult *= 1.35; // Dễ: Tích đà nhanh và mượt mà hơn
+        } else if (curDiff === 'hard') {
+          spinChargeGainMult *= 0.88; // Khó: Cần xoay đà kỹ thuật, chuẩn chỉ hơn
+        }
         if (this.skillUsedThisTurn[curThrower] === 'chiem_nhip') {
           spinChargeGainMult *= 1.5; // Chiếm Nhịp 1.5x wrist spin charging speed!
         }
@@ -3201,7 +3387,7 @@
           this.spinCharge *= 0.50;
           this.sound.playRimClack();
           this.particles.addDust(activeRig.shoulderX, GROUND_Y, 16);
-          this.showAnnouncement('💥 BẪY NGẦM KÍCH HOẠT!', 'Bẫy giật khiến đà quay bị tụt 50%!');
+          this.showAnnouncement('BẪY NGẦM', '');
           this.activeDebuff[curThrower] = null;
         }
 
@@ -3218,11 +3404,26 @@
         const isTichDiemSkill = (this.skillUsedThisTurn[curThrower] === 'tich_diem');
 
         // QUY TẮC TÍCH LŨY LỰC & ĐÀ XOAY:
-        // 1. CHIÊU TÍCH ĐIỂM (TÍCH LŨY): Tốc độ xoay cực hạn (<0.01s/vòng, 80-120 rad/s) mới đạt 5 điểm.
-        //    Dừng lại đột ngột triệt tiêu lực trong 0.1s.
-        // 2. XOAY BÌNH THƯỜNG: Bắt buộc phải xoay nhiều vòng liên tục (continuousRotation) mới tích đủ lực vung ném!
-        //    Xoay 1 nửa vòng hay quá ít vòng sẽ không đủ đà và ném bị rơi gần chân.
-        if (isTichDiemSkill) {
+        // 1. VẬT LÝ ẤN ĐỘ: Càng xoay lực càng giảm! Không xoay có sẵn Max lực 100%.
+        // 2. CHIÊU TÍCH ĐIỂM (TÍCH LŨY): Tốc độ xoay cực hạn (<0.01s/vòng, 80-120 rad/s) mới đạt 5 điểm.
+        // 3. XOAY BÌNH THƯỜNG: Bắt buộc phải xoay nhiều vòng liên tục (continuousRotation) mới tích đủ lực vung ném!
+        if (isVatLyAnDo) {
+          if (angularVelocity > 2.8 && Math.abs(dAngle) > 0.03) {
+            this.continuousRotation += Math.abs(dAngle);
+            // Chỉ khi bắt đầu thực sự xoay tròn (> Math.PI) mới bắt đầu trừ lực
+            if (this.continuousRotation >= Math.PI) {
+              const extraSpin = this.continuousRotation - Math.PI;
+              const revs = extraSpin / (Math.PI * 2);
+              this.spinCharge = Math.max(0.10, 1.0 - revs * 0.35);
+            } else {
+              this.spinCharge = 1.0;
+            }
+            this.recentSpinCharge = this.spinCharge;
+          } else {
+            // Không xoay (chỉ giữ chuột định hướng ngắm): giữ nguyên 100% max lực
+            this.recentSpinCharge = this.spinCharge;
+          }
+        } else if (isTichDiemSkill) {
           if (angularVelocity >= 12.0 && Math.abs(dAngle) > 0.04) {
             if (this.lastSpinDirection !== 0 && this.lastSpinDirection !== direction && Math.abs(dAngle) > 0.25) {
               this.continuousRotation = 0;
@@ -3248,7 +3449,8 @@
           }
         } else {
           // BÌNH THƯỜNG: Phải vung xoay đều tay qua nhiều vòng để tạo lực quán tính ly tâm
-          if (angularVelocity > 2.8 && Math.abs(dAngle) > 0.02) {
+          if (angularVelocity > 2.0 && Math.abs(dAngle) > 0.02) {
+            this.pauseHoldTimer = 0; // Đang xoay thì reset timer dừng
             if (this.lastSpinDirection !== 0 && this.lastSpinDirection !== direction && Math.abs(dAngle) > 0.25) {
               this.continuousRotation = 0;
               this.spinCharge = Math.max(0, this.spinCharge - 0.35);
@@ -3256,19 +3458,28 @@
             this.lastSpinDirection = direction;
             this.continuousRotation += Math.abs(dAngle);
 
-            // Cần xoay ít nhất nửa vòng (PI) mới bắt đầu tích tụ lực, và phải xoay nhiều vòng liên tiếp mới đầy thanh lực!
+            // Cần khoảng 2-3 vòng quay đầy đủ để đạt lực vung tối đa
             if (this.continuousRotation >= Math.PI) {
               const effectiveAngle = Math.abs(dAngle);
-              const speedFactor = Math.min(1.4, Math.max(0.6, angularVelocity / 7.5));
-              // Cần khoảng 3-4 vòng quay đầy đủ (6 - 8 PI) để đạt lực vung tối đa
-              this.spinCharge = Math.min(1.0, this.spinCharge + effectiveAngle * 0.05 * speedFactor * spinChargeGainMult);
+              const speedFactor = Math.min(1.5, Math.max(0.7, angularVelocity / 6.5));
+              this.spinCharge = Math.min(1.0, this.spinCharge + effectiveAngle * 0.095 * speedFactor * spinChargeGainMult);
             }
-            this.recentSpinCharge = Math.max(this.spinCharge, this.recentSpinCharge - effectiveDt * 0.8);
+            this.recentSpinCharge = Math.max(this.spinCharge, this.recentSpinCharge - effectiveDt * 0.30);
           } else {
-            // Ngừng xoay hoặc xoay quá chậm: đà quay tụt dần
-            this.continuousRotation = Math.max(0, this.continuousRotation - effectiveDt * 3.5);
-            this.spinCharge = Math.max(0, this.spinCharge - effectiveDt * 0.95);
-            this.recentSpinCharge = Math.max(this.spinCharge, this.recentSpinCharge - effectiveDt * 1.2);
+            // DỪNG TAY TRÊN KHÔNG:
+            // Vật lý thực tế: Không còn lực ly tâm, trọng lực kéo quả còn và sợi dây rủ xuống dưới tay.
+            // Lực quán tính tiêu tan nhanh chóng; nếu dừng trên 0.2s thì lực xẹp về 0.
+            this.pauseHoldTimer = (this.pauseHoldTimer || 0) + effectiveDt;
+            this.continuousRotation = Math.max(0, this.continuousRotation - effectiveDt * 2.5);
+            this.spinCharge = Math.max(0, this.spinCharge - effectiveDt * 2.0);
+            const gracePeriod = (curDiff === 'easy') ? 0.30 : (curDiff === 'hard' ? 0.12 : 0.16);
+            if (this.pauseHoldTimer > gracePeriod) {
+              // Hết thời gian đệm dừng tay, đà tiêu hao nhanh về 0
+              this.recentSpinCharge = Math.max(0, this.recentSpinCharge - effectiveDt * (curDiff === 'hard' ? 4.5 : 3.0));
+            } else {
+              // Buffer vi độ trễ phản xạ nhấc ngón tay khi vừa vung ném
+              this.recentSpinCharge = Math.max(this.spinCharge, this.recentSpinCharge - effectiveDt * 1.0);
+            }
           }
         }
 
@@ -3279,7 +3490,9 @@
           this.whooshCooldown = Math.max(0.18, 0.40 - this.spinCharge * 0.20);
         }
 
-        this.quacon.update(effectiveDt, ballVel.vx, ballVel.vy);
+        if (!isVatLyAnDo) {
+          this.quacon.update(effectiveDt, ballVel.vx, ballVel.vy);
+        }
       }
     }
 
@@ -3330,55 +3543,27 @@
       const isVatLyAnDo = (this.skillUsedThisTurn[currentThrower] === 'vat_ly_an_do');
 
       if (isVatLyAnDo) {
-        // SKILL EFFECT: VẬT LÝ ẤN ĐỘ
-        // "Không cần xoay chỉ cần hướng và thả chuột ra tự có max lực luôn"
-        // Lấy hướng chuột chỉ định từ vị trí tay/vai người chơi đến điểm nhả chuột
-        const handX = activeRig ? activeRig.shoulderX : ballPos.x;
-        const handY = activeRig ? activeRig.shoulderY : ballPos.y;
-        let aimDx = this.mouseWorldX - handX;
-        let aimDy = this.mouseWorldY - handY;
+        // VẬT LÝ ẤN ĐỘ: Quả còn phóng thẳng tắp theo đúng hướng cổ tay của nhân vật
+        const wristAngle = activeRig.wristAngle;
+        const dirX = Math.cos(wristAngle);
+        const dirY = Math.sin(wristAngle);
 
-        // Nếu người chơi chưa lia chuột xa, mặc định hướng về phía cột
-        if (Math.hypot(aimDx, aimDy) < 20) {
-          aimDx = (this.isMultiplayerMode && this.currentTurn === 2) ? -1 : 1;
-          aimDy = -0.65;
-        }
+        // Điểm xuất phát quả còn: Thẳng tắp theo cổ tay
+        const cordLen = this.cord.totalLength;
+        ballPos.x = activeRig.handGripX + dirX * cordLen;
+        ballPos.y = activeRig.handGripY + dirY * cordLen;
 
-        // Hướng bay tiến về phía trước theo hướng trỏ chuột
-        let dirX = (this.isMultiplayerMode && this.currentTurn === 2) ? -Math.abs(aimDx) : Math.abs(aimDx);
-        let dirY = aimDy;
-        const aimLen = Math.hypot(dirX, dirY) || 1;
-        dirX /= aimLen;
-        dirY /= aimLen;
+        // Vận tốc tên lửa vừa phải, không quá mạnh
+        const charge = Math.min(1.0, Math.max(0.10, this.spinCharge, this.recentSpinCharge));
+        const rocketSpeed = 350 + charge * 500; // max 850 px/s
 
-        // Tự động kích hoạt Max lực (1140 px/s)
-        const mappedSpeed = 1140;
-        this.spinCharge = 1.0;
-        this.recentSpinCharge = 1.0;
-        this.throwSpinCharge = 1.0;
-
-        // Tính quỹ đạo hoàn hảo xuyên tâm vòng còn
-        const startX = (this.isMultiplayerMode && this.currentTurn === 2) ? (2 * P2_ANCHOR_X - ballPos.x) : ballPos.x;
-        const startY = ballPos.y;
-        const targetPole = this.aoAnhPoles ? this.aoAnhPoles.find(p => p.isReal) : null;
-        const targetX = targetPole ? targetPole.x : RING_CENTER_X;
-        const targetY = targetPole ? targetPole.ringY : RING_CENTER_Y;
-        const dx = targetX - startX;
-        const dy = targetY - startY;
-        const T = 1.94;
-        const perfectVx = dx / T;
-        const perfectVy = (dy - 0.5 * GRAVITY * T * T) / T;
-
-        if (this.isMultiplayerMode && this.currentTurn === 2) {
-          vx = -perfectVx;
-          vy = perfectVy;
-        } else {
-          vx = perfectVx;
-          vy = perfectVy;
-        }
+        vx = dirX * rocketSpeed;
+        vy = dirY * rocketSpeed;
         isDrop = false;
-        this.sound.playScoreCelebration();
-        this.particles.addConfetti(activeRig.shoulderX, activeRig.shoulderY - 30, 25);
+
+        this.throwSpinCharge = charge;
+        this.sound.playWhoosh(1.4);
+        // Không hiệu ứng màu mè
         this.triggerSkillCardVisual('vat_ly_an_do', currentThrower);
       } else if (this.controlMode === 'auto') {
         const omega = Math.min(15.5, 5.0 + this.autoSpinTime * 5.8);
@@ -3395,8 +3580,8 @@
         if (charge <= 0.08) {
           // Barely held: drops naturally at feet
           isDrop = true;
-          vx = dirX * 120;
-          vy = Math.max(dirY * 120, 50);
+          vx = dirX * 100;
+          vy = Math.max(dirY * 100, 45);
         } else {
           // Forward launch optimization:
           // Ưu tiên góc có tỉ lệ trúng cao hơn, luôn hướng về phía cột còn lễ hội
@@ -3409,58 +3594,66 @@
           dirX /= len;
           dirY /= len;
 
-          // Speed scaled by accumulated spin energy:
-          const baseSpeed = 460 + charge * 670;
-          const mappedSpeed = Math.min(1140, baseSpeed);
+          // Lực ném Auto Mode: Đủ tầm tới cột còn lễ hội
+          const baseSpeed = 360 + charge * 420;
+          const mappedSpeed = Math.min(820, baseSpeed);
 
           vx = dirX * mappedSpeed;
           vy = dirY * mappedSpeed;
         }
       } else {
         // MODE 2: MANUAL WHIRL
-        let ballVel = this.cord.getEndVelocity();
-        vx = ballVel.vx;
-        vy = ballVel.vy;
-        let rawSpeed = Math.hypot(vx, vy);
+        // Hướng ném được xác định chuẩn xác theo HƯỚNG TAY tại thời điểm người chơi thả chuột
+        const handDx = activeRig.handGripX - activeRig.shoulderX;
+        const handDy = activeRig.handGripY - activeRig.shoulderY;
+        const aimDx = (this.mouseWorldX !== undefined) ? (this.mouseWorldX - activeRig.shoulderX) : handDx;
+        const aimDy = (this.mouseWorldY !== undefined) ? (this.mouseWorldY - activeRig.shoulderY) : handDy;
 
-        const isHandInFront = (activeRig.wristX >= activeRig.shoulderX - 10);
-        const isIntentionalBackThrow = (this.mouseVelocity && this.mouseVelocity.x < -200) || (!isHandInFront && vx < -50);
+        // Ưu tiên hướng trỏ chuột / hướng vươn tay của nhân vật
+        let dirX = (Math.hypot(aimDx, aimDy) >= 25) ? aimDx : handDx;
+        let dirY = (Math.hypot(aimDx, aimDy) >= 25) ? aimDy : handDy;
 
-        if (rawSpeed < 75 && Math.max(this.spinCharge, this.recentSpinCharge) < 0.05) {
+        const dirLen = Math.hypot(dirX, dirY) || 1;
+        dirX /= dirLen;
+        dirY /= dirLen;
+
+        const ballVel = this.cord.getEndVelocity();
+        const rawSpeed = Math.hypot(ballVel.vx, ballVel.vy);
+        const charge = Math.min(1.0, Math.max(0, this.spinCharge, this.recentSpinCharge));
+
+        const curDiff = this.throwDifficulty || 'medium';
+        const stopLimit = (curDiff === 'easy') ? 0.45 : (curDiff === 'hard' ? 0.20 : 0.30);
+        const isStoppedOnAir = (this.pauseHoldTimer && this.pauseHoldTimer > stopLimit);
+        if (charge <= 0.08 || isStoppedOnAir) {
+          // DỪNG TAY TRÊN KHÔNG HOẶC CHƯA ĐỦ LỰC ĐÀ:
+          // Đúng quy luật vật lý: Không có lực quán tính, quả còn rơi thẳng xuống đất tại chân!
           isDrop = true;
-          vx = vx * 0.35;
-          vy = Math.max(vy * 0.35, 30);
+          const actualEnd = this.cord.getEndPosition();
+          ballPos.x = actualEnd.x;
+          ballPos.y = actualEnd.y;
+          vx = (ballVel.vx || 0) * 0.05;
+          vy = Math.max(60, (ballVel.vy || 0) + 70);
         } else {
-          let dirX = vx / (rawSpeed || 1);
-          let dirY = vy / (rawSpeed || 1);
+          // Vị trí quả còn bắt đầu phóng: Duỗi thẳng từ tay người chơi theo đúng hướng vươn tay
+          const cordLen = this.cord.totalLength;
+          ballPos.x = activeRig.handGripX + dirX * cordLen;
+          ballPos.y = activeRig.handGripY + dirY * cordLen;
 
-          if (isIntentionalBackThrow) {
-            dirX = -Math.abs(dirX);
-          } else if (isHandInFront) {
-            dirX = Math.max(0.35, Math.abs(dirX));
-            // Cân bằng góc bay tự nhiên theo tay vung, không ép dựng đứng lên nóc màn hình
-            if (dirY > -0.15) {
-              dirY = -Math.sqrt(Math.max(0.08, 1.0 - dirX * dirX));
-            }
-          }
+          // VẬT LÝ NÉM CHUẨN XÁC, GIẢM TỐC ĐỘ NHƯNG BAY BỔNG VÀ XA:
+          // 1. Thành phần quay đà ly tâm (Whirl component: 360 -> 780 px/s):
+          const baseWhirlSpeed = 360 + charge * 420;
 
-          const len = Math.hypot(dirX, dirY) || 1;
-          dirX /= len;
-          dirY /= len;
+          // 2. Thành phần vung tay & gia tốc vẩy chuột nhẹ nhàng (Flick / Hand component: 0 -> 100 px/s):
+          const flickSpeed = Math.max(Math.hypot(this.mouseVelocity.x, this.mouseVelocity.y), this.recentHandSpeed || 0, rawSpeed);
+          const flickSpeedBonus = Math.min(75, (flickSpeed / 400) * 75);
+          const handAccelVal = Math.max(this.handAccel || 0, this.recentHandAccel || 0);
+          const accelBonus = Math.max(0, Math.min(30, (handAccelVal / 1000) * 30));
+          const totalFlick = Math.min(100, flickSpeedBonus + accelBonus);
 
-          const charge = Math.min(1.0, Math.max(0, this.spinCharge, this.recentSpinCharge));
-          let mappedSpeed;
-
-          if (charge <= 0.05) {
-            mappedSpeed = Math.min(320, 80 + rawSpeed * 0.26);
-          } else {
-            const baseSpinSpeed = 430 + charge * 700;
-            const flickBonus = Math.min(35, (rawSpeed / 800) * 35);
-            mappedSpeed = Math.min(1140, baseSpinSpeed + flickBonus);
-            if (this.skillUsedThisTurn[currentThrower] === 'lam_cham') {
-              // Làm Chậm: Nhả tay thư thái nhưng quả còn vẫn phóng đi với momentum dũng mãnh
-              mappedSpeed = Math.max(860, mappedSpeed);
-            }
+          // Tốc độ bay êm ái, bổng lượn (420 - 860 px/s), quỹ đạo bổng và chuẩn xác:
+          let mappedSpeed = Math.min(880, baseWhirlSpeed + totalFlick);
+          if (this.skillUsedThisTurn[currentThrower] === 'lam_cham') {
+            mappedSpeed = Math.max(720, mappedSpeed);
           }
 
           vx = dirX * mappedSpeed;
@@ -3493,8 +3686,8 @@
         const targetY = targetPole ? targetPole.ringY : RING_CENTER_Y;
         const dx = targetX - startX;
         const dy = targetY - ballPos.y;
-        const idealVx = dx / 1.94;
-        const idealVy = (dy - 0.5 * GRAVITY * 1.94 * 1.94) / 1.94;
+        const idealVx = dx / 2.25;
+        const idealVy = (dy - 0.5 * GRAVITY * 2.25 * 2.25) / 2.25;
         vx = vx * 0.35 + (this.currentTurn === 2 ? -idealVx : idealVx) * 0.65;
         vy = vy * 0.35 + idealVy * 0.65;
         this.triggerSkillCardVisual('tam_nham', currentThrower);
@@ -3511,24 +3704,6 @@
             if (launchAngleDeg < 38 || launchAngleDeg > 56) {
               // Ngoài góc lý tưởng, trọng lượng nước kéo quả còn chúc xuống nhanh hơn
               vy += 65;
-            }
-          }
-          // Chế độ ném Dễ: Hỗ trợ nhẹ hướng bay nếu người chơi chọn chế độ Dễ
-          if (this.throwDifficulty === 'easy') {
-            const startX = (this.isMultiplayerMode && this.currentTurn === 2) ? (2 * P2_ANCHOR_X - ballPos.x) : ballPos.x;
-            const startY = ballPos.y;
-            const targetPole = this.aoAnhPoles ? this.aoAnhPoles.find(p => p.isReal) : null;
-            const poleX = targetPole ? targetPole.x : RING_CENTER_X;
-            const poleY = targetPole ? targetPole.ringY : RING_CENTER_Y;
-            const dx = (this.isMultiplayerMode && this.currentTurn === 2) ? (startX - poleX) : (poleX - startX);
-            const dy = poleY - startY;
-            const forwardSpeed = Math.abs(vx);
-            if (forwardSpeed >= 420) {
-              const T = dx / forwardSpeed;
-              if (T >= 1.2 && T <= 2.8) {
-                const idealVy = (dy - 0.5 * GRAVITY * T * T) / T;
-                vy = vy * 0.40 + idealVy * 0.60;
-              }
             }
           }
         }
@@ -3553,7 +3728,8 @@
           vy: worldVy,
           scored: false,
           hitPole: false,
-          restTimer: 0
+          restTimer: 0,
+          isRocket: isVatLyAnDo
         };
 
         const topX = this.projectile.x + this.quacon.topAttachOffset.x;
@@ -3569,7 +3745,8 @@
           vy: vy,
           scored: false,
           hitPole: false,
-          restTimer: 0
+          restTimer: 0,
+          isRocket: isVatLyAnDo
         };
 
         const topX = this.projectile.x + this.quacon.topAttachOffset.x;
@@ -3614,6 +3791,9 @@
       this.continuousRotation = 0;
       this.totalRotations = 0;
       this.autoSpinTime = 0;
+      this.pauseHoldTimer = 0;
+      this.recentHandSpeed = 0;
+      this.recentHandAccel = 0;
 
       this.state = STATE.FLYING;
     }
@@ -3623,74 +3803,57 @@
       p.prevX = p.x;
       p.prevY = p.y;
 
-      // Projectile motion with gravity and air drag
-      const speed = Math.hypot(p.vx, p.vy);
-      const drag = AIR_DRAG * speed * speed;
-      const dragX = speed > 0 ? (p.vx / speed) * drag : 0;
-      const dragY = speed > 0 ? (p.vy / speed) * drag : 0;
+      const isRocket = !!p.isRocket;
 
-      // Debuff aerodynamic forces and environmental anomalies
-      let windAccX = 0;
-      let effectiveGravity = GRAVITY;
-      const currentThrower = (this.isMultiplayerMode) ? (this.currentTurn === 1 ? 'p1' : 'p2') : 'p1';
-      const debuff = this.activeDebuff[currentThrower];
+      if (isRocket) {
+        // VẬT LÝ ẤN ĐỘ: Quả còn bay thẳng tắp như tên lửa, bỏ qua trọng lực và lực cản (không màu mè)
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+      } else {
+        // Projectile motion with gravity and air drag
+        const speed = Math.hypot(p.vx, p.vy);
+        const drag = AIR_DRAG * speed * speed;
+        const dragX = speed > 0 ? (p.vx / speed) * drag : 0;
+        const dragY = speed > 0 ? (p.vy / speed) * drag : 0;
 
-      // Gió Mạnh & Phạt Kép: Heavy wind gust resistance / assistance (thuận hoặc nghịch, ngẫu nhiên đảo chiều)
-      const isLamChamNegateWind = (this.skillUsedThisTurn[currentThrower] === 'lam_cham');
-      if (!isLamChamNegateWind && (debuff === 'gio_manh' || debuff === 'phat_kep')) {
-        const forwardSign = (this.isMultiplayerMode && this.currentTurn === 2) ? -1 : 1;
-        const gust = 460 + Math.sin(performance.now() * 0.005) * 140;
-        windAccX = forwardSign * (this.windDirectionMultiplier || 1) * gust;
-      }
+        // Debuff aerodynamic forces and environmental anomalies
+        let windAccX = 0;
+        let effectiveGravity = GRAVITY;
+        const currentThrower = (this.isMultiplayerMode) ? (this.currentTurn === 1 ? 'p1' : 'p2') : 'p1';
+        const debuff = this.activeDebuff[currentThrower];
 
-      // Mưa Nặng Hạt & Phạt Kép: Waterlogged drag & heavy downward weight (vẫn có thể ăn điểm nếu ném đúng góc 45° xa nhất)
-      if (debuff === 'mua_nang_hat' || debuff === 'phat_kep') {
-        effectiveGravity = GRAVITY * 1.15;
-        p.vx *= (1.0 - dt * 0.005);
-      }
-
-      // Bẻ Cong: Spatial gravitational curvature bending projectile away from the ring
-      if (debuff === 'be_cong') {
-        const distToRing = Math.abs(p.x - RING_CENTER_X);
-        if (distToRing < 500) {
-          const bendDirY = (p.y < RING_CENTER_Y) ? -440 : 440;
-          const bendDirX = (p.vx > 0) ? -260 : 260;
-          p.vy += bendDirY * dt;
-          p.vx += bendDirX * dt;
+        // Gió Mạnh & Phạt Kép: Heavy wind gust resistance / assistance (thuận hoặc nghịch, ngẫu nhiên đảo chiều)
+        const isLamChamNegateWind = (this.skillUsedThisTurn[currentThrower] === 'lam_cham');
+        if (!isLamChamNegateWind && (debuff === 'gio_manh' || debuff === 'phat_kep')) {
+          const forwardSign = (this.isMultiplayerMode && this.currentTurn === 2) ? -1 : 1;
+          const gust = 460 + Math.sin(performance.now() * 0.005) * 140;
+          windAccX = forwardSign * (this.windDirectionMultiplier || 1) * gust;
         }
-      }
 
-      // Trailing Stardust Sparkles when Vật Lý Ấn Định or Tâm Nhắm is active
-      const activeSkill = this.skillUsedThisTurn[currentThrower];
-      if (activeSkill === 'vat_ly_an_do') {
-        if (Math.random() < 0.45) {
-          this.particles.addConfetti(p.x, p.y, 2);
+        // Mưa Nặng Hạt & Phạt Kép: Waterlogged drag & heavy downward weight (vẫn có thể ăn điểm nếu ném đúng góc 45° xa nhất)
+        if (debuff === 'mua_nang_hat' || debuff === 'phat_kep') {
+          effectiveGravity = GRAVITY * 1.15;
+          p.vx *= (1.0 - dt * 0.005);
         }
-      }
 
-      p.vx += (-dragX + windAccX) * dt;
-      p.vy += (effectiveGravity - dragY) * dt;
-
-      p.x += p.vx * dt;
-      p.y += p.vy * dt;
-
-      // Trợ lực ném Chế Độ Dễ: Hút từ tính vào vành khi bay gần cột
-      if (this.throwDifficulty === 'easy' && !p.scored) {
-        const targetPole = (this.aoAnhPoles && this.aoAnhPoles.length > 0)
-          ? this.aoAnhPoles.find(pol => pol.isReal)
-          : { x: RING_CENTER_X, ringY: RING_CENTER_Y };
-        if (targetPole) {
-          const distPoleX = targetPole.x - p.x;
-          if (Math.abs(distPoleX) < 280 && Math.abs(distPoleX) > 8) {
-            const dyToRing = targetPole.ringY - p.y;
-            p.vy += dyToRing * dt * 4.5;
-            const fwdSign = (this.isMultiplayerMode && this.currentTurn === 2) ? -1 : 1;
-            if (p.vx * fwdSign > 80) {
-              p.vx = p.vx * 0.96 + (fwdSign * 580) * 0.04;
-            }
+        // Bẻ Cong: Spatial gravitational curvature bending projectile away from the ring
+        if (debuff === 'be_cong') {
+          const distToRing = Math.abs(p.x - RING_CENTER_X);
+          if (distToRing < 500) {
+            const bendDirY = (p.y < RING_CENTER_Y) ? -440 : 440;
+            const bendDirX = (p.vx > 0) ? -260 : 260;
+            p.vy += bendDirY * dt;
+            p.vx += bendDirX * dt;
           }
         }
+
+        p.vx += (-dragX + windAccX) * dt;
+        p.vy += (effectiveGravity - dragY) * dt;
+
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
       }
+
 
       // Ảo Ảnh: Cập nhật vật lý cho 2 quả còn ảo bay cùng lúc
       if (this.mirageProjectiles) {
@@ -3741,7 +3904,7 @@
               this.updateVersusUI();
               this.sound.playScoreCelebration();
               this.particles.addConfetti(p.x, p.y, 75);
-              this.showAnnouncement('🙃 LUẬT NGƯỢC ĐỜI THÀNH CÔNG!', 'Ném ra ngoài gần cột: +1 ĐIỂM CHIẾN THẮNG!');
+              this.showAnnouncement('+1 ĐIỂM', '');
             }
             this.inverseRulesActive = false;
           }
@@ -3792,10 +3955,7 @@
 
         // A. INNER HOLE PASS-THROUGH
         const diff = this.throwDifficulty || 'medium';
-        let toleranceMultiplier = 1.15;
-        if (diff === 'easy') toleranceMultiplier = 1.85; // Dễ: Vành rộng trợ lực, gần như thả là trúng
-        else if (diff === 'hard') toleranceMultiplier = 0.88; // Khó: Cực kỳ chính xác
-
+        const toleranceMultiplier = (diff === 'easy') ? 1.45 : (diff === 'hard' ? 1.15 : 1.30);
         const hitMarginY = Math.round(RING_INNER_RY * (pole.scale / POLE_SCALE) * toleranceMultiplier);
 
         if (dyHole <= hitMarginY) {
@@ -3819,7 +3979,7 @@
 
           // Luật Ngược Đời: Trúng vòng thì 0 điểm!
           if (this.inverseRulesActive) {
-            this.showAnnouncement('🙃 LUẬT NGƯỢC ĐỜI!', 'Ném trúng vòng nhưng theo luật đảo ngược: 0 ĐIỂM!');
+            this.showAnnouncement('0 ĐIỂM', '');
             this.sound.playRimClack();
             this.inverseRulesActive = false;
             return;
@@ -3836,7 +3996,7 @@
               this.updateVersusUI();
               this.sound.playScoreCelebration();
               this.particles.addConfetti(pole.x, pole.ringY, 120);
-              this.showAnnouncement('🔄 HOÁN ĐỔI ĐIỂM SỐ!', `Ném trúng đích thành công! Điểm số đôi bên đã hoán đổi: P1: ${this.p1Score} - P2: ${this.p2Score}`);
+              this.showAnnouncement('ĐỔI ĐIỂM', '');
               this.triggerSkillCardVisual('doi_diem', curP, 'HOÁN ĐỔI ĐIỂM SỐ!');
               return;
             }
@@ -3877,8 +4037,7 @@
             this.sound.playScoreCelebration();
             this.particles.addConfetti(pole.x, pole.ringY, 50);
 
-            const pName = (this.currentTurn === 1) ? 'P1' : (this.gameMode === 'bot' ? 'Bot' : 'P2');
-            this.showAnnouncement(`+${pts} ĐIỂM`, `${pName} • ${this.p1Score} - ${this.p2Score}`);
+            this.showAnnouncement(`+${pts} ĐIỂM`, '');
 
             // Kiểm tra chiến thắng ngay khi ghi điểm
             if (this.p1Score >= this.matchTargetScore) {
@@ -3889,8 +4048,8 @@
             return;
           }
 
-          // Single player mode: Mặc định 100 điểm (tương ứng 1 điểm chuẩn), chỉ tích lũy khi dùng chiêu Tích Điểm
-          let singlePts = 100;
+          // Single player mode: Mặc định 100 điểm, nhân hệ số theo độ khó
+          let singlePts = (diff === 'hard') ? 150 : (diff === 'easy' ? 80 : 100);
           if (this.skillUsedThisTurn.p1 === 'tich_diem') {
             const chargeSingle = this.throwSpinCharge || 0;
             if (chargeSingle >= 0.90) singlePts = 500;
@@ -3914,26 +4073,9 @@
           this.sound.playScoreCelebration();
           this.particles.addConfetti(pole.x, pole.ringY, 80);
 
-          // Traditional Festive Blessings
-          const BLESSINGS = [
-            'MƯA THUẬN GIÓ HÒA!',
-            'MÙA MÀNG BỘI THU!',
-            'ÂM DƯƠNG GIAO HÒA!',
-            'BẢN LÀNG NO ẤM!',
-            'KHAI MỞ CỔNG TRỜI!',
-            'PHÚC LỘC ĐẦY NHÀ!',
-            'DUYÊN THẮM ĐẦU XUÂN!'
-          ];
-
-          let msg = 'XUYÊN TÂM VÒNG CÒN!';
-          if (this.streak === 1) msg = 'TÂN THỦ KHAI HỘI!';
-          else if (this.streak === 2) msg = 'XUYÊN TÂM VÒNG CÒN!';
-          else if (this.streak === 3) msg = 'TAY NÉM BẢN LÀNG!';
-          else if (this.streak === 5) msg = 'KHAI MỞ CỔNG TRỜI!';
-          else if (this.streak >= 8) msg = `CHUỖI ${this.streak} LẦN TRÚNG!`;
-
-          const blessing = BLESSINGS[Math.floor(Math.random() * BLESSINGS.length)];
-          this.showAnnouncement(msg, `+${singlePts} ĐIỂM • ${blessing}`);
+          // Thông báo điểm số gọn gàng, súc tích
+          const subText = (this.streak > 1) ? `Chuỗi x${this.streak}` : '';
+          this.showAnnouncement(`+${singlePts} ĐIỂM`, subText);
           return;
         }
 
@@ -3945,11 +4087,12 @@
 
         // B. RIM IMPACT (Đập vành tre)
         if (dyHole <= rimOuterMargin) {
+          p.hitPole = true;
           this.resolvePlayerThrow(false);
           this.sound.playRimClack();
           this.particles.addDust(pole.x, intersectY, 10);
-          p.vx = Math.abs(p.vx) * 0.42 * bounceDir;
-          p.vy = p.vy * 0.35 + (intersectY < pole.ringY ? -70 : 70);
+          p.vx = Math.abs(p.vx) * 0.35 * bounceDir;
+          p.vy = Math.max(40, p.vy * 0.25 + 50);
           p.x = pole.x + bounceDir * 10;
           this.streak = 0;
           if (!this.isMultiplayerMode) this.updateStatsUI();
@@ -3958,10 +4101,12 @@
 
         // C. BAMBOO POLE SHAFT IMPACT (Đập thân cột tre)
         if (intersectY > pole.ringY + rimOuterMargin && intersectY < GROUND_Y) {
+          p.hitPole = true;
           this.resolvePlayerThrow(false);
           this.sound.playRimClack();
           this.particles.addDust(pole.x, intersectY, 8);
-          p.vx = Math.abs(p.vx) * 0.45 * bounceDir;
+          p.vx = Math.abs(p.vx) * 0.30 * bounceDir;
+          p.vy = Math.max(50, p.vy * 0.25 + 70);
           p.x = pole.x + bounceDir * 14;
           this.streak = 0;
           if (!this.isMultiplayerMode) this.updateStatsUI();
@@ -4001,8 +4146,7 @@
             this.nemBuUsed = true;
             this.state = STATE.IDLE;
             this.resetTurnCord();
-            const curName = (curP === 'p1') ? 'Người chơi 1' : (this.gameMode === 'bot' ? 'Bot AI' : 'Người chơi 2');
-            this.showAnnouncement('🎯 NÉM BÙ CỨU NGUY!', `${curName} được ném thêm 1 lần do kích hoạt Ném Bù!`);
+            this.showAnnouncement('NÉM BÙ', '');
             this.sound.playScoreCelebration();
             this.updateSkillsUI();
             return;
@@ -4014,8 +4158,7 @@
             if (oppP === 'p1') this.p1Score += 1;
             else this.p2Score += 1;
             this.updateVersusUI();
-            const oppName = (oppP === 'p1') ? 'P1 (Bạn)' : (this.gameMode === 'bot' ? 'Bot AI' : 'P2');
-            this.showAnnouncement('🎲 ĐẶT CƯỢC THÀNH CÔNG!', `${oppName} nhận +1 điểm do đối phương ném trượt!`);
+            this.showAnnouncement('+1 ĐIỂM', '');
             this.sound.playScoreCelebration();
 
             if (this.p1Score >= this.matchTargetScore) {
@@ -4035,10 +4178,9 @@
               if (ch === 'p1') this.p1Score += 1; else this.p2Score += 1;
               this.updateVersusUI();
               this.sound.playScoreCelebration();
-              const chName = (ch === 'p1') ? 'P1' : (this.gameMode === 'bot' ? 'Bot AI' : 'P2');
-              this.showAnnouncement('⚔️ THUA THÁCH ĐẤU!', `${chName} nhận +1 điểm do đối phương ném trượt!`);
+              this.showAnnouncement('+1 ĐIỂM', '');
             } else {
-              this.showAnnouncement('🦁 BẤT KHUẤT!', 'Bảo vệ điểm số, không bị phạt bởi thách đấu!');
+              this.showAnnouncement('BẤT KHUẤT', '');
             }
             this.activeChallenge = null;
             if (this.p1Score >= this.matchTargetScore) { this.triggerMatchVictory(1); return; }
@@ -4051,8 +4193,7 @@
               this.opportunityStealActive[oppP] = false;
               this.extraThrowPending = oppP;
               this.triggerSkillCardVisual('cuop_co_hoi', oppP, '2 LƯỢT NÉM LIÊN TIẾP!');
-              const oppName = (oppP === 'p1') ? 'P1' : (this.gameMode === 'bot' ? 'Bot AI' : 'P2');
-              this.showAnnouncement('⚡ CƯỚP CƠ HỘI THÀNH CÔNG!', `Đối phương ném hụt! ${oppName} giành quyền ném 2 lượt liên tiếp!`);
+              this.showAnnouncement('CƯỚP CƠ HỘI', '2 lượt ném');
               this.sound.playScoreCelebration();
             } else {
               this.opportunityStealActive[oppP] = false;
@@ -4091,6 +4232,8 @@
       this.extraThrowPending = null;
       this.extraThrowThisTurn = false;
       this.extraThrowReason = null;
+      this.p1MatchThrows = 0;
+      this.p1MatchHits = 0;
 
       if (mode === 'bot') {
         this.gameMode = 'bot';
@@ -4109,11 +4252,11 @@
 
         if (this.ui.btnBot) this.ui.btnBot.classList.add('active');
         if (this.ui.btnVersus) this.ui.btnVersus.classList.remove('active');
-        if (this.ui.modeLabel) this.ui.modeLabel.textContent = 'Đấu Bot';
+        if (this.ui.modeLabel) this.ui.modeLabel.textContent = 'Bot';
 
         const p2Name = document.querySelector('.p2-hud-card .p-name');
         const p2Avatar = document.querySelector('.p2-hud-card .p-avatar');
-        if (p2Name) p2Name.textContent = 'MÁY (BOT AI - THÍCH ỨNG)';
+        if (p2Name) p2Name.textContent = 'Bot';
         if (p2Avatar) p2Avatar.textContent = '🤖';
         if (this.ui.p2TrayTitle) this.ui.p2TrayTitle.textContent = 'BOT';
 
@@ -4130,9 +4273,9 @@
         }
 
         if (firstTurn === 1) {
-          this.showAnnouncement('CHẾ ĐỘ ĐẤU VỚI MÁY (BOT AI)!', 'Đua 10 điểm • Bạn được quyền ném trước!');
+          this.showAnnouncement('LƯỢT BẠN', '');
         } else {
-          this.showAnnouncement('CHẾ ĐỘ ĐẤU VỚI MÁY (BOT AI)!', 'Đua 10 điểm • Máy (Bot AI) được quyền ném trước!');
+          this.showAnnouncement('LƯỢT BOT', '');
           this.botState = 'thinking';
           this.botTimer = 0;
         }
@@ -4153,11 +4296,11 @@
 
         if (this.ui.btnVersus) this.ui.btnVersus.classList.add('active');
         if (this.ui.btnBot) this.ui.btnBot.classList.remove('active');
-        if (this.ui.modeLabel) this.ui.modeLabel.textContent = 'Đấu 2 Người';
+        if (this.ui.modeLabel) this.ui.modeLabel.textContent = '2 Người';
 
         const p2Name = document.querySelector('.p2-hud-card .p-name');
         const p2Avatar = document.querySelector('.p2-hud-card .p-avatar');
-        if (p2Name) p2Name.textContent = 'NGƯỜI CHƠI 2 (NỮ)';
+        if (p2Name) p2Name.textContent = 'P2';
         if (p2Avatar) p2Avatar.textContent = '👧';
         if (this.ui.p2TrayTitle) this.ui.p2TrayTitle.textContent = 'P2';
 
@@ -4171,8 +4314,7 @@
         if (activeRig) {
           this.cord.reset(activeRig.handGripX, activeRig.handGripY);
         }
-        const firstPlayerName = (firstTurn === 1) ? 'Người Chơi 1 (Nam)' : 'Người Chơi 2 (Nữ)';
-        this.showAnnouncement('CHẾ ĐỘ ĐẤU 2 NGƯỜI!', `Đua 10 điểm • ${firstPlayerName} được quyền ném trước!`);
+        this.showAnnouncement(firstTurn === 1 ? 'LƯỢT P1' : 'LƯỢT P2', '');
       } else {
         this.gameMode = 'single';
         this.cameraX = 0;
@@ -4184,7 +4326,7 @@
 
         if (this.ui.btnBot) this.ui.btnBot.classList.remove('active');
         if (this.ui.btnVersus) this.ui.btnVersus.classList.remove('active');
-        if (this.ui.modeLabel) this.ui.modeLabel.textContent = 'Chơi Đơn';
+        if (this.ui.modeLabel) this.ui.modeLabel.textContent = '1 Người';
 
         this.resetSkills();
         if (this.ui.p1SkillsTray) this.ui.p1SkillsTray.style.display = 'flex';
@@ -4195,7 +4337,7 @@
         if (this.rig) {
           this.cord.reset(this.rig.handGripX, this.rig.handGripY);
         }
-        this.showAnnouncement('CHẾ ĐỘ CHƠI ĐƠN!', 'Luyện tập ném còn & thử nghiệm kỹ năng');
+        this.showAnnouncement('1 NGƯỜI', '');
       }
 
       this.updateModeCardsActive();
@@ -4215,22 +4357,21 @@
     setThrowDifficulty(diff) {
       if (!['easy', 'medium', 'hard'].includes(diff)) diff = 'medium';
       this.throwDifficulty = diff;
-      try { localStorage.setItem('nemcon_throw_difficulty', diff); } catch (e) {}
+      this.botDifficulty = diff;
+      try { 
+        localStorage.setItem('nemcon_throw_difficulty', diff); 
+        localStorage.setItem('nemcon_bot_difficulty', diff); 
+      } catch (e) {}
 
       this.updateThrowDifficultyUI();
 
       const titles = {
-        easy: '🎯 ĐỘ KHÓ NÉM: DỄ (TRỢ LỰC)',
-        medium: '🎯 ĐỘ KHÓ NÉM: VỪA (CHUẨN)',
-        hard: '🎯 ĐỘ KHÓ NÉM: KHÓ (CHÍNH XÁC)'
-      };
-      const descs = {
-        easy: 'Trợ lực từ tính & vành rộng, gần như cứ vung về phía cột là trúng!',
-        medium: 'Chuẩn vật lý thực tế, cảm giác tay tự nhiên!',
-        hard: 'Vành khắt khe, đòi hỏi căn góc và lực cực kỳ điêu luyện!'
+        easy: 'DỄ',
+        medium: 'VỪA',
+        hard: 'KHÓ'
       };
 
-      this.showAnnouncement(titles[diff], descs[diff]);
+      this.showAnnouncement(titles[diff] || 'VỪA', '');
       this.sound.playWhoosh(1.2);
     }
 
@@ -4268,24 +4409,335 @@
       }
       if (this.ui.botDiffLabel) {
         const labels = {
-          easy: 'Ném: Dễ',
-          medium: 'Ném: Vừa',
-          hard: 'Ném: Khó'
+          easy: 'Dễ',
+          medium: 'Vừa',
+          hard: 'Khó'
         };
-        this.ui.botDiffLabel.textContent = labels[diff] || 'Ném: Vừa';
+        this.ui.botDiffLabel.textContent = labels[diff] || 'Vừa';
       }
 
       // 3. Update P2 HUD Card Name in Bot mode
       if (this.gameMode === 'bot') {
         const p2Name = document.querySelector('.p2-hud-card .p-name');
         if (p2Name) {
-          p2Name.textContent = 'MÁY (BOT AI - THÍCH ỨNG)';
+          p2Name.textContent = 'Bot';
         }
       }
     }
 
     updateBotDifficultyUI() {
       this.updateThrowDifficultyUI();
+    }
+
+    // ==========================================
+    // DEV TEST SKILLS MODE (HIỆU CHỈNH & TEST ĐỘC LẬP TỪNG CHIÊU)
+    // ==========================================
+    initDevPanel() {
+      const btnToggle = document.getElementById('btn-dev-test');
+      const btnClose = document.getElementById('dev-panel-close');
+      const btnResetThrow = document.getElementById('dev-btn-reset-throw');
+      const btnClearAll = document.getElementById('dev-btn-clear-all');
+
+      if (btnToggle) {
+        btnToggle.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.toggleDevPanel();
+          if (this.ui.hudMenuDropdown) this.ui.hudMenuDropdown.classList.add('hidden');
+        });
+      }
+
+      if (btnClose) {
+        btnClose.addEventListener('click', () => this.toggleDevPanel(false));
+      }
+
+      // Phím tắt F2 hoặc ` (backtick) để bật tắt panel dev
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'F2' || e.key === '`') {
+          e.preventDefault();
+          this.toggleDevPanel();
+        }
+      });
+
+      if (btnResetThrow) {
+        btnResetThrow.addEventListener('click', () => {
+          this.devResetThrow();
+          this.showAnnouncement('↺ ĐÃ ĐẶT LẠI LƯỢT', '');
+        });
+      }
+
+      if (btnClearAll) {
+        btnClearAll.addEventListener('click', () => {
+          this.devClearSkills();
+          this.showAnnouncement('✕ ĐÃ XÓA CHIÊU', '');
+        });
+      }
+
+      // Các nút chọn độ khó trên Dev panel
+      const devDiffBtns = document.querySelectorAll('.dev-diff-btn');
+      devDiffBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const d = btn.getAttribute('data-diff');
+          if (d) {
+            this.setThrowDifficulty(d);
+            devDiffBtns.forEach(b => b.classList.toggle('active', b.getAttribute('data-diff') === d));
+          }
+        });
+      });
+
+      // Render danh sách toàn bộ 41 chiêu thức độc lập để test
+      const containerSupport = document.getElementById('dev-skills-support');
+      const containerShield = document.getElementById('dev-skills-shield');
+      const containerDebuff = document.getElementById('dev-skills-debuff');
+
+      if (containerSupport && containerShield && containerDebuff && typeof SKILLS_CATALOG !== 'undefined') {
+        containerSupport.innerHTML = '';
+        containerShield.innerHTML = '';
+        containerDebuff.innerHTML = '';
+
+        Object.keys(SKILLS_CATALOG).forEach(skillKey => {
+          const cfg = SKILLS_CATALOG[skillKey];
+          if (!cfg) return;
+
+          const btn = document.createElement('button');
+          btn.className = 'dev-skill-card-btn';
+          btn.setAttribute('data-skill', skillKey);
+          btn.title = cfg.desc || cfg.name;
+          btn.innerHTML = `<span style="font-size: 13px;">${this.getSkillEmoji(skillKey)}</span> <span>${cfg.name}</span>`;
+
+          btn.addEventListener('click', () => {
+            this.devTestSkill(skillKey);
+          });
+
+          if (cfg.type === 'support') {
+            containerSupport.appendChild(btn);
+          } else if (cfg.type === 'shield') {
+            containerShield.appendChild(btn);
+          } else {
+            containerDebuff.appendChild(btn);
+          }
+        });
+      }
+    }
+
+    toggleDevPanel(forceState) {
+      const panel = document.getElementById('dev-test-panel');
+      if (!panel) return;
+      if (typeof forceState === 'boolean') {
+        panel.classList.toggle('hidden', !forceState);
+      } else {
+        panel.classList.toggle('hidden');
+      }
+      this.sound.playWhoosh(1.2);
+      this.updateDevTelemetry();
+    }
+
+    getSkillEmoji(skillKey) {
+      const emojis = {
+        tam_nham: '🎯',
+        vat_ly_an_do: '⚡',
+        tang_diem: '➕',
+        nhan_doi: '✖️',
+        lam_cham: '⏳',
+        song_nem: '🏹',
+        nem_bu: '🛡️',
+        tich_diem: '📈',
+        cuoc_diem: '🎲',
+        cuop_co_hoi: '🤹',
+        doi_diem: '🔄',
+        chiem_nhip: '💨',
+        la_bai_bi_an: '❓',
+        luat_nguoc_doi: '🙃',
+        khien_chan: '🛡️',
+        bao_toan: '✨',
+        bay_nguoc: '🪃',
+        bat_khuat: '🧱',
+        hap_thu: '🌀',
+        gio_manh: '🌪️',
+        be_cong: '〰️',
+        hoa_mat: '💫',
+        bong_dem: '🌑',
+        mua_nang_hat: '🌧️',
+        ao_anh: '👥',
+        cuop_luot: '⛔',
+        dat_cuoc: '💰',
+        phat_kep: '⚡',
+        thach_dau: '⚔️',
+        khoa_chieu: '🔒',
+        bay_ngam: '💥',
+        bang_tron: '⛸️',
+        trong_luc_nang: '⚓',
+        la_ban_noi_doi: '🧭',
+        ap_luc_thoi_gian: '⏰',
+        doi_luot: '🔃'
+      };
+      return emojis[skillKey] || '✨';
+    }
+
+    getDevTarget() {
+      const p1Radio = document.getElementById('dev-target-p1');
+      const p2Radio = document.getElementById('dev-target-p2');
+      if (p1Radio && p1Radio.checked) return 'p1';
+      if (p2Radio && p2Radio.checked) return 'p2';
+      return (this.isMultiplayerMode ? (this.currentTurn === 1 ? 'p1' : 'p2') : 'p1');
+    }
+
+    devTestSkill(skillKey) {
+      if (typeof SKILLS_CATALOG === 'undefined') return;
+      const cfg = SKILLS_CATALOG[skillKey];
+      if (!cfg) return;
+
+      const target = this.getDevTarget();
+
+      // Dọn sạch chiêu cũ trên target để test độc lập chiêu mới
+      this.skillUsedThisTurn[target] = null;
+      this.activeDebuff[target] = null;
+      this.shieldActive[target] = false;
+
+      if (cfg.type === 'support') {
+        this.skillUsedThisTurn[target] = skillKey;
+        if (skillKey === 'vat_ly_an_do') {
+          this.spinCharge = 1.0;
+          this.recentSpinCharge = 1.0;
+          this.continuousRotation = 0;
+        } else if (skillKey === 'cuoc_diem') {
+          this.wagerPoints[target] = 2;
+        } else if (skillKey === 'song_nem') {
+          this.extraThrowPending = target;
+        } else if (skillKey === 'luat_nguoc_doi') {
+          this.inverseRulesActive = true;
+        } else if (skillKey === 'cuop_co_hoi') {
+          this.opportunityStealActive[target] = true;
+        }
+      } else if (cfg.type === 'shield') {
+        this.shieldActive[target] = skillKey;
+        this.shieldFlashTimer[target] = 4.0;
+        this.shieldDuration[target] = 4.0;
+      } else if (cfg.type === 'debuff') {
+        this.activeDebuff[target] = skillKey;
+        this.debuffVisualTriggered[target] = true;
+        if (skillKey === 'ao_anh') {
+          this.initAoAnhPoles();
+        } else if (skillKey === 'ap_luc_thoi_gian') {
+          this.timePressureTimer = 10.0;
+        }
+      }
+
+      // Reset bóng về tay để người chơi / dev test ngay tức thì
+      this.state = STATE.IDLE;
+      this.isMouseDown = false;
+      this.projectile = null;
+      this.resetTurnCord();
+
+      this.triggerSkillCardVisual(skillKey, target, 'DEV TEST');
+      this.showAnnouncement(cfg.name.toUpperCase(), '');
+      this.sound.playWhoosh(1.3);
+
+      // Đánh dấu nút chiêu đang kích hoạt trên panel
+      document.querySelectorAll('.dev-skill-card-btn').forEach(b => {
+        b.classList.toggle('active-skill', b.getAttribute('data-skill') === skillKey);
+      });
+
+      this.updateDevTelemetry();
+      this.updateSkillsUI();
+    }
+
+    devClearSkills() {
+      this.skillUsedThisTurn = { p1: null, p2: null };
+      this.activeDebuff = { p1: null, p2: null };
+      this.shieldActive = { p1: false, p2: false };
+      this.shieldFlashTimer = { p1: 0, p2: 0 };
+      this.shieldDuration = { p1: 0, p2: 0 };
+      this.aoAnhPoles = null;
+      this.mirageProjectiles = null;
+      this.inverseRulesActive = false;
+      this.wagerPoints = { p1: 0, p2: 0 };
+      this.extraThrowPending = null;
+      this.extraThrowThisTurn = false;
+      this.opportunityStealActive = { p1: false, p2: false };
+
+      document.querySelectorAll('.dev-skill-card-btn').forEach(b => {
+        b.classList.remove('active-skill');
+      });
+
+      this.devResetThrow();
+      this.updateDevTelemetry();
+      this.updateSkillsUI();
+    }
+
+    devResetThrow() {
+      this.state = STATE.IDLE;
+      this.isMouseDown = false;
+      this.projectile = null;
+      this.spinCharge = 0;
+      this.recentSpinCharge = 0;
+      this.continuousRotation = 0;
+      this.totalRotations = 0;
+      this.handSpeed = 0;
+      this.handAccel = 0;
+      this.recentHandSpeed = 0;
+      this.recentHandAccel = 0;
+      this.resetTurnCord();
+      this.updateDevTelemetry();
+    }
+
+    updateDevTelemetry() {
+      const panel = document.getElementById('dev-test-panel');
+      if (!panel || panel.classList.contains('hidden')) return;
+
+      const stateNames = ['LOADING', 'IDLE', 'SWINGING', 'FLYING', 'LANDED'];
+      const curState = stateNames[this.state] || 'UNKNOWN';
+
+      const statState = document.getElementById('dev-stat-state');
+      const statCharge = document.getElementById('dev-stat-charge');
+      const statVel = document.getElementById('dev-stat-vel');
+      const statAngle = document.getElementById('dev-stat-angle');
+      const statSkill = document.getElementById('dev-stat-skill');
+      const statDebuff = document.getElementById('dev-stat-debuff');
+
+      if (statState) {
+        statState.textContent = curState;
+      }
+      if (statCharge) {
+        const pct = Math.round((this.spinCharge || 0) * 100);
+        statCharge.textContent = `${pct}%`;
+      }
+
+      if (statVel) {
+        if (this.state === STATE.SWINGING) {
+          const spd = Math.round(this.handSpeed || 0);
+          const acc = Math.round(this.handAccel || 0);
+          statVel.textContent = `v_tay: ${spd} | a_tay: ${acc}`;
+        } else if (this.projectile) {
+          const vx = Math.round(this.projectile.vx);
+          const vy = Math.round(this.projectile.vy);
+          const spd = Math.round(Math.hypot(vx, vy));
+          statVel.textContent = `vx: ${vx} | vy: ${vy} | v: ${spd}`;
+        } else {
+          statVel.textContent = `vx: 0 | vy: 0 | v: 0`;
+        }
+      }
+
+      if (statAngle) {
+        if (this.projectile && Math.abs(this.projectile.vx) > 10) {
+          const deg = Math.round(Math.atan2(-this.projectile.vy, Math.abs(this.projectile.vx)) * (180 / Math.PI));
+          statAngle.textContent = `${deg}°`;
+        } else {
+          statAngle.textContent = `0°`;
+        }
+      }
+
+      const curP = this.getDevTarget();
+      if (statSkill) {
+        const sk = this.skillUsedThisTurn[curP];
+        const skName = (sk && typeof SKILLS_CATALOG !== 'undefined' && SKILLS_CATALOG[sk]) ? SKILLS_CATALOG[sk].name : (sk || 'Không');
+        statSkill.textContent = skName;
+      }
+
+      if (statDebuff) {
+        const db = this.activeDebuff[curP];
+        const dbName = (db && typeof SKILLS_CATALOG !== 'undefined' && SKILLS_CATALOG[db]) ? SKILLS_CATALOG[db].name : (db || 'Không');
+        statDebuff.textContent = dbName;
+      }
     }
 
     // ==========================================
@@ -4525,7 +4977,7 @@
       if (slotIdx < 0 || !this.skills[player] || !this.skills[player][slotIdx]) return;
       const slot = this.skills[player][slotIdx];
       if (slot.used) {
-        this.showAnnouncement('KỸ NĂNG ĐÃ DÙNG!', 'Kỹ năng này đã được dùng và sẽ được thay thế sau lượt.');
+        this.showAnnouncement('ĐÃ DÙNG', '');
         return;
       }
 
@@ -4534,17 +4986,17 @@
         : (player === 'p1');
 
       if (!isCurrentPlayerTurn) {
-        this.showAnnouncement('CHƯA TỚI LƯỢT!', 'Bạn chỉ có thể kích hoạt kỹ năng trong lượt của mình.');
+        this.showAnnouncement('CHƯA TỚI LƯỢT', '');
         return;
       }
 
       if (this.state !== STATE.IDLE && this.state !== STATE.SWINGING) {
-        this.showAnnouncement('CHƯA THỂ DÙNG CHIÊU!', 'Chỉ có thể dùng chiêu khi chuẩn bị hoặc đang lấy đà ném.');
+        this.showAnnouncement('CHƯA THỂ DÙNG', '');
         return;
       }
 
       if (this.skillUsedThisTurn[player]) {
-        this.showAnnouncement('MỖI LƯỢT DÙNG 1 SKILL!', 'Mỗi lượt ném chỉ được kích hoạt tối đa 1 kỹ năng.');
+        this.showAnnouncement('MỖI LƯỢT 1 SKILL', '');
         return;
       }
 
@@ -4567,7 +5019,7 @@
               setTimeout(() => btn.classList.remove('card-defense-idle-shake'), 400);
             }
           }
-          this.showAnnouncement('⚠️ CHƯA CÓ ĐIỂM CƯỢC!', 'Bạn cần ít nhất 1 điểm để sử dụng chiêu Cược Điểm!');
+          this.showAnnouncement('CHƯA CÓ ĐIỂM CƯỢC', '');
           return;
         }
 
@@ -4586,8 +5038,8 @@
       this.activeSkillSlot[player] = slotIdx;
       this.skillUsedThisTurn[player] = skillKey;
 
-      const pName = (player === 'p1') ? 'Người chơi 1' : (this.gameMode === 'bot' ? 'Bot AI' : 'Người chơi 2');
-      const targetName = (opponent === 'p1') ? 'Người chơi 1' : (this.gameMode === 'bot' ? 'Bot AI' : 'Người chơi 2');
+      const pName = (player === 'p1') ? 'P1' : (this.gameMode === 'bot' ? 'Bot' : 'P2');
+      const targetName = (opponent === 'p1') ? 'P1' : (this.gameMode === 'bot' ? 'Bot' : 'P2');
       const rig = (player === 'p1') ? this.rigP1 : this.rigP2;
 
       // Fog of War: If opponent uses a skill, completely mysterious with ZERO hint
@@ -4610,7 +5062,11 @@
             this.activeDebuff[player] = null;
             this.pendingDebuff[player] = null;
           }
-          this.triggerSkillCardVisual('lam_cham', player);
+        } else if (skillKey === 'vat_ly_an_do') {
+          this.spinCharge = 1.0;
+          this.recentSpinCharge = 1.0;
+          this.continuousRotation = 0;
+          this.triggerSkillCardVisual('vat_ly_an_do', player);
         } else if (skillKey === 'song_nem') {
           this.extraThrowThisTurn = true;
           this.triggerSkillCardVisual('song_nem', player);
@@ -4646,7 +5102,7 @@
           this.triggerSkillCardVisual(skillKey, player);
         }
         this.sound.playScoreCelebration();
-        if (rig) this.particles.addConfetti(rig.shoulderX, rig.shoulderY - 30, 25);
+        if (rig && skillKey !== 'vat_ly_an_do') this.particles.addConfetti(rig.shoulderX, rig.shoulderY - 30, 25);
       }
       // 2. NHÓM PHÒNG THỦ / BẢO VỆ (SHIELD)
       // Phòng ngự CHỈ có thể dùng TRƯỚC khi đối phương gây nhiễu, nếu đã bị gây nhiễu thì không dùng được!
@@ -4881,8 +5337,7 @@
         this.mirageProjectiles = null;
         this.state = STATE.IDLE;
         this.resetTurnCord();
-        const pName = (this.currentTurn === 1) ? 'P1' : (this.gameMode === 'bot' ? 'Bot' : 'P2');
-        this.showAnnouncement('LƯỢT 2/2', `${pName} ném tiếp`);
+        this.showAnnouncement('LƯỢT 2/2', '');
         this.extraThrowReason = null;
         this.updateSkillsUI();
         return;
@@ -4917,11 +5372,10 @@
           this.shieldQueued[currentP] = null;
           this.shieldActive[currentP] = false;
           this.shieldFlashTimer[currentP] = 2.5;
-          this.showAnnouncement('🛡️ KHIÊN CHẮN ĐỠ ĐÒN!', 'Đã chặn đứng hoàn toàn chiêu Cướp Lượt!');
+          this.showAnnouncement('KHIÊN ĐỠ', '');
           this.sound.playScoreCelebration();
         } else {
-          const skipName = (currentP === 'p1') ? 'P1' : (this.gameMode === 'bot' ? 'Bot AI' : 'P2');
-          this.showAnnouncement('⛔ BỊ CƯỚP LƯỢT!', `${skipName} bị tước đoạt lượt ném! Đổi lượt ngay!`);
+          this.showAnnouncement('MẤT LƯỢT', '');
           this.sound.playWhoosh(1.6);
           // Directly transfer turn back to the other player without asynchronous setTimeout race condition
           this.currentTurn = (this.currentTurn === 1) ? 2 : 1;
@@ -4976,9 +5430,9 @@
       this.state = STATE.IDLE;
 
       const nextName = (this.currentTurn === 1)
-        ? 'NGƯỜI CHƠI 1 (NAM)'
-        : (this.gameMode === 'bot' ? 'MÁY (BOT AI)' : 'NGƯỜI CHƠI 2 (NỮ)');
-      this.showAnnouncement('ĐỔI LƯỢT NÉM!', `Đến lượt ${nextName}`);
+        ? 'P1'
+        : (this.gameMode === 'bot' ? 'Bot' : 'P2');
+      this.showAnnouncement(`LƯỢT ${nextName.toUpperCase()}`, '');
       this.sound.playWhoosh(1.1);
     }
 
@@ -4999,14 +5453,14 @@
         if (this.ui.p1HudCard) this.ui.p1HudCard.classList.add('active');
         if (this.ui.p2HudCard) this.ui.p2HudCard.classList.remove('active');
         if (this.ui.turnBadge) {
-          this.ui.turnBadge.textContent = 'LƯỢT P1 (NAM)';
+          this.ui.turnBadge.textContent = 'LƯỢT P1';
           this.ui.turnBadge.style.color = '#60a5fa';
         }
       } else {
         if (this.ui.p1HudCard) this.ui.p1HudCard.classList.remove('active');
         if (this.ui.p2HudCard) this.ui.p2HudCard.classList.add('active');
         if (this.ui.turnBadge) {
-          this.ui.turnBadge.textContent = (this.gameMode === 'bot') ? 'LƯỢT BOT (AI)' : 'LƯỢT P2 (NỮ)';
+          this.ui.turnBadge.textContent = (this.gameMode === 'bot') ? 'LƯỢT BOT' : 'LƯỢT P2';
           this.ui.turnBadge.style.color = (this.gameMode === 'bot') ? '#38bdf8' : '#f472b6';
         }
       }
@@ -5028,19 +5482,19 @@
 
       if (this.gameMode === 'bot') {
         if (winner === 1) {
-          if (vTitle) vTitle.textContent = '👦 BẠN ĐÃ CHIẾN THẮNG BOT AI!';
-          if (vSubtitle) vSubtitle.textContent = 'Xuất sắc ném trúng 10 điểm trước cỗ máy thông minh!';
+          if (vTitle) vTitle.textContent = '👦 BẠN CHIẾN THẮNG!';
+          if (vSubtitle) vSubtitle.textContent = '10 điểm';
         } else {
-          if (vTitle) vTitle.textContent = '🤖 MÁY (BOT AI) CHIẾN THẮNG!';
-          if (vSubtitle) vSubtitle.textContent = 'Bot AI đã đạt 10 điểm trước! Thử lại để phục thù nào!';
+          if (vTitle) vTitle.textContent = '🤖 BOT CHIẾN THẮNG!';
+          if (vSubtitle) vSubtitle.textContent = '10 điểm';
         }
       } else {
         if (winner === 1) {
-          if (vTitle) vTitle.textContent = '👦 NGƯỜI CHƠI 1 CHIẾN THẮNG!';
-          if (vSubtitle) vSubtitle.textContent = 'Chàng trai Mường đã xuất sắc bắn trúng 10 điểm trước!';
+          if (vTitle) vTitle.textContent = '👦 P1 CHIẾN THẮNG!';
+          if (vSubtitle) vSubtitle.textContent = '10 điểm';
         } else {
-          if (vTitle) vTitle.textContent = '👧 NGƯỜI CHƠI 2 CHIẾN THẮNG!';
-          if (vSubtitle) vSubtitle.textContent = 'Cô gái Thái đã xuất sắc bắn trúng 10 điểm trước!';
+          if (vTitle) vTitle.textContent = '👧 P2 CHIẾN THẮNG!';
+          if (vSubtitle) vSubtitle.textContent = '10 điểm';
         }
       }
 
@@ -5207,17 +5661,18 @@
       const botDebuff = this.activeDebuff.p2 || 'none';
       const botUsed = this.skillUsedThisTurn.p2;
 
-      // 1. CÁ NHÂN HÓA THEO TỈ LỆ NÉM CỦA NGƯỜI CHƠI (PLAYER PROFILE BASELINE)
-      const playerOverall = (profile.totalThrows >= 3) ? profile.overallHitRate : 0.50;
+      // 1. TÍNH XÁC SUẤT NÉM TRÚNG CỦA NGƯỜI CHƠI THEO THỜI GIAN THẬT (REAL-TIME HIT PROBABILITY)
+      const botDiff = this.botDifficulty || this.throwDifficulty || 'medium';
+      const realtimeRate = this.getRealtimePlayerHitRate();
 
       // 2. THEO TỈ LỆ NÉM TRÚNG KHI BỊ TỪNG LOẠI GÂY NHIỄU (DEBUFF ADAPTATION)
-      let contextHitRate = playerOverall;
+      let contextHitRate = realtimeRate;
       if (botDebuff !== 'none') {
         const pDeb = profile.debuffStats && profile.debuffStats[botDebuff];
         if (pDeb && pDeb.throws >= 2) {
           contextHitRate = pDeb.hitRate;
         } else {
-          contextHitRate = Math.max(0.06, playerOverall * 0.40);
+          contextHitRate = Math.max(0.06, realtimeRate * 0.45);
         }
       } else {
         const pClean = profile.debuffStats && profile.debuffStats['none'];
@@ -5226,9 +5681,18 @@
         }
       }
 
-      // 3. MÁY CHỈ CÓ 1 ĐỘ KHÓ DUY NHẤT: BÁM SÁT & THÍCH ỨNG THEO TRÌNH ĐỘ NGƯỜI CHƠI
-      // Tự động đo xác xuất người chơi ném trúng trong từng điều kiện (sạch hoặc bị từng loại gây nhiễu)
-      let hitChance = Math.min(0.92, Math.max(0.08, contextHitRate + (Math.random() * 0.06 - 0.03)));
+      // 3. TRÌNH ĐỘ BOT TỰ ĐỘNG THÍCH ỨNG THEO XÁC SUẤT THỜI GIAN THỰC CỦA NGƯỜI CHƠI:
+      let hitChance;
+      if (botDiff === 'easy') {
+        // DỄ: Bot đánh dưới cơ người chơi ở thời gian thực (~20-25% thấp hơn), kẹp sàn 16% và trần 46%
+        hitChance = Math.min(0.46, Math.max(0.16, contextHitRate * 0.70 - 0.05)) + (Math.random() * 0.04 - 0.02);
+      } else if (botDiff === 'hard') {
+        // KHÓ: Bot đánh trên cơ người chơi ở thời gian thực (~15-25% cao hơn), kẹp sàn 68% và trần 94%
+        hitChance = Math.min(0.94, Math.max(0.68, contextHitRate * 1.20 + 0.15)) + (Math.random() * 0.04 - 0.02);
+      } else {
+        // VỪA: Bot bám sát phong độ thời gian thực của người chơi, thi đấu cân tài cân sức
+        hitChance = Math.min(0.80, Math.max(0.35, contextHitRate * 0.98 + 0.01)) + (Math.random() * 0.04 - 0.02);
+      }
 
       // 4. BUFF KỸ NĂNG HỖ TRỢ CỦA BOT:
       if (botUsed === 'vat_ly_an_do') {
@@ -5261,13 +5725,14 @@
       if (angleRoll < lowT) chosenBucket = 'low';
       else if (angleRoll > lowT + sweetT) chosenBucket = 'high';
 
-      let T = 1.94;
+      // Thời gian bay tự nhiên, bổng và chuẩn xác (2.1 - 2.45s)
+      let T = 2.25;
       if (chosenBucket === 'low') {
-        T = 1.68 + Math.random() * 0.14; // Góc thấp
+        T = 2.10 + Math.random() * 0.12; // Góc thấp
       } else if (chosenBucket === 'high') {
-        T = 2.14 + Math.random() * 0.16; // Góc cao
+        T = 2.40 + Math.random() * 0.12; // Góc cao
       } else {
-        T = 1.88 + Math.random() * 0.12; // Góc chuẩn
+        T = 2.25 + Math.random() * 0.10; // Góc chuẩn
       }
 
       // Target selection: If ao_anh is active, target real pole on hit, or illusion/miss on fail
@@ -5299,12 +5764,15 @@
       let targetVy = (dy - 0.5 * GRAVITY * T * T) / T;
 
       // 6. CHÂN THỰC HÓA ĐƯỜNG NÉM ("sao cho trông nó chân thực nhất có thể")
-      if (willHit) {
+      if (botUsed === 'vat_ly_an_do') {
+        const blen = Math.hypot(dx, dy) || 1;
+        const bSpeed = 850;
+        targetVx = (dx / blen) * bSpeed;
+        targetVy = (dy / blen) * bSpeed;
+        this.triggerSkillCardVisual('vat_ly_an_do', 'p2');
+      } else if (willHit) {
         // Dao động vi mô tự nhiên ±5px
         targetVy += (Math.random() - 0.5) * 10;
-        if (botUsed === 'vat_ly_an_do') {
-          this.triggerSkillCardVisual('vat_ly_an_do', 'p2');
-        }
       } else {
         const missType = Math.random();
         if (missType < 0.48) {
@@ -5343,7 +5811,8 @@
         vy: targetVy,
         scored: false,
         hitPole: false,
-        restTimer: 0
+        restTimer: 0,
+        isRocket: (botUsed === 'vat_ly_an_do')
       };
 
       const topX = this.projectile.x + this.quacon.topAttachOffset.x;
@@ -5412,20 +5881,16 @@
       this.ctx.textAlign = 'center';
       this.ctx.textBaseline = 'middle';
 
-      let turnText = '👦 ĐANG CHUYỂN SANG LƯỢT: NGƯỜI CHƠI 1 (NAM)';
+      let turnText = '👦 LƯỢT P1';
       if (this.currentTurn === 2) {
         turnText = (this.gameMode === 'bot')
-          ? '🤖 ĐANG CHUYỂN SANG LƯỢT: MÁY (BOT AI)'
-          : '👧 ĐANG CHUYỂN SANG LƯỢT: NGƯỜI CHƠI 2 (NỮ)';
+          ? '🤖 LƯỢT BOT'
+          : '👧 LƯỢT P2';
       }
 
-      this.ctx.font = 'bold 22px "Be Vietnam Pro", -apple-system, sans-serif';
+      this.ctx.font = 'bold 24px "Be Vietnam Pro", -apple-system, sans-serif';
       this.ctx.fillStyle = '#fef08a';
-      this.ctx.fillText(turnText, CANVAS_WIDTH / 2, y + 28);
-
-      this.ctx.font = '14px "Be Vietnam Pro", -apple-system, sans-serif';
-      this.ctx.fillStyle = '#cbd5e1';
-      this.ctx.fillText('Camera đang di chuyển đến vạch ném...', CANVAS_WIDTH / 2, y + 54);
+      this.ctx.fillText(turnText, CANVAS_WIDTH / 2, y + 42);
 
       this.ctx.restore();
     }
@@ -5539,63 +6004,81 @@
       const effectiveDt = (this.skillUsedThisTurn[curThrower] === 'lam_cham') ? (1/60 * 0.45) : (1/60);
       const ballVel = this.cord.getEndVelocity(effectiveDt);
 
+      let simLaunchVx = 0, simLaunchVy = 0;
+      let isDrop = false;
+      let startX = ballPos.x;
+      let startY = ballPos.y;
+
       if (this.controlMode === 'auto') {
         const omega = Math.min(15.5, 5.0 + this.autoSpinTime * 5.8);
         const lag = Math.min(0.35, 0.12 + (omega / 15.5) * 0.18);
         const ballAngle = this.autoSpinAngle - lag;
         const effectiveR = this.cord.totalLength + 16;
-        vx = -Math.sin(ballAngle) * omega * effectiveR;
-        vy = Math.cos(ballAngle) * omega * effectiveR;
-      } else {
-        vx = ballVel.vx;
-        vy = ballVel.vy;
-      }
+        const vx = -Math.sin(ballAngle) * omega * effectiveR;
+        const vy = Math.cos(ballAngle) * omega * effectiveR;
+        const rawSpeed = Math.hypot(vx, vy);
+        const charge = Math.min(1.0, Math.max(0, this.spinCharge, this.recentSpinCharge));
 
-      const rawSpeed = Math.hypot(vx, vy);
-      let isDrop = false;
-      const isHandInFront = (activeRig.wristX >= activeRig.shoulderX - 10);
-      const isIntentionalBackThrow = (this.mouseVelocity && this.mouseVelocity.x < -200) || (!isHandInFront && vx < -50);
-
-      let simLaunchVx = 0, simLaunchVy = 0;
-      if (rawSpeed < 75 && Math.max(this.spinCharge, this.recentSpinCharge) < 0.05) {
-        isDrop = true;
-        simLaunchVx = vx * 0.35;
-        simLaunchVy = Math.max(vy * 0.35, 30);
-      } else {
         let dirX = vx / (rawSpeed || 1);
         let dirY = vy / (rawSpeed || 1);
-
-        if (isIntentionalBackThrow) {
-          dirX = -Math.abs(dirX);
-        } else if (isHandInFront) {
-          dirX = Math.max(0.45, Math.abs(dirX));
-          dirX = dirX * 0.50 + 0.65 * 0.50;
-          if (dirY > -0.20) {
-            dirY = -Math.sqrt(Math.max(0.1, 1.0 - dirX * dirX));
-          }
-        }
+        dirX = Math.max(0.48, Math.min(0.80, Math.abs(dirX)));
+        dirX = dirX * 0.50 + 0.65 * 0.50;
+        dirY = -Math.sqrt(Math.max(0.1, 1.0 - dirX * dirX));
         const len = Math.hypot(dirX, dirY) || 1;
         dirX /= len;
         dirY /= len;
 
-        const charge = Math.min(1.0, Math.max(0, this.spinCharge, this.recentSpinCharge));
-        let mappedSpeed;
-        if (charge <= 0.05) {
-          mappedSpeed = Math.min(320, 80 + rawSpeed * 0.26);
-        } else {
-          const baseSpinSpeed = 430 + charge * 700;
-          const flickBonus = Math.min(35, (rawSpeed / 800) * 35);
-          mappedSpeed = Math.min(1140, baseSpinSpeed + flickBonus);
-          if (this.skillUsedThisTurn[curThrower] === 'lam_cham') {
-            mappedSpeed = Math.max(860, mappedSpeed);
-          }
-        }
+        const baseSpeed = 500 + charge * 580;
+        const mappedSpeed = Math.min(1100, baseSpeed);
         simLaunchVx = dirX * mappedSpeed;
         simLaunchVy = dirY * mappedSpeed;
-      }
+        startX = (this.isMultiplayerMode && this.currentTurn === 2) ? (2 * P2_ANCHOR_X - ballPos.x) : ballPos.x;
+        startY = ballPos.y;
+      } else {
+        // MODE 2: MANUAL WHIRL
+        const handDx = activeRig.handGripX - activeRig.shoulderX;
+        const handDy = activeRig.handGripY - activeRig.shoulderY;
+        const aimDx = (this.mouseWorldX !== undefined) ? (this.mouseWorldX - activeRig.shoulderX) : handDx;
+        const aimDy = (this.mouseWorldY !== undefined) ? (this.mouseWorldY - activeRig.shoulderY) : handDy;
 
-      const startX = (this.isMultiplayerMode && this.currentTurn === 2) ? (2 * P2_ANCHOR_X - ballPos.x) : ballPos.x;
-      const startY = ballPos.y;
+        let dirX = (Math.hypot(aimDx, aimDy) >= 25) ? aimDx : handDx;
+        let dirY = (Math.hypot(aimDx, aimDy) >= 25) ? aimDy : handDy;
+
+        const dirLen = Math.hypot(dirX, dirY) || 1;
+        dirX /= dirLen;
+        dirY /= dirLen;
+
+        const cordLen = this.cord.totalLength;
+        const predBallX = activeRig.handGripX + dirX * cordLen;
+        const predBallY = activeRig.handGripY + dirY * cordLen;
+
+        startX = (this.isMultiplayerMode && this.currentTurn === 2) ? (2 * P2_ANCHOR_X - predBallX) : predBallX;
+        startY = predBallY;
+
+        const rawSpeed = Math.hypot(ballVel.vx, ballVel.vy);
+        const charge = Math.min(1.0, Math.max(0, this.spinCharge, this.recentSpinCharge));
+
+        const isStoppedOnAir = (this.pauseHoldTimer && this.pauseHoldTimer > 0.20);
+        if (charge <= 0.08 || isStoppedOnAir) {
+          isDrop = true;
+          simLaunchVx = dirX * 50;
+          simLaunchVy = 100;
+        } else {
+          const baseWhirlSpeed = 500 + charge * 550;
+          const flickSpeed = Math.max(Math.hypot(this.mouseVelocity.x, this.mouseVelocity.y), this.recentHandSpeed || 0, rawSpeed);
+          const flickSpeedBonus = Math.min(140, (flickSpeed / 450) * 140);
+          const handAccelVal = Math.max(this.handAccel || 0, this.recentHandAccel || 0);
+          const accelBonus = Math.max(0, Math.min(50, (handAccelVal / 1000) * 50));
+          const totalFlick = Math.min(180, flickSpeedBonus + accelBonus);
+
+          let mappedSpeed = Math.min(1240, baseWhirlSpeed + totalFlick);
+          if (this.skillUsedThisTurn[curThrower] === 'lam_cham') {
+            mappedSpeed = Math.max(980, mappedSpeed);
+          }
+          simLaunchVx = dirX * mappedSpeed;
+          simLaunchVy = dirY * mappedSpeed;
+        }
+      }
 
       if (!isDrop) {
         const dx = RING_CENTER_X - startX;
@@ -5717,20 +6200,6 @@
         this.ctx.moveTo(reticleX, reticleY - 14);
         this.ctx.lineTo(reticleX, reticleY + 14);
         this.ctx.stroke();
-
-        this.ctx.font = 'bold 12px "Be Vietnam Pro", sans-serif';
-        this.ctx.textAlign = 'center';
-        this.ctx.fillStyle = themeColor;
-        this.ctx.shadowBlur = 8;
-        if (willScore) {
-          this.ctx.fillText('🎯 THẢ NGAY! (VÀO TÂM VÒNG)', reticleX, reticleY - 30);
-        } else if (isRimClack) {
-          this.ctx.fillText('⚠️ CHẠM VÀNH MÂY', reticleX, reticleY - 30);
-        } else if (predictedCrossingY < RING_CENTER_Y) {
-          this.ctx.fillText('⬆️ QUÁ CAO', reticleX, reticleY - 30);
-        } else {
-          this.ctx.fillText('⬇️ QUÁ THẤP', reticleX, reticleY - 30);
-        }
       } else {
         const landX = predictedLandingX || (startX + 300);
         this.ctx.beginPath();
@@ -5738,11 +6207,6 @@
         this.ctx.strokeStyle = '#ef4444';
         this.ctx.lineWidth = 2;
         this.ctx.stroke();
-
-        this.ctx.font = 'bold 11px "Be Vietnam Pro", sans-serif';
-        this.ctx.textAlign = 'center';
-        this.ctx.fillStyle = '#ef4444';
-        this.ctx.fillText('⚠️ THIẾU LỰC (RƠI ĐẤT)', landX, GROUND_Y - 14);
       }
 
       this.ctx.restore();
@@ -5888,13 +6352,6 @@
       this.ctx.fillStyle = grad;
       this.ctx.fillRect(this.cameraX, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-      // Clock slow motion badge at top
-      this.ctx.font = 'bold 15px "Be Vietnam Pro", sans-serif';
-      this.ctx.fillStyle = '#7dd3fc';
-      this.ctx.textAlign = 'center';
-      this.ctx.shadowColor = '#0ea5e9';
-      this.ctx.shadowBlur = 8;
-      this.ctx.fillText('⏳ LÀM CHẬM (BULLET TIME): DỄ CĂN LỰC VÀ GÓC BUÔNG', cx, 85);
       this.ctx.restore();
     }
 
@@ -6012,7 +6469,7 @@
             this.drawSpinChargeIndicator(this.rigP2);
           }
           this.ctx.restore();
-          if (this.state === STATE.SWINGING && (this.skillUsedThisTurn.p2 === 'tam_nham' || this.skillUsedThisTurn.p2 === 'vat_ly_an_do')) {
+          if (this.state === STATE.SWINGING && this.skillUsedThisTurn.p2 === 'tam_nham') {
             this.drawAimAssist();
           }
         } else {
@@ -6026,7 +6483,7 @@
           if (this.state === STATE.SWINGING && this.spinCharge > 0.05) {
             this.drawSpinChargeIndicator(this.isMultiplayerMode ? this.rigP1 : this.rig);
           }
-          if (this.state === STATE.SWINGING && (this.skillUsedThisTurn.p1 === 'tam_nham' || this.skillUsedThisTurn.p1 === 'vat_ly_an_do')) {
+          if (this.state === STATE.SWINGING && this.skillUsedThisTurn.p1 === 'tam_nham') {
             this.drawAimAssist();
           }
         }
@@ -6092,16 +6549,26 @@
       this.ctx.lineWidth = 3;
       this.ctx.stroke();
 
-      // Active charging gold arc
+      // Active charging gold/cyan arc
+      const curThrower = (this.isMultiplayerMode) ? (this.currentTurn === 1 ? 'p1' : 'p2') : 'p1';
+      const isVatLyAnDo = (this.skillUsedThisTurn[curThrower] === 'vat_ly_an_do');
+
       this.ctx.beginPath();
       this.ctx.arc(hx, hy, r, -Math.PI / 2, -Math.PI / 2 + charge * Math.PI * 2);
-      this.ctx.strokeStyle = charge >= 0.92 ? '#ffeb3b' : '#f39c12';
-      this.ctx.lineWidth = charge >= 0.92 ? 4 : 3;
-      this.ctx.lineCap = 'round';
-      if (charge >= 0.92) {
-        this.ctx.shadowColor = '#ffd700';
+      if (isVatLyAnDo) {
+        this.ctx.strokeStyle = charge >= 0.75 ? '#38bdf8' : (charge >= 0.40 ? '#f59e0b' : '#ef4444');
+        this.ctx.lineWidth = 4;
+        this.ctx.shadowColor = charge >= 0.75 ? '#0284c7' : '#dc2626';
         this.ctx.shadowBlur = 12;
+      } else {
+        this.ctx.strokeStyle = charge >= 0.92 ? '#ffeb3b' : '#f39c12';
+        this.ctx.lineWidth = charge >= 0.92 ? 4 : 3;
+        if (charge >= 0.92) {
+          this.ctx.shadowColor = '#ffd700';
+          this.ctx.shadowBlur = 12;
+        }
       }
+      this.ctx.lineCap = 'round';
       this.ctx.stroke();
 
       // Subtle indicator pearl dot at current charge angle

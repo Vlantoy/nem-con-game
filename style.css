@@ -3527,3 +3527,222 @@ body {
   transform: translateY(1px);
 }
 
+/* ==========================================
+   DEV TEST SKILLS PANEL (DEVELOPER MODE)
+   ========================================== */
+.dev-panel {
+  position: fixed;
+  top: 70px;
+  right: 20px;
+  width: 390px;
+  max-height: calc(100vh - 100px);
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1.5px solid #38bdf8;
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(56, 189, 248, 0.25);
+  color: #f1f5f9;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: 'Be Vietnam Pro', -apple-system, sans-serif;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.dev-panel.hidden {
+  display: none !important;
+}
+
+.dev-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: rgba(30, 41, 59, 0.85);
+  border-bottom: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.dev-panel-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: #38bdf8;
+  letter-spacing: 0.5px;
+}
+
+.dev-panel-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dev-badge-hotkey {
+  font-size: 10px;
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+.dev-btn-close {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.dev-btn-close:hover {
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.15);
+}
+
+.dev-panel-body {
+  padding: 14px;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dev-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-top: 4px;
+}
+
+.dev-toolbar-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.dev-btn-action {
+  background: rgba(51, 65, 85, 0.8);
+  color: #e2e8f0;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.dev-btn-action:hover {
+  background: #475569;
+  border-color: #38bdf8;
+  color: #fff;
+}
+
+.dev-btn-action.dev-danger:hover {
+  background: #b91c1c;
+  border-color: #ef4444;
+}
+
+.dev-diff-group {
+  display: flex;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-left: auto;
+}
+
+.dev-diff-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  padding: 5px 9px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.dev-diff-btn.active {
+  background: #0284c7;
+  color: #fff;
+}
+
+.dev-target-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  color: #cbd5e1;
+  background: rgba(30, 41, 59, 0.5);
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+
+.dev-radio-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.dev-telemetry-box {
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-family: monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #38bdf8;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 8px;
+}
+
+.dev-telemetry-box strong {
+  color: #f8fafc;
+}
+
+.dev-skills-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+}
+
+.dev-skill-card-btn {
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 11px;
+  color: #e2e8f0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+
+.dev-skill-card-btn:hover {
+  background: rgba(56, 189, 248, 0.15);
+  border-color: #38bdf8;
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.dev-skill-card-btn:active {
+  transform: translateY(0);
+}
+
+.dev-skill-card-btn.active-skill {
+  border-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.2);
+  color: #fef08a;
+}
+
+

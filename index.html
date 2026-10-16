@@ -72,36 +72,36 @@
 
           <!-- Dropdown Menu Box -->
           <div id="hud-menu-dropdown" class="hud-menu-dropdown hidden">
-            <div class="menu-sec-title">🎮 CHẾ ĐỘ CHƠI</div>
+            <div class="menu-sec-title">CHẾ ĐỘ</div>
             <div class="menu-mode-list">
               <button class="menu-btn-item active" id="btn-bot">
                 <span class="icon">🤖</span>
-                <span class="label" id="bot-label">Đấu Máy (Thích Ứng Trình Độ)</span>
+                <span class="label" id="bot-label">Bot</span>
               </button>
 
               <button class="menu-btn-item" id="btn-versus">
                 <span class="icon">👥</span>
-                <span class="label" id="versus-label">Đấu 2 Người (1v1)</span>
+                <span class="label" id="versus-label">2 Người</span>
               </button>
 
               <button class="menu-btn-item" id="btn-mode-single">
                 <span class="icon">🎯</span>
-                <span class="label">Luyện Tập (Chơi Đơn)</span>
+                <span class="label">1 Người</span>
               </button>
             </div>
 
             <div class="menu-hr"></div>
 
-            <div class="menu-sec-title">🎯 ĐỘ KHÓ KHI NÉM</div>
+            <div class="menu-sec-title">ĐỘ KHÓ</div>
             <div class="menu-diff-pills" id="menu-diff-pills" style="margin-bottom: 8px;">
-              <button class="diff-pill" data-diff="easy" id="diff-pill-easy" title="Trợ lực vành, thả nhẹ là trúng">Dễ (Trợ lực)</button>
-              <button class="diff-pill active" data-diff="medium" id="diff-pill-medium" title="Chuẩn vật lý thực tế">Vừa (Chuẩn)</button>
-              <button class="diff-pill" data-diff="hard" id="diff-pill-hard" title="Căn góc và lực cực kỳ chính xác">Khó (Chính xác)</button>
+              <button class="diff-pill" data-diff="easy" id="diff-pill-easy">Dễ</button>
+              <button class="diff-pill active" data-diff="medium" id="diff-pill-medium">Vừa</button>
+              <button class="diff-pill" data-diff="hard" id="diff-pill-hard">Khó</button>
             </div>
 
             <div class="menu-hr"></div>
 
-            <div class="menu-sec-title">⚙️ TÙY CHỌN & TRỢ GIÚP</div>
+            <div class="menu-sec-title">TÙY CHỌN</div>
             <div class="menu-opt-grid">
               <button class="menu-opt-btn" id="btn-skin">
                 <span class="icon">👘</span>
@@ -122,6 +122,11 @@
             </div>
 
             <div class="menu-hr"></div>
+
+            <button class="menu-opt-btn dev-toggle-btn" id="btn-dev-test" style="width: 100%; margin-bottom: 6px; background: rgba(30, 41, 59, 0.8); border: 1px dashed #38bdf8; color: #38bdf8;">
+              <span class="icon">🛠️</span>
+              <span class="label">Dev Test Chiêu</span>
+            </button>
 
             <button class="menu-reset-btn" id="btn-reset">
               <span class="icon">🔄</span> Chơi Lại Lượt Này
@@ -163,8 +168,8 @@
 
       <!-- Floating Score Announcement Popup -->
       <div id="announcement-banner">
-        <div id="announce-title">XUYÊN TÂM VÒNG CÒN!</div>
-        <div id="announce-score">+100 ĐIỂM • MƯA THUẬN GIÓ HÒA!</div>
+        <div id="announce-title"></div>
+        <div id="announce-score"></div>
       </div>
 
       <!-- Skill Card Visual Popups (Replaces text banners for skill triggers) -->
@@ -655,40 +660,40 @@
 
       <div class="modal-body start-modal-body">
         <div class="start-modes-grid">
-          <!-- Card 1: Đấu Với Máy (Bot AI) - MẶC ĐỊNH ĐẦU TIÊN -->
+          <!-- Card 1: Bot -->
           <div class="start-mode-card active" id="card-mode-bot" data-mode="bot">
-            <div class="start-card-badge start-badge-bot">🤖 ĐẤU VỚI MÁY (HOT)</div>
+            <div class="start-card-badge start-badge-bot">🤖 Bot</div>
             <div class="start-card-icon start-icon-bot">🤖</div>
-            <h3>Đấu Với Máy (Bot AI)</h3>
-            <p class="start-card-desc" id="bot-card-desc">Thi đấu đối kháng 10 điểm với Bot AI tự động học tập và thích ứng theo tỉ lệ ném của bạn!</p>
-            <button class="btn-start-choice btn-choice-bot">ĐẤU VỚI MÁY 🤖</button>
+            <h3>Bot</h3>
+            <p class="start-card-desc" id="bot-card-desc">Thi đấu 10 điểm với Bot.</p>
+            <button class="btn-start-choice btn-choice-bot">Bot</button>
           </div>
 
-          <!-- Card 2: Thi Đấu 2 Người (1v1) -->
+          <!-- Card 2: 2 Người -->
           <div class="start-mode-card" id="card-mode-versus" data-mode="versus">
-            <div class="start-card-badge start-badge-vs">⚔️ ĐỐI KHÁNG 1V1</div>
+            <div class="start-card-badge start-badge-vs">👥 2 Người</div>
             <div class="start-card-icon start-icon-vs">👥</div>
-            <h3>Thi Đấu 2 Người</h3>
-            <p class="start-card-desc">Chàng trai Mường & Cô gái Thái so tài luân phiên 2 đầu sân, vận dụng kỹ năng để chạm mốc 10 điểm trước!</p>
-            <button class="btn-start-choice btn-choice-vs">THI ĐẤU 2 NGƯỜI 👥</button>
+            <h3>2 Người</h3>
+            <p class="start-card-desc">Thi đấu 2 người đối kháng.</p>
+            <button class="btn-start-choice btn-choice-vs">2 Người</button>
           </div>
 
-          <!-- Card 3: Chơi Đơn (Tập Luyện) -->
+          <!-- Card 3: 1 Người -->
           <div class="start-mode-card" id="card-mode-single" data-mode="single">
-            <div class="start-card-badge">🎯 TẬP LUYỆN</div>
+            <div class="start-card-badge">🎯 1 Người</div>
             <div class="start-card-icon">🎯</div>
-            <h3>Chơi Đơn (1 Người)</h3>
-            <p class="start-card-desc">Tự do luyện vung tay xoay còn, làm quen bộ kỹ năng, tích luỹ chuỗi trúng liên hoàn và lập kỷ lục điểm cao.</p>
-            <button class="btn-start-choice">VÀO TẬP LUYỆN 🎯</button>
+            <h3>1 Người</h3>
+            <p class="start-card-desc">Chơi đơn tính điểm.</p>
+            <button class="btn-start-choice">1 Người</button>
           </div>
         </div>
 
         <div class="bot-diff-selector" id="bot-diff-selector" style="margin-top: 14px; width: 100%;">
-          <span class="diff-title">🎯 Độ khó khi ném:</span>
+          <span class="diff-title">🎯 Độ khó:</span>
           <div class="diff-btn-group">
-            <button type="button" class="btn-diff" data-diff="easy" title="Trợ lực vành, thả nhẹ là trúng">Dễ (Trợ lực)</button>
-            <button type="button" class="btn-diff active" data-diff="medium" title="Chuẩn vật lý thực tế">Vừa (Chuẩn)</button>
-            <button type="button" class="btn-diff" data-diff="hard" title="Căn góc và lực cực kỳ chính xác">Khó (Chính xác)</button>
+            <button type="button" class="btn-diff" data-diff="easy">Dễ</button>
+            <button type="button" class="btn-diff active" data-diff="medium">Vừa</button>
+            <button type="button" class="btn-diff" data-diff="hard">Khó</button>
           </div>
         </div>
       </div>
@@ -732,13 +737,13 @@
     <div class="modal-box modal-victory-box">
       <div class="victory-header">
         <span class="victory-crown">🏆</span>
-        <h2 id="victory-title">NGƯỜI CHƠI 1 CHIẾN THẮNG!</h2>
-        <p id="victory-subtitle" class="victory-subtitle">Đã xuất sắc đạt 10 điểm trước trong Lễ Hội Ném Còn!</p>
+        <h2 id="victory-title">CHIẾN THẮNG!</h2>
+        <p id="victory-subtitle" class="victory-subtitle">10 điểm</p>
       </div>
       <div class="victory-scores-summary">
         <div class="v-card v-p1">
           <span class="v-avatar">👦</span>
-          <span class="v-label">NGƯỜI CHƠI 1 (NAM)</span>
+          <span class="v-label">P1</span>
           <span class="v-score" id="v-p1-score">10</span>
         </div>
         <div class="v-divider">
@@ -747,14 +752,73 @@
         </div>
         <div class="v-card v-p2">
           <span class="v-avatar">👧</span>
-          <span class="v-label">NGƯỜI CHƠI 2 (NỮ)</span>
+          <span class="v-label">P2</span>
           <span class="v-score" id="v-p2-score">8</span>
         </div>
       </div>
       <div class="modal-footer" style="justify-content: center; gap: 16px;">
-        <button id="btn-rematch" class="btn-primary">↺ Chơi Lại Trận Mới</button>
-        <button id="btn-exit-versus" class="btn-secondary" style="background: rgba(255,255,255,0.15); color: #fff; padding: 10px 18px; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; cursor: pointer;">👤 Về Chế Độ 1 Người</button>
+        <button id="btn-rematch" class="btn-primary">↺ Chơi Lại</button>
+        <button id="btn-exit-versus" class="btn-secondary" style="background: rgba(255,255,255,0.15); color: #fff; padding: 10px 18px; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; cursor: pointer;">👤 1 Người</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Dev Test Skills Modal / Floating Drawer (Dev Only) -->
+  <div id="dev-test-panel" class="dev-panel hidden">
+    <div class="dev-panel-header">
+      <div class="dev-panel-title">🛠️ DEV TEST SKILLS</div>
+      <div class="dev-panel-header-actions">
+        <span class="dev-badge-hotkey">[F2 / `]</span>
+        <button id="dev-panel-close" class="dev-btn-close" title="Đóng panel">✕</button>
+      </div>
+    </div>
+
+    <div class="dev-panel-body">
+      <!-- Quick Controls Toolbar -->
+      <div class="dev-section-title">ĐIỀU KHIỂN & ĐỘ KHÓ</div>
+      <div class="dev-toolbar-row">
+        <button class="dev-btn-action" id="dev-btn-reset-throw">↺ Đặt lại lượt</button>
+        <button class="dev-btn-action dev-danger" id="dev-btn-clear-all">✕ Xóa chiêu & debuff</button>
+        <div class="dev-diff-group">
+          <button class="dev-diff-btn" data-diff="easy" id="dev-diff-easy">Dễ</button>
+          <button class="dev-diff-btn active" data-diff="medium" id="dev-diff-medium">Vừa</button>
+          <button class="dev-diff-btn" data-diff="hard" id="dev-diff-hard">Khó</button>
+        </div>
+      </div>
+
+      <div class="dev-target-row">
+        <span>Áp dụng vào:</span>
+        <label class="dev-radio-label">
+          <input type="radio" name="dev-target" value="current" checked id="dev-target-cur"> Lượt hiện tại
+        </label>
+        <label class="dev-radio-label">
+          <input type="radio" name="dev-target" value="p1" id="dev-target-p1"> P1
+        </label>
+        <label class="dev-radio-label">
+          <input type="radio" name="dev-target" value="p2" id="dev-target-p2"> P2 / Bot
+        </label>
+      </div>
+
+      <!-- Live Physics Monitor -->
+      <div class="dev-section-title">THÔNG SỐ VẬT LÝ LIVE</div>
+      <div class="dev-telemetry-box" id="dev-telemetry">
+        <div>Trạng thái: <strong id="dev-stat-state">IDLE</strong></div>
+        <div>Lực vung: <strong id="dev-stat-charge">0%</strong></div>
+        <div>Vận tốc: <strong id="dev-stat-vel">vx: 0 | vy: 0 | v: 0 px/s</strong></div>
+        <div>Góc ném: <strong id="dev-stat-angle">0°</strong></div>
+        <div>Chiêu dùng: <strong id="dev-stat-skill">Không</strong></div>
+        <div>Debuff: <strong id="dev-stat-debuff">Không</strong></div>
+      </div>
+
+      <!-- Skills Categories -->
+      <div class="dev-section-title">CHIÊU HỖ TRỢ / VẬT LÝ (CLICK ĐỂ TEST)</div>
+      <div class="dev-skills-grid" id="dev-skills-support"></div>
+
+      <div class="dev-section-title">CHIÊU BẢO VỆ / PHẢN ĐÒN</div>
+      <div class="dev-skills-grid" id="dev-skills-shield"></div>
+
+      <div class="dev-section-title">CHIÊU GÂY NHIỄU (DEBUFF)</div>
+      <div class="dev-skills-grid" id="dev-skills-debuff"></div>
     </div>
   </div>
 
