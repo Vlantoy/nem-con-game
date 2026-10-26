@@ -41,3 +41,6 @@ preview_*.gif
 verify_*.png
 zoom_*.png
 scene_*.png
+
+# Keep game assets
+!assets/character/**

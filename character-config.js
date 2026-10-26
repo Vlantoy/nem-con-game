@@ -17,10 +17,66 @@ const CHARACTER_CONFIG = (() => {
   'use strict';
 
   // Skin mặc định khi người chơi vào game
-  const DEFAULT_SKIN_ID = 'nam_tay_khoe_khoan';
+  const DEFAULT_SKIN_ID = 'p3_nu_ao_vang';
 
   // DANH SÁCH TẤT CẢ CÁC SKIN NHÂN VẬT
   const CHARACTER_SKINS = {
+    // -----------------------------------------------------------------------
+    // SKIN 0: CÔ GÁI MƯỜNG ÁO VÀNG (P3)
+    // -----------------------------------------------------------------------
+                    'p3_nu_ao_vang': {
+      id: 'p3_nu_ao_vang',
+      name: 'Cô Gái Mường Áo Vàng (P3)',
+      ethnicity: 'Dân tộc Mường / Thái (Tây Bắc)',
+      gender: 'female',
+      preview: 'assets/character/P3/body.png',
+      description: 'Trang phục áo vàng tay phồng thổ cẩm, váy quấn indigo truyền thống, nối khớp tay động học mượt mà.',
+
+      scale: 0.205,
+      standingAnchorX: 220,
+      drawForearmFirst: false,
+      drawHandUnderForearm: true,
+
+      sprites: {
+        body: 'assets/character/p3_nu_ao_vang/body.png',
+        upper_arm: 'assets/character/p3_nu_ao_vang/upper_arm_unified.png',
+        forearm: 'assets/character/p3_nu_ao_vang/forearm.png',
+        hand: 'assets/character/p3_nu_ao_vang/hand.png'
+      },
+
+      anchors: {
+        footAnchor: { x: 496, y: 1515 },
+        shoulderJoint: { x: 428, y: 355 }
+      },
+
+      kinematics: {
+        scaleUpper: 0.78,
+        scaleFore: 0.36,
+        scaleHand: 0.52,
+
+        upperArm: {
+          shoulderPivot: { x: 74, y: 55 },
+          elbowJoint: { x: 66, y: 310 }
+        },
+        forearm: {
+          elbowPivot: { x: 582, y: 474 },
+          wristJoint: { x: 605, y: 1041 }
+        },
+        hand: {
+          wristPivot: { x: 78, y: 14 },
+          gripTunnel: { x: 111, y: 178 }
+        },
+        idleHandOffset: { x: 5, y: 76 }
+      },
+
+      animation: {
+        breathSpeed: 2.2,
+        breathAmplitude: 1.5,
+        swingKneeFlexMultiplier: 4,
+        throwFollowThroughVelocity: -14,
+        wristFlexionLimit: 1.05
+      }
+    },
     // -----------------------------------------------------------------------
     // SKIN 1: CÔ GÁI TÀY TRUYỀN THỐNG (Mặc định)
     // -----------------------------------------------------------------------
@@ -156,11 +212,11 @@ const CHARACTER_CONFIG = (() => {
         const urlParams = new URLSearchParams(window.location.search);
         const qSkin = urlParams.get('skin');
         if (qSkin && CHARACTER_SKINS[qSkin]) {
-          localStorage.setItem('nemcon_active_skin', qSkin);
+          localStorage.setItem('nemcon_active_skin_v3', qSkin);
           return qSkin;
         }
       }
-      const saved = localStorage.getItem('nemcon_active_skin');
+      const saved = localStorage.getItem('nemcon_active_skin_v3');
       if (saved && CHARACTER_SKINS[saved]) {
         return saved;
       }
@@ -174,7 +230,7 @@ const CHARACTER_CONFIG = (() => {
   function setActiveSkinId(skinId) {
     if (CHARACTER_SKINS[skinId]) {
       try {
-        localStorage.setItem('nemcon_active_skin', skinId);
+        localStorage.setItem('nemcon_active_skin_v3', skinId);
       } catch (e) {}
       return true;
     }
@@ -192,13 +248,18 @@ const CHARACTER_CONFIG = (() => {
   /**
    * Lấy danh sách tất cả các asset ảnh cần load cho nhân vật hiện tại
    */
+    function resolveAsset(p) {
+    const pfx = (typeof window !== 'undefined' && window.ASSET_PREFIX) ? window.ASSET_PREFIX : '';
+    return (p && p.startsWith('assets/') && pfx) ? (pfx + p) : p;
+  }
+
   function getCharacterAssetEntries(skinId = null) {
     const cfg = getSkinConfig(skinId);
     return [
-      { key: 'body',      src: cfg.sprites.body },
-      { key: 'upper_arm', src: cfg.sprites.upper_arm },
-      { key: 'forearm',   src: cfg.sprites.forearm },
-      { key: 'hand',      src: cfg.sprites.hand }
+      { key: 'body',      src: resolveAsset(cfg.sprites.body) },
+      { key: 'upper_arm', src: resolveAsset(cfg.sprites.upper_arm) },
+      { key: 'forearm',   src: resolveAsset(cfg.sprites.forearm) },
+      { key: 'hand',      src: resolveAsset(cfg.sprites.hand) }
     ];
   }
 
@@ -206,7 +267,16 @@ const CHARACTER_CONFIG = (() => {
    * Lấy danh sách tất cả skin có trong hệ thống (dùng cho menu chọn tướng/skin sau này)
    */
   function getAllSkins() {
-    return Object.values(CHARACTER_SKINS);
+    return Object.values(CHARACTER_SKINS).map(s => ({
+      ...s,
+      preview: resolveAsset(s.preview),
+      sprites: {
+        body: resolveAsset(s.sprites.body),
+        upper_arm: resolveAsset(s.sprites.upper_arm),
+        forearm: resolveAsset(s.sprites.forearm),
+        hand: resolveAsset(s.sprites.hand)
+      }
+    }));
   }
 
   return {

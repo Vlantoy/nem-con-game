@@ -1,0 +1,2233 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Studio Khớp Xương, Vẽ & Tùy Biến Asset · Ném Còn</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0f17;
+      --bg-panel: #131b26;
+      --bg-card: #1c2636;
+      --bg-input: #0f1722;
+      --border: #2b394f;
+      --border-focus: #f59e0b;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --accent: #f59e0b;
+      --accent-hover: #fbbf24;
+      --accent-green: #10b981;
+      --accent-blue: #38bdf8;
+      --accent-red: #ef4444;
+      --accent-purple: #a855f7;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Be Vietnam Pro', -apple-system, sans-serif;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* TOP HEADER */
+    header {
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border);
+      height: 54px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      z-index: 50;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-icon {
+      font-size: 22px;
+    }
+    .brand-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .badge {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    button {
+      background: var(--bg-card);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 7px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+      font-family: inherit;
+    }
+    button:hover {
+      background: #253347;
+      border-color: #3e506d;
+      color: #fff;
+    }
+    button.btn-primary {
+      background: var(--accent);
+      color: #0f172a;
+      border-color: var(--accent);
+      font-weight: 700;
+      box-shadow: 0 2px 8px rgba(245, 158, 11, 0.25);
+    }
+    button.btn-primary:hover {
+      background: var(--accent-hover);
+      box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
+    }
+    button.btn-test {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border-color: rgba(16, 185, 129, 0.4);
+    }
+    button.btn-test:hover {
+      background: rgba(16, 185, 129, 0.28);
+      color: #6ee7b7;
+    }
+    button.btn-add-skin {
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      border-color: rgba(56, 189, 248, 0.35);
+    }
+
+    /* MAIN WORKSPACE LAYOUT */
+    .app-main {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* LEFT CONTROLS PANEL */
+    .controls-panel {
+      width: 440px;
+      background: var(--bg-panel);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      z-index: 10;
+    }
+    .panel-section {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .section-title {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .form-group {
+      margin-bottom: 10px;
+    }
+    .form-group:last-child {
+      margin-bottom: 0;
+    }
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    select, input[type="text"] {
+      width: 100%;
+      background: var(--bg-input);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 7px 10px;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      transition: border 0.15s;
+    }
+    select:focus, input:focus {
+      border-color: var(--border-focus);
+    }
+
+    /* SLIDERS WITH VALUE PILL */
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .slider-row input[type="range"] {
+      flex: 1;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+    .val-input {
+      width: 68px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 4px 6px;
+      font-size: 12px;
+      color: #fff;
+      font-family: 'JetBrains Mono', monospace;
+      text-align: right;
+    }
+
+    /* ASSET CARDS IN PANEL */
+    .part-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px;
+      margin-bottom: 10px;
+      transition: border 0.15s;
+    }
+    .part-card.active {
+      border-color: var(--accent);
+    }
+    .part-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .part-name {
+      font-size: 12px;
+      font-weight: 700;
+      color: #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .part-actions {
+      display: flex;
+      gap: 6px;
+    }
+    .btn-mini {
+      padding: 3px 8px;
+      font-size: 11px;
+      border-radius: 4px;
+    }
+
+    /* 2D COORD INPUTS (X, Y) */
+    .coord-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .coord-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 10px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .coord-box:hover, .coord-box.selected {
+      border-color: var(--accent);
+      background: #232f42;
+    }
+    .coord-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .dot-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .dot-foot { background: var(--accent-purple); }
+    .dot-shoulder { background: var(--accent-red); }
+    .dot-elbow { background: var(--accent); }
+    .dot-wrist { background: var(--accent-green); }
+    .dot-grip { background: var(--accent-blue); }
+
+    .coord-fields {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .axis-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #64748b;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .coord-fields input[type="number"] {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 4px 6px;
+      font-size: 12px;
+      color: #fff;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* CHECKBOXES */
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .checkbox-row input {
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    /* RIGHT CANVAS AREA */
+    .canvas-container {
+      flex: 1;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      background: #06090e;
+      overflow: hidden;
+    }
+
+    /* VIEWPORT TABS */
+    .viewport-tabs {
+      background: #0e1520;
+      border-bottom: 1px solid var(--border);
+      padding: 6px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      z-index: 20;
+    }
+    .tab-group {
+      display: flex;
+      gap: 4px;
+    }
+    .tab-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      padding: 5px 12px;
+      font-size: 12px;
+      color: var(--text-muted);
+      border-radius: 5px;
+    }
+    .tab-btn:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+    }
+    .tab-btn.active {
+      background: var(--bg-card);
+      border-color: var(--border);
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    .canvas-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .btn-tool-icon {
+      padding: 4px 10px;
+      font-size: 12px;
+      border-radius: 4px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+    }
+    .btn-tool-icon.active {
+      background: rgba(245, 158, 11, 0.2);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* DRAWING / PAINT TOOLBAR (SHOWS IN SPRITE VIEW) */
+    .paint-toolbar {
+      position: absolute;
+      top: 50px;
+      left: 16px;
+      background: rgba(19, 27, 38, 0.95);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 30;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    }
+    .paint-tool-btn {
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      border-radius: 6px;
+    }
+    .paint-tool-btn.active {
+      background: var(--accent);
+      color: #0f172a;
+      border-color: var(--accent);
+    }
+    .color-swatch-list {
+      display: grid;
+      grid-template-columns: repeat(2, 16px);
+      gap: 4px;
+      margin-top: 4px;
+    }
+    .swatch {
+      width: 16px;
+      height: 16px;
+      border-radius: 3px;
+      cursor: pointer;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .swatch:hover {
+      transform: scale(1.15);
+    }
+
+    /* CANVAS WRAP */
+    .canvas-wrap {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      cursor: default;
+    }
+    .canvas-wrap.panning {
+      cursor: grabbing;
+    }
+    .canvas-wrap.move-joint {
+      cursor: grab;
+    }
+    .canvas-wrap.moving-joint {
+      cursor: grabbing;
+    }
+    .canvas-wrap.drawing {
+      cursor: crosshair;
+    }
+    canvas {
+      display: block;
+    }
+
+    /* FLOATING PIXEL LOUPE (MAGNIFIER) */
+    .pixel-loupe {
+      position: absolute;
+      top: 50px;
+      right: 16px;
+      width: 130px;
+      height: 130px;
+      background: #0f172a;
+      border: 2px solid var(--accent);
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+      z-index: 30;
+      overflow: hidden;
+      pointer-events: none;
+      display: none;
+    }
+    .pixel-loupe canvas {
+      width: 100%;
+      height: 100%;
+      image-rendering: pixelated;
+    }
+    .loupe-info {
+      position: absolute;
+      bottom: 4px;
+      left: 4px;
+      right: 4px;
+      background: rgba(0, 0, 0, 0.75);
+      border-radius: 3px;
+      padding: 2px 4px;
+      font-size: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      color: #cbd5e1;
+      text-align: center;
+    }
+
+    /* FLOATING ZOOM CONTROLS (BOTTOM RIGHT) */
+    .zoom-hud {
+      position: absolute;
+      bottom: 14px;
+      right: 14px;
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 4px 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      z-index: 20;
+    }
+    .zoom-btn {
+      padding: 4px 8px;
+      font-size: 12px;
+      min-width: 28px;
+    }
+    .zoom-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+      font-family: 'JetBrains Mono', monospace;
+      min-width: 44px;
+      text-align: center;
+    }
+
+    /* STATUS HUD (BOTTOM LEFT) */
+    .status-hud {
+      position: absolute;
+      bottom: 14px;
+      left: 14px;
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 14px;
+      font-size: 11px;
+      color: #cbd5e1;
+      display: flex;
+      gap: 16px;
+      font-family: 'JetBrains Mono', monospace;
+      pointer-events: none;
+      z-index: 20;
+    }
+    .hud-stat span {
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    /* TOAST NOTIFICATION */
+    .toast {
+      position: fixed;
+      top: 68px;
+      right: 20px;
+      background: #064e3b;
+      border: 1px solid #10b981;
+      color: #ecfdf5;
+      padding: 10px 18px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transform: translateY(-20px);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.25s ease;
+      z-index: 100;
+    }
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    .toast.error {
+      background: #7f1d1d;
+      border-color: #ef4444;
+      color: #fef2f2;
+    }
+
+    /* HIDDEN FILE INPUT */
+    input[type="file"] {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOP HEADER -->
+  <header>
+    <div class="brand">
+      <span class="brand-icon">👘</span>
+      <div class="brand-title">
+        Studio Khớp Xương, Vẽ & Tùy Biến Asset
+        <span class="badge">Ném Còn · Sắc Việt</span>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button id="btn-save-config" class="btn-primary" title="Lưu và cập nhật trực tiếp vào file character-config.js">
+        💾 LƯU CẤU HÌNH TỰ ĐỘNG
+      </button>
+      <button id="btn-open-game" class="btn-test" title="Mở game Ném Còn để kiểm tra thực tế">
+        🎮 MỞ GAME TEST NGAY
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN APP -->
+  <div class="app-main">
+    
+    <!-- LEFT CONTROLS PANEL -->
+    <div class="controls-panel">
+      
+      <!-- 1. SKIN SELECTION -->
+      <div class="panel-section">
+        <div class="section-title">
+          <span>Nhân vật đang chỉnh sửa</span>
+          <span class="badge" id="skin-gender-badge">Nữ</span>
+        </div>
+        <div class="form-group" style="display: flex; gap: 8px;">
+          <select id="select-skin" style="flex: 1;">
+            <option value="p3_nu_ao_vang">Cô Gái Mường Áo Vàng (P3 - Mới)</option>
+            <option value="nu_tay_truyen_thong">Cô Gái Tày Lễ Hội (P2)</option>
+            <option value="nam_tay_khoe_khoan">Chàng Trai Bản Tày (P1)</option>
+          </select>
+          <button id="btn-new-skin" class="btn-add-skin btn-mini" title="Tạo mẫu nhân vật mới">+ Mới</button>
+        </div>
+      </div>
+
+      <!-- 2. ASSET PARTS & UPLOADER -->
+      <div class="panel-section">
+        <div class="section-title">
+          <span>Tài nguyên hình ảnh (Sprites)</span>
+          <span style="font-size: 10px; color: var(--text-muted); text-transform: none;">Click Đổi để tải ảnh</span>
+        </div>
+
+        <!-- Part: Body -->
+        <div class="part-card" id="card-part-body">
+          <div class="part-header">
+            <span class="part-name">👗 Thân người (Body)</span>
+            <div class="part-actions">
+              <button class="btn-mini btn-change-asset" data-part="body">📁 Đổi ảnh</button>
+              <button class="btn-mini btn-edit-asset" data-part="body">✏️ Vẽ/Sửa</button>
+            </div>
+          </div>
+          <div style="font-size: 11px; color: var(--text-muted); font-family: monospace;" id="path-body">...</div>
+        </div>
+
+        <!-- Part: Upper Arm -->
+        <div class="part-card" id="card-part-upper_arm">
+          <div class="part-header">
+            <span class="part-name">💪 Bắp tay áo (Upper Arm)</span>
+            <div class="part-actions">
+              <button class="btn-mini btn-change-asset" data-part="upper_arm">📁 Đổi ảnh</button>
+              <button class="btn-mini btn-edit-asset" data-part="upper_arm">✏️ Vẽ/Sửa</button>
+            </div>
+          </div>
+          <div style="font-size: 11px; color: var(--text-muted); font-family: monospace;" id="path-upper_arm">...</div>
+        </div>
+
+        <!-- Part: Forearm -->
+        <div class="part-card" id="card-part-forearm">
+          <div class="part-header">
+            <span class="part-name">🦾 Cẳng tay (Forearm)</span>
+            <div class="part-actions">
+              <button class="btn-mini btn-change-asset" data-part="forearm">📁 Đổi ảnh</button>
+              <button class="btn-mini btn-edit-asset" data-part="forearm">✏️ Vẽ/Sửa</button>
+            </div>
+          </div>
+          <div style="font-size: 11px; color: var(--text-muted); font-family: monospace;" id="path-forearm">...</div>
+        </div>
+
+        <!-- Part: Hand -->
+        <div class="part-card" id="card-part-hand">
+          <div class="part-header">
+            <span class="part-name">✋ Bàn tay cầm còn (Hand)</span>
+            <div class="part-actions">
+              <button class="btn-mini btn-change-asset" data-part="hand">📁 Đổi ảnh</button>
+              <button class="btn-mini btn-edit-asset" data-part="hand">✏️ Vẽ/Sửa</button>
+            </div>
+          </div>
+          <div style="font-size: 11px; color: var(--text-muted); font-family: monospace;" id="path-hand">...</div>
+        </div>
+
+        <!-- Hidden input for file upload -->
+        <input type="file" id="asset-file-input" accept="image/png, image/jpeg, image/webp">
+      </div>
+
+      <!-- 3. SCALE CONTROLS -->
+      <div class="panel-section">
+        <div class="section-title">Tỉ lệ kích thước (Scales)</div>
+        
+        <div class="form-group">
+          <label>Tỉ lệ cơ thể tổng thể (Body Scale):</label>
+          <div class="slider-row">
+            <input type="range" id="slider-scale-body" min="0.10" max="0.40" step="0.005" value="0.21">
+            <input type="number" class="val-input" id="input-scale-body" min="0.10" max="0.40" step="0.005" value="0.21">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Bắp tay (Upper Arm Scale):</label>
+          <div class="slider-row">
+            <input type="range" id="slider-scale-upper" min="0.30" max="1.50" step="0.01" value="0.70">
+            <input type="number" class="val-input" id="input-scale-upper" min="0.30" max="1.50" step="0.01" value="0.70">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Cẳng tay (Forearm Scale):</label>
+          <div class="slider-row">
+            <input type="range" id="slider-scale-fore" min="0.30" max="1.50" step="0.01" value="0.70">
+            <input type="number" class="val-input" id="input-scale-fore" min="0.30" max="1.50" step="0.01" value="0.70">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Bàn tay cầm còn (Hand Scale):</label>
+          <div class="slider-row">
+            <input type="range" id="slider-scale-hand" min="0.30" max="1.50" step="0.01" value="0.75">
+            <input type="number" class="val-input" id="input-scale-hand" min="0.30" max="1.50" step="0.01" value="0.75">
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. JOINT COORDINATES -->
+      <div class="panel-section">
+        <div class="section-title">
+          <span>Tọa độ các khớp (Joint Pivots)</span>
+          <span style="font-size: 10px; color: var(--accent); text-transform: none;">Kéo chấm trên màn hình</span>
+        </div>
+
+        <div class="coord-grid">
+          <!-- Foot Anchor -->
+          <div class="coord-box" id="box-joint-footAnchor" data-joint="footAnchor">
+            <div class="coord-title"><span class="dot-indicator dot-foot"></span> Gót chân tiếp đất</div>
+            <div class="coord-fields">
+              <span class="axis-label">X</span><input type="number" id="joint-foot-x" value="496">
+              <span class="axis-label">Y</span><input type="number" id="joint-foot-y" value="1515">
+            </div>
+          </div>
+
+          <!-- Shoulder on Body -->
+          <div class="coord-box" id="box-joint-shoulderJoint" data-joint="shoulderJoint">
+            <div class="coord-title"><span class="dot-indicator dot-shoulder"></span> Tâm xoay vai (Thân)</div>
+            <div class="coord-fields">
+              <span class="axis-label">X</span><input type="number" id="joint-shoulder-x" value="422">
+              <span class="axis-label">Y</span><input type="number" id="joint-shoulder-y" value="375">
+            </div>
+          </div>
+
+          <!-- Shoulder on Upper Arm -->
+          <div class="coord-box" id="box-joint-shoulderPivot" data-joint="shoulderPivot">
+            <div class="coord-title"><span class="dot-indicator dot-shoulder"></span> Khớp vai (Bắp tay)</div>
+            <div class="coord-fields">
+              <span class="axis-label">X</span><input type="number" id="joint-upper-piv-x" value="143">
+              <span class="axis-label">Y</span><input type="number" id="joint-upper-piv-y" value="35">
+            </div>
+          </div>
+
+          <!-- Elbow on Upper Arm -->
+          <div class="coord-box" id="box-joint-elbowJoint" data-joint="elbowJoint">
+            <div class="coord-title"><span class="dot-indicator dot-elbow"></span> Cùi chỏ (Bắp tay)</div>
+            <div class="coord-fields">
+              <span class="axis-label">X</span><input type="number" id="joint-upper-elb-x" value="129">
+              <span class="axis-label">Y</span><input type="number" id="joint-upper-elb-y" value="360">
+            </div>
+          </div>
+
+          <!-- Elbow on Forearm -->
+          <div class="coord-box" id="box-joint-elbowPivot" data-joint="elbowPivot">
+            <div class="coord-title"><span class="dot-indicator dot-elbow"></span> Khuỷu tay (Cẳng tay)</div>
+            <div class="coord-fields">
+              <span class="axis-label">X</span><input type="number" id="joint-fore-piv-x" value="133">
+              <span class="axis-label">Y</span><input type="number" id="joint-fore-piv-y" value="30">
+            </div>
+          </div>
+
+          <!-- Wrist on Forearm -->
+          <div class="coord-box" id="box-joint-wristJoint" data-joint="wristJoint">
+            <div class="coord-title"><span class="dot-indicator dot-wrist"></span> Cổ tay (Cẳng tay)</div>
+            <div class="coord-fields">
+              <span class="axis-label">X</span><input type="number" id="joint-fore-wri-x" value="168">
+              <span class="axis-label">Y</span><input type="number" id="joint-fore-wri-y" value="220">
+            </div>
+          </div>
+
+          <!-- Wrist on Hand -->
+          <div class="coord-box" id="box-joint-wristPivot" data-joint="wristPivot">
+            <div class="coord-title"><span class="dot-indicator dot-wrist"></span> Cổ tay (Bàn tay)</div>
+            <div class="coord-fields">
+              <span class="axis-label">X</span><input type="number" id="joint-hand-piv-x" value="80">
+              <span class="axis-label">Y</span><input type="number" id="joint-hand-piv-y" value="25">
+            </div>
+          </div>
+
+          <!-- Grip Tunnel -->
+          <div class="coord-box" id="box-joint-gripTunnel" data-joint="gripTunnel">
+            <div class="coord-title"><span class="dot-indicator dot-grip"></span> Điểm kẹp dây còn</div>
+            <div class="coord-fields">
+              <span class="axis-label">X</span><input type="number" id="joint-hand-grip-x" value="78">
+              <span class="axis-label">Y</span><input type="number" id="joint-hand-grip-y" value="180">
+            </div>
+          </div>
+        </div>
+
+        <!-- Idle Hand Offset -->
+        <div style="margin-top: 12px;">
+          <label>Vị trí tay buông chờ tự nhiên (Idle Hand Offset):</label>
+          <div class="coord-fields">
+            <span class="axis-label">X</span><input type="number" id="joint-idle-x" value="5">
+            <span class="axis-label">Y</span><input type="number" id="joint-idle-y" value="76">
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. LAYER ORDERING -->
+      <div class="panel-section">
+        <div class="section-title">Thứ tự lớp ghép (Layer Order)</div>
+        <label class="checkbox-row">
+          <input type="checkbox" id="chk-hand-under-forearm" checked>
+          <span>Bàn tay nằm dưới cổ tay (Che mép cắt cổ tay)</span>
+        </label>
+        <label class="checkbox-row">
+          <input type="checkbox" id="chk-forearm-first">
+          <span>Vẽ cẳng tay trước bắp tay (Tay áo phủ ngoài khuỷu)</span>
+        </label>
+      </div>
+
+    </div>
+
+    <!-- RIGHT CANVAS WORKSPACE -->
+    <div class="canvas-container">
+      
+      <!-- VIEWPORT TABS -->
+      <div class="viewport-tabs">
+        <div class="tab-group">
+          <button class="tab-btn active" data-mode="rig">👘 Lắp Khớp & Live IK</button>
+          <button class="tab-btn" data-mode="body">Sprite: Thân</button>
+          <button class="tab-btn" data-mode="upper_arm">Sprite: Bắp tay</button>
+          <button class="tab-btn" data-mode="forearm">Sprite: Cẳng tay</button>
+          <button class="tab-btn" data-mode="hand">Sprite: Bàn tay</button>
+        </div>
+
+        <div class="canvas-toolbar">
+          <button id="btn-mode-joint" class="btn-tool-icon active" title="Kéo thả trực tiếp các điểm khớp">🎯 Chỉnh Khớp</button>
+          <button id="btn-mode-pan" class="btn-tool-icon" title="Giữ chuột trái để kéo góc nhìn">✋ Kéo Khung</button>
+          <label class="checkbox-row" style="margin: 0;">
+            <input type="checkbox" id="chk-show-bones" checked>
+            <span>Hiện xương</span>
+          </label>
+          <label class="checkbox-row" style="margin: 0;" id="wrap-live-ik">
+            <input type="checkbox" id="chk-live-ik" checked>
+            <span>Live IK</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- IN-SPRITE PAINT TOOLBAR (VISIBLE WHEN VIEWING A SPRITE) -->
+      <div class="paint-toolbar" id="paint-toolbar" style="display: none;">
+        <button class="paint-tool-btn" id="btn-draw-pen" title="Bút vẽ (P)">✏️</button>
+        <button class="paint-tool-btn" id="btn-draw-eraser" title="Tẩy trong suốt (E) - Xóa phông/viền">🧹</button>
+        <button class="paint-tool-btn" id="btn-draw-eyedropper" title="Hút màu (I)">💧</button>
+        <input type="color" id="draw-color-picker" value="#f59e0b" style="width: 34px; height: 30px; border: none; background: transparent; cursor: pointer;">
+        
+        <div class="color-swatch-list">
+          <div class="swatch" style="background: #f2cfb2;" data-color="#f2cfb2" title="Màu da"></div>
+          <div class="swatch" style="background: #eab308;" data-color="#eab308" title="Màu vàng áo"></div>
+          <div class="swatch" style="background: #1e293b;" data-color="#1e293b" title="Màu chàm indigo"></div>
+          <div class="swatch" style="background: #ef4444;" data-color="#ef4444" title="Đỏ thổ cẩm"></div>
+          <div class="swatch" style="background: #000000;" data-color="#000000" title="Đen"></div>
+          <div class="swatch" style="background: #ffffff;" data-color="#ffffff" title="Trắng"></div>
+        </div>
+
+        <div style="border-top: 1px solid var(--border); margin: 4px 0;"></div>
+        <button class="paint-tool-btn" id="btn-draw-undo" title="Hoàn tác (Ctrl+Z)">↩️</button>
+        <button class="paint-tool-btn" id="btn-draw-reset" title="Khôi phục lại sprite gốc ban đầu (Reset to Original)">🔄</button>
+        <button class="paint-tool-btn btn-primary" id="btn-save-painted-sprite" style="font-size: 13px;" title="Lưu ảnh vẽ vào file PNG">💾</button>
+      </div>
+
+      <!-- FLOATING PIXEL LOUPE (MAGNIFIER) -->
+      <div class="pixel-loupe" id="pixel-loupe">
+        <canvas id="loupeCanvas" width="130" height="130"></canvas>
+        <div class="loupe-info" id="loupe-info">X: 0, Y: 0</div>
+      </div>
+
+      <!-- CANVAS WRAP -->
+      <div class="canvas-wrap" id="canvas-wrap">
+        <canvas id="editorCanvas"></canvas>
+      </div>
+
+      <!-- FLOATING ZOOM CONTROLS (BOTTOM RIGHT) -->
+      <div class="zoom-hud">
+        <button class="zoom-btn" id="btn-zoom-out" title="Thu nhỏ (Lăn chuột xuống)">−</button>
+        <div class="zoom-label" id="zoom-label">100%</div>
+        <button class="zoom-btn" id="btn-zoom-in" title="Phóng to (Lăn chuột lên)">+</button>
+        <button class="zoom-btn" id="btn-zoom-100" title="Về kích thước chuẩn 100%">1:1</button>
+        <button class="zoom-btn" id="btn-zoom-fit" title="Căn giữa khung nhìn">🎯</button>
+      </div>
+
+      <!-- STATUS HUD (BOTTOM LEFT) -->
+      <div class="status-hud">
+        <div class="hud-stat">Khớp đang chọn: <span id="stat-selected-joint">Chưa chọn</span></div>
+        <div class="hud-stat">Sải với: <span id="stat-reach">0px</span></div>
+        <div class="hud-stat">Tọa độ: <span id="stat-mouse">0, 0</span></div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- TOAST -->
+  <div id="toast" class="toast">✅ Đã lưu thành công!</div>
+
+  <!-- LOAD EXISTING CONFIG -->
+  <script>window.ASSET_PREFIX = window.location.pathname.includes('/nem-con/') ? '../' : '';</script>
+  <script src="character-config.js"></script>
+
+  <!-- EDITOR ENGINE SCRIPT -->
+  <script>
+    (() => {
+      'use strict';
+
+      // --- STATE & DATA ---
+      let activeSkinId = 'p3_nu_ao_vang';
+      let currentConfig = null;
+      let loadedImages = {};
+      let partCanvases = {}; // In-memory offscreen canvases for sprite painting
+      let undoStacks = {};
+
+      let viewMode = 'rig'; // 'rig', 'body', 'upper_arm', 'forearm', 'hand'
+      let currentTool = 'joint'; // 'joint', 'pan', 'pen', 'eraser', 'eyedropper'
+      let isLiveIK = true;
+      let showBones = true;
+
+      // Viewport Transform (Zoom & Pan)
+      let zoomLevel = 1.0;
+      let panX = 0, panY = 0;
+
+      // Interaction State
+      let isMouseDown = false;
+      let isDraggingPan = false;
+      let dragStart = { x: 0, y: 0 };
+      let mousePos = { x: 0, y: 0 };
+
+      // Joint Selection & Dragging State
+      let hoveredJoint = null;
+      let selectedJointKey = 'shoulderJoint';
+      let draggingJoint = null; // { name, get(), set(x, y), isRigSpace }
+
+      // Paint Tool State
+      let brushColor = '#f59e0b';
+      let brushSize = 8;
+      let uploadTargetPart = 'body';
+
+      const canvas = document.getElementById('editorCanvas');
+      const ctx = canvas.getContext('2d');
+      const wrap = document.getElementById('canvas-wrap');
+      const paintToolbar = document.getElementById('paint-toolbar');
+      const loupeWrap = document.getElementById('pixel-loupe');
+      const loupeCanvas = document.getElementById('loupeCanvas');
+      const lCtx = loupeCanvas.getContext('2d');
+
+      // --- INIT SIZES ---
+      function resizeCanvas() {
+        canvas.width = wrap.clientWidth;
+        canvas.height = wrap.clientHeight;
+        render();
+      }
+      window.addEventListener('resize', resizeCanvas);
+
+      // --- LOAD SKIN DATA ---
+      function loadSkinData(skinId) {
+        if (!window.CHARACTER_CONFIG) return;
+        const cfg = window.CHARACTER_CONFIG.getSkinConfig(skinId);
+        if (!cfg) return;
+
+        currentConfig = JSON.parse(JSON.stringify(cfg));
+        activeSkinId = skinId;
+
+        document.getElementById('select-skin').value = skinId;
+        document.getElementById('skin-gender-badge').textContent = (currentConfig.gender === 'female' ? 'Nữ' : 'Nam');
+
+        // Sprite Paths
+        document.getElementById('path-body').textContent = currentConfig.sprites.body || '';
+        document.getElementById('path-upper_arm').textContent = currentConfig.sprites.upper_arm || '';
+        document.getElementById('path-forearm').textContent = currentConfig.sprites.forearm || '';
+        document.getElementById('path-hand').textContent = currentConfig.sprites.hand || '';
+
+        // Scales
+        setVal('scale-body', currentConfig.scale || 0.21);
+        setVal('scale-upper', currentConfig.kinematics.scaleUpper || 0.70);
+        setVal('scale-fore', currentConfig.kinematics.scaleFore || 0.70);
+        setVal('scale-hand', currentConfig.kinematics.scaleHand || 0.75);
+
+        // Anchors
+        syncCoordInputs();
+
+        document.getElementById('chk-hand-under-forearm').checked = (currentConfig.drawHandUnderForearm !== false);
+        document.getElementById('chk-forearm-first').checked = !!currentConfig.drawForearmFirst;
+
+        // Reset transforms
+        zoomLevel = 1.0;
+        panX = 0; panY = 0;
+        updateZoomLabel();
+
+        // Load Images
+        loadImagesForSkin(currentConfig.sprites);
+      }
+
+      function syncCoordInputs() {
+        if (!currentConfig) return;
+        document.getElementById('joint-foot-x').value = currentConfig.anchors.footAnchor.x;
+        document.getElementById('joint-foot-y').value = currentConfig.anchors.footAnchor.y;
+        document.getElementById('joint-shoulder-x').value = currentConfig.anchors.shoulderJoint.x;
+        document.getElementById('joint-shoulder-y').value = currentConfig.anchors.shoulderJoint.y;
+
+        document.getElementById('joint-upper-piv-x').value = currentConfig.kinematics.upperArm.shoulderPivot.x;
+        document.getElementById('joint-upper-piv-y').value = currentConfig.kinematics.upperArm.shoulderPivot.y;
+        document.getElementById('joint-upper-elb-x').value = currentConfig.kinematics.upperArm.elbowJoint.x;
+        document.getElementById('joint-upper-elb-y').value = currentConfig.kinematics.upperArm.elbowJoint.y;
+
+        document.getElementById('joint-fore-piv-x').value = currentConfig.kinematics.forearm.elbowPivot.x;
+        document.getElementById('joint-fore-piv-y').value = currentConfig.kinematics.forearm.elbowPivot.y;
+        document.getElementById('joint-fore-wri-x').value = currentConfig.kinematics.forearm.wristJoint.x;
+        document.getElementById('joint-fore-wri-y').value = currentConfig.kinematics.forearm.wristJoint.y;
+
+        document.getElementById('joint-hand-piv-x').value = currentConfig.kinematics.hand.wristPivot.x;
+        document.getElementById('joint-hand-piv-y').value = currentConfig.kinematics.hand.wristPivot.y;
+        document.getElementById('joint-hand-grip-x').value = currentConfig.kinematics.hand.gripTunnel.x;
+        document.getElementById('joint-hand-grip-y').value = currentConfig.kinematics.hand.gripTunnel.y;
+
+        document.getElementById('joint-idle-x').value = currentConfig.kinematics.idleHandOffset ? currentConfig.kinematics.idleHandOffset.x : 5;
+        document.getElementById('joint-idle-y').value = currentConfig.kinematics.idleHandOffset ? currentConfig.kinematics.idleHandOffset.y : 76;
+      }
+
+      function setVal(id, val) {
+        document.getElementById(`slider-${id}`).value = val;
+        document.getElementById(`input-${id}`).value = val;
+      }
+
+      function readInputsIntoConfig() {
+        if (!currentConfig) return;
+        currentConfig.scale = parseFloat(document.getElementById('slider-scale-body').value);
+        currentConfig.kinematics.scaleUpper = parseFloat(document.getElementById('slider-scale-upper').value);
+        currentConfig.kinematics.scaleFore = parseFloat(document.getElementById('slider-scale-fore').value);
+        currentConfig.kinematics.scaleHand = parseFloat(document.getElementById('slider-scale-hand').value);
+
+        currentConfig.anchors.footAnchor.x = parseInt(document.getElementById('joint-foot-x').value) || 0;
+        currentConfig.anchors.footAnchor.y = parseInt(document.getElementById('joint-foot-y').value) || 0;
+        currentConfig.anchors.shoulderJoint.x = parseInt(document.getElementById('joint-shoulder-x').value) || 0;
+        currentConfig.anchors.shoulderJoint.y = parseInt(document.getElementById('joint-shoulder-y').value) || 0;
+
+        currentConfig.kinematics.upperArm.shoulderPivot.x = parseInt(document.getElementById('joint-upper-piv-x').value) || 0;
+        currentConfig.kinematics.upperArm.shoulderPivot.y = parseInt(document.getElementById('joint-upper-piv-y').value) || 0;
+        currentConfig.kinematics.upperArm.elbowJoint.x = parseInt(document.getElementById('joint-upper-elb-x').value) || 0;
+        currentConfig.kinematics.upperArm.elbowJoint.y = parseInt(document.getElementById('joint-upper-elb-y').value) || 0;
+
+        currentConfig.kinematics.forearm.elbowPivot.x = parseInt(document.getElementById('joint-fore-piv-x').value) || 0;
+        currentConfig.kinematics.forearm.elbowPivot.y = parseInt(document.getElementById('joint-fore-piv-y').value) || 0;
+        currentConfig.kinematics.forearm.wristJoint.x = parseInt(document.getElementById('joint-fore-wri-x').value) || 0;
+        currentConfig.kinematics.forearm.wristJoint.y = parseInt(document.getElementById('joint-fore-wri-y').value) || 0;
+
+        currentConfig.kinematics.hand.wristPivot.x = parseInt(document.getElementById('joint-hand-piv-x').value) || 0;
+        currentConfig.kinematics.hand.wristPivot.y = parseInt(document.getElementById('joint-hand-piv-y').value) || 0;
+        currentConfig.kinematics.hand.gripTunnel.x = parseInt(document.getElementById('joint-hand-grip-x').value) || 0;
+        currentConfig.kinematics.hand.gripTunnel.y = parseInt(document.getElementById('joint-hand-grip-y').value) || 0;
+
+        currentConfig.kinematics.idleHandOffset = {
+          x: parseInt(document.getElementById('joint-idle-x').value) || 0,
+          y: parseInt(document.getElementById('joint-idle-y').value) || 0
+        };
+
+        currentConfig.drawHandUnderForearm = document.getElementById('chk-hand-under-forearm').checked;
+        currentConfig.drawForearmFirst = document.getElementById('chk-forearm-first').checked;
+
+        render();
+      }
+
+      // Sync slider & input pairs
+      ['scale-body', 'scale-upper', 'scale-fore', 'scale-hand'].forEach(id => {
+        const slider = document.getElementById(`slider-${id}`);
+        const input = document.getElementById(`input-${id}`);
+        slider.addEventListener('input', () => { input.value = slider.value; readInputsIntoConfig(); });
+        input.addEventListener('input', () => { slider.value = input.value; readInputsIntoConfig(); });
+      });
+
+      document.querySelectorAll('.coord-fields input, .panel-section input[type="checkbox"]').forEach(el => {
+        el.addEventListener('input', readInputsIntoConfig);
+      });
+
+      // Highlight selected joint box in left panel
+      document.querySelectorAll('.coord-box').forEach(box => {
+        box.addEventListener('click', () => {
+          document.querySelectorAll('.coord-box').forEach(b => b.classList.remove('selected'));
+          box.classList.add('selected');
+          selectedJointKey = box.dataset.joint;
+          document.getElementById('stat-selected-joint').textContent = box.querySelector('.coord-title').textContent.trim();
+          render();
+        });
+      });
+
+      // --- LOAD IMAGES INTO OFFSCREEN CANVASES ---
+      function loadImagesForSkin(sprites) {
+        loadedImages = {};
+        partCanvases = {};
+        undoStacks = {};
+
+        const pfx = (typeof window !== 'undefined' && window.ASSET_PREFIX) ? window.ASSET_PREFIX : '';
+        const resolve = p => (p && p.startsWith('assets/') && pfx) ? (pfx + p) : p;
+
+        let toLoad = 0;
+        Object.entries(sprites).forEach(([key, src]) => {
+          toLoad++;
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => {
+            loadedImages[key] = img;
+            
+            // Create offscreen painting canvas
+            const off = document.createElement('canvas');
+            off.width = img.width;
+            off.height = img.height;
+            const oCtx = off.getContext('2d');
+            oCtx.drawImage(img, 0, 0);
+            partCanvases[key] = off;
+            undoStacks[key] = [];
+
+            toLoad--;
+            if (toLoad === 0) render();
+          };
+          img.onerror = () => {
+            console.error('Lỗi nạp ảnh:', src);
+            toLoad--;
+          };
+          img.src = resolve(src) + '?t=' + Date.now();
+        });
+      }
+
+      // --- 2-BONE IK SOLVER ---
+      function solveIK(sX, sY, tX, tY, L1, L2) {
+        const dx = tX - sX;
+        const dy = tY - sY;
+        let d = Math.hypot(dx, dy);
+        const minD = Math.abs(L1 - L2) + 2;
+        const maxD = L1 + L2 - 1.5;
+        d = Math.max(minD, Math.min(maxD, d));
+
+        const cosA = Math.max(-1, Math.min(1, (L1 * L1 + d * d - L2 * L2) / (2 * L1 * d)));
+        const alpha = Math.acos(cosA);
+        const cosB = Math.max(-1, Math.min(1, (L1 * L1 + L2 * L2 - d * d) / (2 * L1 * L2)));
+        const beta = Math.acos(cosB);
+
+        const theta = Math.atan2(dy, dx);
+        const th1 = theta + alpha;
+        const th2 = th1 - Math.PI + beta;
+
+        const eX = sX + L1 * Math.cos(th1);
+        const eY = sY + L1 * Math.sin(th1);
+        const wX = eX + L2 * Math.cos(th2);
+        const wY = eY + L2 * Math.sin(th2);
+
+        return { th1, th2, eX, eY, wX, wY };
+      }
+
+      // --- DEFINITION OF ACTIVE JOINTS PER VIEW ---
+      function getJointsForCurrentView() {
+        if (!currentConfig) return [];
+        const cfg = currentConfig;
+
+        if (viewMode === 'rig') {
+          const sBody = cfg.scale;
+          const bFoot = cfg.anchors.footAnchor;
+          const bShoulder = cfg.anchors.shoulderJoint;
+          const groundX = canvas.width / 2 + panX;
+          const groundY = canvas.height * 0.75 + panY;
+
+          const shoulderScreenX = groundX - (bFoot.x - bShoulder.x) * sBody * zoomLevel;
+          const shoulderScreenY = groundY - (bFoot.y - bShoulder.y) * sBody * zoomLevel;
+
+          return [
+            {
+              key: 'shoulderJoint',
+              name: 'Tâm vai (Body Shoulder)',
+              screenX: shoulderScreenX,
+              screenY: shoulderScreenY,
+              color: '#ef4444',
+              set: (screenX, screenY) => {
+                // Invert back to Body coordinate
+                const localX = (screenX - groundX) / (sBody * zoomLevel);
+                const localY = (screenY - groundY) / (sBody * zoomLevel);
+                cfg.anchors.shoulderJoint.x = Math.round(bFoot.x + localX);
+                cfg.anchors.shoulderJoint.y = Math.round(bFoot.y + localY);
+                syncCoordInputs();
+              }
+            },
+            {
+              key: 'footAnchor',
+              name: 'Gót chân (Foot Anchor)',
+              screenX: groundX,
+              screenY: groundY,
+              color: '#a855f7',
+              set: (screenX, screenY) => {
+                // Dragging foot anchor shifts relative placement
+                const dx = (screenX - groundX) / (sBody * zoomLevel);
+                const dy = (screenY - groundY) / (sBody * zoomLevel);
+                cfg.anchors.footAnchor.x = Math.round(cfg.anchors.footAnchor.x - dx);
+                cfg.anchors.footAnchor.y = Math.round(cfg.anchors.footAnchor.y - dy);
+                syncCoordInputs();
+              }
+            }
+          ];
+        }
+
+        const off = partCanvases[viewMode];
+        if (!off) return [];
+
+        const cx = canvas.width / 2 + panX;
+        const cy = canvas.height / 2 + panY;
+        const w = off.width * zoomLevel;
+        const h = off.height * zoomLevel;
+        const left = cx - w / 2;
+        const top = cy - h / 2;
+
+        const makeSpriteJoint = (key, name, pt, color, bounds) => ({
+          key,
+          name,
+          pt,
+          color,
+          screenX: left + pt.x * zoomLevel,
+          screenY: top + pt.y * zoomLevel,
+          set: (screenX, screenY) => {
+            const sx = Math.round((screenX - left) / zoomLevel);
+            const sy = Math.round((screenY - top) / zoomLevel);
+            pt.x = Math.max(0, Math.min(bounds.width - 1, sx));
+            pt.y = Math.max(0, Math.min(bounds.height - 1, sy));
+            syncCoordInputs();
+          }
+        });
+
+        if (viewMode === 'body') {
+          return [
+            makeSpriteJoint('footAnchor', 'Gót chân (footAnchor)', cfg.anchors.footAnchor, '#a855f7', off),
+            makeSpriteJoint('shoulderJoint', 'Tâm vai (shoulderJoint)', cfg.anchors.shoulderJoint, '#ef4444', off)
+          ];
+        } else if (viewMode === 'upper_arm') {
+          return [
+            makeSpriteJoint('shoulderPivot', 'Khớp vai (shoulderPivot)', cfg.kinematics.upperArm.shoulderPivot, '#ef4444', off),
+            makeSpriteJoint('elbowJoint', 'Cùi chỏ (elbowJoint)', cfg.kinematics.upperArm.elbowJoint, '#f59e0b', off)
+          ];
+        } else if (viewMode === 'forearm') {
+          return [
+            makeSpriteJoint('elbowPivot', 'Khuỷu tay (elbowPivot)', cfg.kinematics.forearm.elbowPivot, '#f59e0b', off),
+            makeSpriteJoint('wristJoint', 'Cổ tay (wristJoint)', cfg.kinematics.forearm.wristJoint, '#10b981', off)
+          ];
+        } else if (viewMode === 'hand') {
+          return [
+            makeSpriteJoint('wristPivot', 'Cổ tay (wristPivot)', cfg.kinematics.hand.wristPivot, '#10b981', off),
+            makeSpriteJoint('gripTunnel', 'Kẹp dây còn (gripTunnel)', cfg.kinematics.hand.gripTunnel, '#38bdf8', off)
+          ];
+        }
+
+        return [];
+      }
+
+      // --- RENDER MAIN ---
+      function render() {
+        if (!canvas.width || !canvas.height) return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw Background Grid
+        drawGrid();
+
+        if (viewMode === 'rig') {
+          paintToolbar.style.display = 'none';
+          document.getElementById('wrap-live-ik').style.display = 'inline-flex';
+          renderAssembledRig();
+        } else {
+          document.getElementById('wrap-live-ik').style.display = 'none';
+          paintToolbar.style.display = (currentTool === 'joint' || currentTool === 'pan') ? 'none' : 'flex';
+          renderSingleSprite(viewMode);
+        }
+
+        // Draw Interactive Joint Gizmos for current view
+        drawInteractiveJoints();
+
+        // Update Magnifying Loupe
+        updateLoupe();
+      }
+
+      function drawGrid() {
+        const w = canvas.width, h = canvas.height;
+        ctx.save();
+        ctx.strokeStyle = '#141c28';
+        ctx.lineWidth = 1;
+
+        const step = 32 * zoomLevel;
+        if (step > 8) {
+          const offsetX = (canvas.width / 2 + panX) % step;
+          const offsetY = (canvas.height * 0.75 + panY) % step;
+
+          for (let x = offsetX; x < w; x += step) {
+            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke();
+          }
+          for (let y = offsetY; y < h; y += step) {
+            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke();
+          }
+        }
+        ctx.restore();
+      }
+
+      // --- RENDER ASSEMBLED RIG ---
+      function renderAssembledRig() {
+        if (!currentConfig || !partCanvases.body) return;
+
+        const cfg = currentConfig;
+        const sBody = cfg.scale;
+        const sUpper = cfg.kinematics.scaleUpper * sBody;
+        const sFore = cfg.kinematics.scaleFore * sBody;
+        const sHand = cfg.kinematics.scaleHand * sBody;
+
+        ctx.save();
+        const groundX = canvas.width / 2 + panX;
+        const groundY = canvas.height * 0.75 + panY;
+        ctx.translate(groundX, groundY);
+        ctx.scale(zoomLevel, zoomLevel);
+
+        // Ground reference line
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 2 / zoomLevel;
+        ctx.setLineDash([6 / zoomLevel, 6 / zoomLevel]);
+        ctx.beginPath();
+        ctx.moveTo(-canvas.width * 2, 0);
+        ctx.lineTo(canvas.width * 2, 0);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // 1. Draw Body
+        const bImg = partCanvases.body;
+        const bFoot = cfg.anchors.footAnchor;
+        const bShoulder = cfg.anchors.shoulderJoint;
+
+        const shoulderLocalX = -(bFoot.x - bShoulder.x) * sBody;
+        const shoulderLocalY = -(bFoot.y - bShoulder.y) * sBody;
+
+        ctx.drawImage(
+          bImg,
+          -bFoot.x * sBody,
+          -bFoot.y * sBody,
+          bImg.width * sBody,
+          bImg.height * sBody
+        );
+
+        // Bone lengths
+        const uP = cfg.kinematics.upperArm.shoulderPivot;
+        const uE = cfg.kinematics.upperArm.elbowJoint;
+        const fP = cfg.kinematics.forearm.elbowPivot;
+        const fW = cfg.kinematics.forearm.wristJoint;
+        const hP = cfg.kinematics.hand.wristPivot;
+        const hG = cfg.kinematics.hand.gripTunnel;
+
+        const L1 = Math.hypot((uE.x - uP.x) * sUpper, (uE.y - uP.y) * sUpper);
+        const L2 = Math.hypot((fW.x - fP.x) * sFore, (fW.y - fP.y) * sFore);
+        const hDist = Math.hypot((hG.x - hP.x) * sHand, (hG.y - hP.y) * sHand);
+
+        // Update stats HUD
+        document.getElementById('stat-reach').textContent = (L1 + L2).toFixed(1) + 'px';
+
+        // Target for IK
+        let targetLocalX, targetLocalY;
+        if (isLiveIK && (mousePos.x !== 0 || mousePos.y !== 0) && currentTool !== 'pan') {
+          targetLocalX = (mousePos.x - groundX) / zoomLevel;
+          targetLocalY = (mousePos.y - groundY) / zoomLevel;
+        } else {
+          const idle = cfg.kinematics.idleHandOffset || { x: 5, y: 76 };
+          targetLocalX = shoulderLocalX + idle.x;
+          targetLocalY = shoulderLocalY + idle.y;
+        }
+
+        const ik = solveIK(shoulderLocalX, shoulderLocalY, targetLocalX, targetLocalY, L1, L2);
+
+        const uBaseAng = Math.atan2((uE.y - uP.y) * sUpper, (uE.x - uP.x) * sUpper);
+        const fBaseAng = Math.atan2((fW.y - fP.y) * sFore, (fW.x - fP.x) * sFore);
+        const hBaseAng = Math.atan2((hG.y - hP.y) * sHand, (hG.x - hP.x) * sHand);
+
+        const wristAngle = ik.th2 + 0.1;
+
+        // Draw Arm Components
+        const drawUpper = () => {
+          if (!partCanvases.upper_arm) return;
+          const img = partCanvases.upper_arm;
+          ctx.save();
+          ctx.translate(shoulderLocalX, shoulderLocalY);
+          ctx.rotate(ik.th1 - uBaseAng);
+          ctx.drawImage(img, -uP.x * sUpper, -uP.y * sUpper, img.width * sUpper, img.height * sUpper);
+          ctx.restore();
+        };
+
+        const drawFore = () => {
+          if (!partCanvases.forearm) return;
+          const img = partCanvases.forearm;
+          ctx.save();
+          ctx.translate(ik.eX, ik.eY);
+          ctx.rotate(ik.th2 - fBaseAng);
+          ctx.drawImage(img, -fP.x * sFore, -fP.y * sFore, img.width * sFore, img.height * sFore);
+          ctx.restore();
+        };
+
+        const drawHand = () => {
+          if (!partCanvases.hand) return;
+          const img = partCanvases.hand;
+          ctx.save();
+          ctx.translate(ik.wX, ik.wY);
+          ctx.rotate(wristAngle - hBaseAng);
+          ctx.drawImage(img, -hP.x * sHand, -hP.y * sHand, img.width * sHand, img.height * sHand);
+          ctx.restore();
+        };
+
+        // Layer ordering
+        if (cfg.drawHandUnderForearm) {
+          if (cfg.drawForearmFirst) {
+            drawFore(); drawUpper(); drawHand();
+          } else {
+            drawUpper(); drawHand(); drawFore();
+          }
+        } else {
+          if (cfg.drawForearmFirst) {
+            drawFore(); drawUpper(); drawHand();
+          } else {
+            drawUpper(); drawFore(); drawHand();
+          }
+        }
+
+        // Draw Bones
+        if (showBones) {
+          ctx.save();
+          // Reach circle
+          ctx.strokeStyle = 'rgba(245, 158, 11, 0.25)';
+          ctx.lineWidth = 1 / zoomLevel;
+          ctx.setLineDash([4 / zoomLevel, 4 / zoomLevel]);
+          ctx.beginPath();
+          ctx.arc(shoulderLocalX, shoulderLocalY, L1 + L2, 0, Math.PI * 2);
+          ctx.stroke();
+
+          // Bones
+          ctx.setLineDash([]);
+          ctx.strokeStyle = '#f59e0b';
+          ctx.lineWidth = 3 / zoomLevel;
+          ctx.beginPath();
+          ctx.moveTo(shoulderLocalX, shoulderLocalY);
+          ctx.lineTo(ik.eX, ik.eY);
+          ctx.lineTo(ik.wX, ik.wY);
+          ctx.stroke();
+
+          // Grip line
+          const gripX = ik.wX + Math.cos(wristAngle) * hDist;
+          const gripY = ik.wY + Math.sin(wristAngle) * hDist;
+          ctx.strokeStyle = '#38bdf8';
+          ctx.lineWidth = 1.5 / zoomLevel;
+          ctx.beginPath();
+          ctx.moveTo(ik.wX, ik.wY);
+          ctx.lineTo(gripX, gripY);
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        ctx.restore();
+      }
+
+      // --- RENDER SINGLE SPRITE ---
+      function renderSingleSprite(partKey) {
+        const off = partCanvases[partKey];
+        if (!off) return;
+
+        const cx = canvas.width / 2 + panX;
+        const cy = canvas.height / 2 + panY;
+        const w = off.width * zoomLevel;
+        const h = off.height * zoomLevel;
+        const left = cx - w / 2;
+        const top = cy - h / 2;
+
+        ctx.drawImage(off, left, top, w, h);
+
+        // Bounding box outline
+        ctx.save();
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.35)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(left, top, w, h);
+        ctx.restore();
+
+        // Brush cursor preview when in painting tool
+        if (currentTool === 'pen' || currentTool === 'eraser') {
+          ctx.save();
+          ctx.strokeStyle = currentTool === 'eraser' ? '#ef4444' : brushColor;
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.arc(mousePos.x, mousePos.y, (brushSize * zoomLevel) / 2, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
+
+      // --- DRAW INTERACTIVE DRAGGABLE JOINT GIZMOS ---
+      function drawInteractiveJoints() {
+        const joints = getJointsForCurrentView();
+
+        joints.forEach(j => {
+          const isHovered = (hoveredJoint && hoveredJoint.key === j.key);
+          const isSelected = (selectedJointKey === j.key);
+          const isDraggingThis = (draggingJoint && draggingJoint.key === j.key);
+
+          ctx.save();
+          const r = isDraggingThis ? 10 : (isHovered ? 9 : 7);
+
+          // Outer halo ring
+          if (isSelected || isHovered || isDraggingThis) {
+            ctx.strokeStyle = isSelected ? '#fbbf24' : j.color;
+            ctx.lineWidth = isDraggingThis ? 3 : 2;
+            ctx.setLineDash([4, 3]);
+            ctx.beginPath();
+            ctx.arc(j.screenX, j.screenY, r + 6, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+          }
+
+          // Target Crosshairs
+          ctx.strokeStyle = isSelected ? '#fbbf24' : j.color;
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(j.screenX - r - 8, j.screenY); ctx.lineTo(j.screenX + r + 8, j.screenY);
+          ctx.moveTo(j.screenX, j.screenY - r - 8); ctx.lineTo(j.screenX, j.screenY + r + 8);
+          ctx.stroke();
+
+          // Main Center Circle
+          ctx.fillStyle = j.color;
+          ctx.beginPath();
+          ctx.arc(j.screenX, j.screenY, r, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(j.screenX, j.screenY, r, 0, Math.PI * 2);
+          ctx.stroke();
+
+          // Inner pin dot
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.arc(j.screenX, j.screenY, 2.5, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Label badge with live coordinates
+          let coordText = '';
+          if (j.pt) {
+            coordText = `(${j.pt.x}, ${j.pt.y})`;
+          }
+          const text = `${j.name} ${coordText}`;
+
+          ctx.font = 'bold 11px "JetBrains Mono", monospace';
+          const tW = ctx.measureText(text).width;
+
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+          ctx.strokeStyle = isSelected ? '#fbbf24' : '#334155';
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.roundRect(j.screenX + r + 8, j.screenY - 10, tW + 12, 20, 4);
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.fillStyle = isSelected ? '#fbbf24' : '#f8fafc';
+          ctx.fillText(text, j.screenX + r + 14, j.screenY + 4);
+
+          ctx.restore();
+        });
+      }
+
+      // --- PIXEL LOUPE UPDATE ---
+      function updateLoupe() {
+        if (viewMode === 'rig' || (!draggingJoint && !hoveredJoint)) {
+          loupeWrap.style.display = 'none';
+          return;
+        }
+
+        const off = partCanvases[viewMode];
+        if (!off) return;
+
+        loupeWrap.style.display = 'block';
+        lCtx.clearRect(0, 0, 130, 130);
+
+        const targetJoint = draggingJoint || hoveredJoint;
+        const targetPt = targetJoint.pt;
+        if (!targetPt) return;
+
+        // Sample 15x15 window around targetPt
+        const sSize = 15;
+        const sx = targetPt.x - Math.floor(sSize / 2);
+        const sy = targetPt.y - Math.floor(sSize / 2);
+
+        lCtx.imageSmoothingEnabled = false;
+        lCtx.drawImage(off, sx, sy, sSize, sSize, 0, 0, 130, 130);
+
+        // Draw crosshair at center of loupe
+        lCtx.strokeStyle = '#ef4444';
+        lCtx.lineWidth = 1.5;
+        lCtx.beginPath();
+        lCtx.moveTo(65, 0); lCtx.lineTo(65, 130);
+        lCtx.moveTo(0, 65); lCtx.lineTo(130, 65);
+        lCtx.stroke();
+
+        lCtx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+        lCtx.strokeRect(60, 60, 10, 10);
+
+        document.getElementById('loupe-info').textContent = `${targetJoint.key}: [${targetPt.x}, ${targetPt.y}]`;
+      }
+
+      // --- ZOOM & PAN LOGIC ---
+      function updateZoomLabel() {
+        document.getElementById('zoom-label').textContent = Math.round(zoomLevel * 100) + '%';
+      }
+
+      function applyZoom(deltaFactor, centerScreenX = canvas.width / 2, centerScreenY = canvas.height / 2) {
+        const oldZoom = zoomLevel;
+        let newZoom = zoomLevel * deltaFactor;
+        newZoom = Math.max(0.15, Math.min(6.0, newZoom));
+
+        panX = (panX - (centerScreenX - canvas.width / 2)) * (newZoom / oldZoom) + (centerScreenX - canvas.width / 2);
+        panY = (panY - (centerScreenY - canvas.height / 2)) * (newZoom / oldZoom) + (centerScreenY - canvas.height / 2);
+
+        zoomLevel = newZoom;
+        updateZoomLabel();
+        render();
+      }
+
+      document.getElementById('btn-zoom-in').addEventListener('click', () => applyZoom(1.2));
+      document.getElementById('btn-zoom-out').addEventListener('click', () => applyZoom(1 / 1.2));
+      document.getElementById('btn-zoom-100').addEventListener('click', () => {
+        zoomLevel = 1.0;
+        panX = 0; panY = 0;
+        updateZoomLabel();
+        render();
+      });
+      document.getElementById('btn-zoom-fit').addEventListener('click', () => {
+        zoomLevel = (viewMode === 'rig') ? 1.0 : 1.2;
+        panX = 0; panY = 0;
+        updateZoomLabel();
+        render();
+      });
+
+      // Mouse Wheel Zoom
+      canvas.addEventListener('wheel', e => {
+        e.preventDefault();
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        const factor = e.deltaY < 0 ? 1.15 : (1 / 1.15);
+        applyZoom(factor, mouseX, mouseY);
+      }, { passive: false });
+
+      // Mode switch buttons
+      const btnModeJoint = document.getElementById('btn-mode-joint');
+      const btnModePan = document.getElementById('btn-mode-pan');
+
+      btnModeJoint.addEventListener('click', () => {
+        currentTool = 'joint';
+        btnModeJoint.classList.add('active');
+        btnModePan.classList.remove('active');
+        wrap.className = 'canvas-wrap move-joint';
+      });
+
+      btnModePan.addEventListener('click', () => {
+        currentTool = 'pan';
+        btnModePan.classList.add('active');
+        btnModeJoint.classList.remove('active');
+        wrap.className = 'canvas-wrap panning';
+      });
+
+      // --- MOUSE EVENTS: DRAGGING JOINTS & PANNING ---
+      canvas.addEventListener('mousemove', e => {
+        const rect = canvas.getBoundingClientRect();
+        mousePos.x = e.clientX - rect.left;
+        mousePos.y = e.clientY - rect.top;
+        document.getElementById('stat-mouse').textContent = `${Math.round(mousePos.x)}, ${Math.round(mousePos.y)}`;
+
+        // Panning actively
+        if (isDraggingPan) {
+          panX = mousePos.x - dragStart.x;
+          panY = mousePos.y - dragStart.y;
+          render();
+          return;
+        }
+
+        // Dragging a joint actively!
+        if (draggingJoint) {
+          draggingJoint.set(mousePos.x, mousePos.y);
+          readInputsIntoConfig();
+          render();
+          return;
+        }
+
+        // Painting on sprite actively
+        if (isMouseDown && (currentTool === 'pen' || currentTool === 'eraser' || currentTool === 'eyedropper')) {
+          paintAt(mousePos.x, mousePos.y);
+          render();
+          return;
+        }
+
+        // Check hover over joints
+        const joints = getJointsForCurrentView();
+        let found = null;
+        for (let j of joints) {
+          if (Math.hypot(j.screenX - mousePos.x, j.screenY - mousePos.y) <= 16) {
+            found = j;
+            break;
+          }
+        }
+
+        if (found !== hoveredJoint) {
+          hoveredJoint = found;
+          if (hoveredJoint) {
+            wrap.className = 'canvas-wrap move-joint';
+          } else if (currentTool === 'pan') {
+            wrap.className = 'canvas-wrap panning';
+          } else if (currentTool === 'pen' || currentTool === 'eraser') {
+            wrap.className = 'canvas-wrap drawing';
+          } else {
+            wrap.className = 'canvas-wrap';
+          }
+          render();
+        }
+      });
+
+      canvas.addEventListener('mousedown', e => {
+        const rect = canvas.getBoundingClientRect();
+        mousePos.x = e.clientX - rect.left;
+        mousePos.y = e.clientY - rect.top;
+        isMouseDown = true;
+
+        // Middle button, Right click, or Pan mode active -> Pan
+        if (e.button === 1 || e.button === 2 || e.shiftKey || currentTool === 'pan') {
+          isDraggingPan = true;
+          dragStart.x = mousePos.x - panX;
+          dragStart.y = mousePos.y - panY;
+          wrap.classList.add('panning');
+          return;
+        }
+
+        // Left Click on Joint Handle -> Grab and Drag!
+        if (hoveredJoint) {
+          draggingJoint = hoveredJoint;
+          selectedJointKey = hoveredJoint.key;
+          document.getElementById('stat-selected-joint').textContent = hoveredJoint.name;
+          wrap.className = 'canvas-wrap moving-joint';
+
+          // Highlight corresponding box in panel
+          document.querySelectorAll('.coord-box').forEach(b => {
+            b.classList.toggle('selected', b.dataset.joint === selectedJointKey);
+          });
+
+          render();
+          return;
+        }
+
+        // Click on Sprite to directly position selected joint!
+        if (viewMode !== 'rig' && currentTool === 'joint') {
+          const off = partCanvases[viewMode];
+          if (off) {
+            const cx = canvas.width / 2 + panX;
+            const cy = canvas.height / 2 + panY;
+            const w = off.width * zoomLevel;
+            const h = off.height * zoomLevel;
+            const left = cx - w / 2;
+            const top = cy - h / 2;
+
+            if (mousePos.x >= left && mousePos.x <= left + w && mousePos.y >= top && mousePos.y <= top + h) {
+              const sx = Math.round((mousePos.x - left) / zoomLevel);
+              const sy = Math.round((mousePos.y - top) / zoomLevel);
+
+              // Set the selected joint to this clicked pixel
+              const joints = getJointsForCurrentView();
+              const target = joints.find(j => j.key === selectedJointKey) || joints[0];
+              if (target) {
+                target.set(mousePos.x, mousePos.y);
+                readInputsIntoConfig();
+                showToast(`🎯 Đã ghim ${target.name} tại [${sx}, ${sy}]`);
+                render();
+                return;
+              }
+            }
+          }
+        }
+
+        // Painting tool
+        if (viewMode !== 'rig' && (currentTool === 'pen' || currentTool === 'eraser' || currentTool === 'eyedropper')) {
+          saveUndoSnapshot(viewMode);
+          paintAt(mousePos.x, mousePos.y);
+          render();
+        }
+      });
+
+      window.addEventListener('mouseup', () => {
+        isMouseDown = false;
+        isDraggingPan = false;
+        draggingJoint = null;
+        if (currentTool === 'pan') {
+          wrap.className = 'canvas-wrap panning';
+        } else if (hoveredJoint) {
+          wrap.className = 'canvas-wrap move-joint';
+        } else {
+          wrap.className = 'canvas-wrap';
+        }
+        render();
+      });
+
+      canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+      // Keyboard Nudge with Arrow Keys
+      window.addEventListener('keydown', e => {
+        if (!selectedJointKey || document.activeElement.tagName === 'INPUT') return;
+
+        const joints = getJointsForCurrentView();
+        const j = joints.find(item => item.key === selectedJointKey);
+        if (!j || !j.pt) return;
+
+        const step = e.shiftKey ? 5 : 1;
+        let handled = false;
+
+        if (e.key === 'ArrowLeft') { j.pt.x -= step; handled = true; }
+        else if (e.key === 'ArrowRight') { j.pt.x += step; handled = true; }
+        else if (e.key === 'ArrowUp') { j.pt.y -= step; handled = true; }
+        else if (e.key === 'ArrowDown') { j.pt.y += step; handled = true; }
+
+        if (handled) {
+          e.preventDefault();
+          syncCoordInputs();
+          readInputsIntoConfig();
+          render();
+        }
+      });
+
+      // --- PAINT ENGINE ---
+      function saveUndoSnapshot(partKey) {
+        const off = partCanvases[partKey];
+        if (!off) return;
+        const oCtx = off.getContext('2d');
+        const snap = oCtx.getImageData(0, 0, off.width, off.height);
+        if (!undoStacks[partKey]) undoStacks[partKey] = [];
+        undoStacks[partKey].push(snap);
+        if (undoStacks[partKey].length > 15) undoStacks[partKey].shift();
+      }
+
+      function undoLastStroke() {
+        if (viewMode === 'rig') return;
+        const stack = undoStacks[viewMode];
+        if (!stack || stack.length === 0) return;
+        const snap = stack.pop();
+        const off = partCanvases[viewMode];
+        if (off) {
+          const oCtx = off.getContext('2d');
+          oCtx.putImageData(snap, 0, 0);
+          render();
+          showToast('↩️ Đã hoàn tác nét vẽ!');
+        }
+      }
+
+      function paintAt(screenX, screenY) {
+        const off = partCanvases[viewMode];
+        if (!off) return;
+
+        const cx = canvas.width / 2 + panX;
+        const cy = canvas.height / 2 + panY;
+        const w = off.width * zoomLevel;
+        const h = off.height * zoomLevel;
+        const left = cx - w / 2;
+        const top = cy - h / 2;
+
+        const spriteX = (screenX - left) / zoomLevel;
+        const spriteY = (screenY - top) / zoomLevel;
+
+        const oCtx = off.getContext('2d');
+
+        if (currentTool === 'eyedropper') {
+          if (spriteX >= 0 && spriteX < off.width && spriteY >= 0 && spriteY < off.height) {
+            const pixel = oCtx.getImageData(Math.floor(spriteX), Math.floor(spriteY), 1, 1).data;
+            if (pixel[3] > 0) {
+              const hex = '#' + ((1 << 24) + (pixel[0] << 16) + (pixel[1] << 8) + pixel[2]).toString(16).slice(1);
+              brushColor = hex;
+              document.getElementById('draw-color-picker').value = hex;
+              setPaintTool('pen');
+              showToast(`💧 Đã lấy màu: ${hex}`);
+            }
+          }
+          return;
+        }
+
+        oCtx.save();
+        if (currentTool === 'eraser') {
+          oCtx.globalCompositeOperation = 'destination-out';
+          oCtx.fillStyle = '#000000';
+        } else {
+          oCtx.globalCompositeOperation = 'source-over';
+          oCtx.fillStyle = brushColor;
+        }
+
+        oCtx.beginPath();
+        oCtx.arc(spriteX, spriteY, brushSize / 2, 0, Math.PI * 2);
+        oCtx.fill();
+        oCtx.restore();
+      }
+
+      function setPaintTool(tool) {
+        currentTool = tool;
+        btnModeJoint.classList.remove('active');
+        btnModePan.classList.remove('active');
+        document.getElementById('btn-draw-pen').classList.toggle('active', tool === 'pen');
+        document.getElementById('btn-draw-eraser').classList.toggle('active', tool === 'eraser');
+        document.getElementById('btn-draw-eyedropper').classList.toggle('active', tool === 'eyedropper');
+        wrap.className = 'canvas-wrap drawing';
+      }
+
+      document.getElementById('btn-draw-pen').addEventListener('click', () => setPaintTool('pen'));
+      document.getElementById('btn-draw-eraser').addEventListener('click', () => setPaintTool('eraser'));
+      document.getElementById('btn-draw-eyedropper').addEventListener('click', () => setPaintTool('eyedropper'));
+      document.getElementById('btn-draw-undo').addEventListener('click', undoLastStroke);
+
+      document.getElementById('btn-draw-reset').addEventListener('click', async () => {
+        if (viewMode === 'rig') return;
+        if (!confirm(`Khôi phục lại ảnh sprite '${viewMode}' về bản gốc ban đầu?`)) return;
+
+        const pfx = (typeof window !== 'undefined' && window.ASSET_PREFIX) ? window.ASSET_PREFIX : '';
+        const originalPath = `${pfx}assets/character/${activeSkinId}/${viewMode}_original.png`;
+        
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = async () => {
+          const off = partCanvases[viewMode];
+          if (off) {
+            off.width = img.width;
+            off.height = img.height;
+            const oCtx = off.getContext('2d');
+            oCtx.clearRect(0, 0, off.width, off.height);
+            oCtx.drawImage(img, 0, 0);
+            render();
+
+            // Save back to server
+            const b64 = off.toDataURL('image/png');
+            await fetch('/api/upload-character-asset', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                skinId: activeSkinId,
+                partKey: viewMode,
+                imageData: b64
+              })
+            });
+            showToast(`✅ Đã khôi phục lại sprite '${viewMode}' gốc ban đầu!`);
+          }
+        };
+        img.onerror = () => {
+          showToast(`❌ Không tìm thấy bản gốc của sprite này`, true);
+        };
+        img.src = originalPath + '?t=' + Date.now();
+      });
+
+      window.addEventListener('keydown', e => {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+          if (viewMode !== 'rig' && document.activeElement.tagName !== 'INPUT') {
+            e.preventDefault();
+            undoLastStroke();
+          }
+        }
+      });
+
+      document.getElementById('draw-color-picker').addEventListener('input', e => {
+        brushColor = e.target.value;
+        setPaintTool('pen');
+      });
+
+      document.querySelectorAll('.swatch').forEach(sw => {
+        sw.addEventListener('click', () => {
+          brushColor = sw.dataset.color;
+          document.getElementById('draw-color-picker').value = brushColor;
+          setPaintTool('pen');
+        });
+      });
+
+      // Save Painted Sprite to disk
+      document.getElementById('btn-save-painted-sprite').addEventListener('click', async () => {
+        if (viewMode === 'rig') return;
+        const off = partCanvases[viewMode];
+        if (!off) return;
+
+        const b64 = off.toDataURL('image/png');
+        showToast('⏳ Đang lưu ảnh sprite vào file...');
+
+        try {
+          const res = await fetch('/api/upload-character-asset', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              skinId: activeSkinId,
+              partKey: viewMode,
+              imageData: b64
+            })
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            showToast(`✅ Đã lưu ảnh sprite '${viewMode}' thành công!`);
+          } else {
+            showToast(`❌ Lỗi: ${data.message}`, true);
+          }
+        } catch (e) {
+          showToast(`❌ Lỗi kết nối: ${e.message}`, true);
+        }
+      });
+
+      // --- ASSET UPLOAD & REPLACE LOGIC ---
+      const fileInput = document.getElementById('asset-file-input');
+
+      document.querySelectorAll('.btn-change-asset').forEach(btn => {
+        btn.addEventListener('click', () => {
+          uploadTargetPart = btn.dataset.part;
+          fileInput.click();
+        });
+      });
+
+      fileInput.addEventListener('change', async e => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = async evt => {
+          const b64 = evt.target.result;
+          showToast(`⏳ Đang tải lên asset '${uploadTargetPart}'...`);
+
+          try {
+            const res = await fetch('/api/upload-character-asset', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                skinId: activeSkinId,
+                partKey: uploadTargetPart,
+                imageData: b64
+              })
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+              showToast(`✅ Đã cập nhật asset '${uploadTargetPart}'!`);
+              currentConfig.sprites[uploadTargetPart] = data.path;
+              document.getElementById(`path-${uploadTargetPart}`).textContent = data.path;
+              loadImagesForSkin(currentConfig.sprites);
+            } else {
+              showToast(`❌ Lỗi khi tải ảnh: ${data.message}`, true);
+            }
+          } catch (err) {
+            showToast(`❌ Lỗi: ${err.message}`, true);
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+
+      // Direct edit button
+      document.querySelectorAll('.btn-edit-asset').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const part = btn.dataset.part;
+          document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+          const targetTab = document.querySelector(`.tab-btn[data-mode="${part}"]`);
+          if (targetTab) targetTab.classList.add('active');
+          viewMode = part;
+          zoomLevel = 1.4;
+          panX = 0; panY = 0;
+          updateZoomLabel();
+          render();
+        });
+      });
+
+      // --- CREATE NEW SKIN MODAL ---
+      document.getElementById('btn-new-skin').addEventListener('click', () => {
+        const skinName = prompt('Nhập tên nhân vật mới (ví dụ: Chàng Trai Thái Lễ Hội):');
+        if (!skinName) return;
+
+        const rawId = prompt('Nhập mã skin ID (chỉ chữ thường và gạch dưới, ví dụ: p4_nam_thai):', 'p4_' + Date.now().toString().slice(-4));
+        if (!rawId) return;
+
+        const newId = rawId.trim().toLowerCase().replace(/[^a-z0-9_]/g, '_');
+
+        const newSkinConfig = JSON.parse(JSON.stringify(currentConfig));
+        newSkinConfig.id = newId;
+        newSkinConfig.name = skinName;
+        newSkinConfig.sprites = {
+          body: `assets/character/${newId}/body.png`,
+          upper_arm: `assets/character/${newId}/upper_arm_unified.png`,
+          forearm: `assets/character/${newId}/forearm.png`,
+          hand: `assets/character/${newId}/hand.png`
+        };
+
+        const opt = document.createElement('option');
+        opt.value = newId;
+        opt.textContent = `${skinName} (${newId})`;
+        document.getElementById('select-skin').appendChild(opt);
+        document.getElementById('select-skin').value = newId;
+
+        fetch('/api/save-character-config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            skinId: newId,
+            config: newSkinConfig
+          })
+        }).then(() => {
+          showToast(`✅ Đã tạo nhân vật mới '${skinName}'! Hãy đổi ảnh asset của nhân vật.`);
+          loadSkinData(newId);
+        });
+      });
+
+      // --- VIEWPORT TAB SWITCHING ---
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          viewMode = btn.dataset.mode;
+          zoomLevel = (viewMode === 'rig') ? 1.0 : 1.3;
+          panX = 0; panY = 0;
+          updateZoomLabel();
+          render();
+        });
+      });
+
+      // Toolbar checkboxes
+      document.getElementById('chk-show-bones').addEventListener('change', e => {
+        showBones = e.target.checked;
+        render();
+      });
+      document.getElementById('chk-live-ik').addEventListener('change', e => {
+        isLiveIK = e.target.checked;
+        render();
+      });
+
+      // Skin Selector Dropdown
+      document.getElementById('select-skin').addEventListener('change', e => {
+        loadSkinData(e.target.value);
+      });
+
+      // Open Game button
+      document.getElementById('btn-open-game').addEventListener('click', () => {
+        window.open('index.html', '_blank');
+      });
+
+      // --- AUTO-SAVE TO BACKEND (/api/save-character-config) ---
+      const btnSave = document.getElementById('btn-save-config');
+      const toast = document.getElementById('toast');
+
+      function showToast(msg, isError = false) {
+        toast.textContent = msg;
+        toast.className = `toast show ${isError ? 'error' : ''}`;
+        setTimeout(() => {
+          toast.className = 'toast';
+        }, 3200);
+      }
+
+      btnSave.addEventListener('click', async () => {
+        if (!currentConfig) return;
+        readInputsIntoConfig();
+
+        btnSave.disabled = true;
+        btnSave.textContent = '⏳ ĐANG LƯU...';
+
+        try {
+          const res = await fetch('/api/save-character-config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              skinId: activeSkinId,
+              config: currentConfig
+            })
+          });
+
+          const data = await res.json();
+          if (res.ok && data.success) {
+            showToast(`✅ Đã lưu cấu hình '${currentConfig.name}' vào file!`);
+          } else {
+            showToast(`❌ Lỗi khi lưu: ${data.message || 'Không rõ lỗi'}`, true);
+          }
+        } catch (err) {
+          showToast(`❌ Lỗi kết nối máy chủ: ${err.message}`, true);
+        } finally {
+          btnSave.disabled = false;
+          btnSave.textContent = '💾 LƯU CẤU HÌNH TỰ ĐỘNG';
+        }
+      });
+
+      // Drag & Drop image files directly onto Canvas
+      window.addEventListener('dragover', e => e.preventDefault());
+      window.addEventListener('drop', e => {
+        e.preventDefault();
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+          const file = e.dataTransfer.files[0];
+          if (file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = evt => {
+              const b64 = evt.target.result;
+              const target = (viewMode === 'rig') ? 'body' : viewMode;
+              fetch('/api/upload-character-asset', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  skinId: activeSkinId,
+                  partKey: target,
+                  imageData: b64
+                })
+              }).then(res => res.json()).then(data => {
+                if (data.success) {
+                  showToast(`✅ Đã cập nhật ảnh '${target}' từ file kéo thả!`);
+                  currentConfig.sprites[target] = data.path;
+                  document.getElementById(`path-${target}`).textContent = data.path;
+                  loadImagesForSkin(currentConfig.sprites);
+                }
+              });
+            };
+            reader.readAsDataURL(file);
+          }
+        }
+      });
+
+      // --- INITIAL START ---
+      resizeCanvas();
+      loadSkinData(activeSkinId);
+
+    })();
+  </script>
+</body>
+</html>

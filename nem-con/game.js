@@ -1499,8 +1499,9 @@
       // - Single-player rig (customizable via skin modal)
       // - Player 1 Rig: Chàng trai Mường (left side, anchor X = 220)
       // - Player 2 Rig: Cô gái Thái (right side, anchor X = 2580, mirrored)
-      this.rig = new CharacterRig();
-      this.rigP1 = new CharacterRig('nam_tay_khoe_khoan', P1_ANCHOR_X);
+      const activeSkinId = (typeof CHARACTER_CONFIG !== 'undefined') ? CHARACTER_CONFIG.getActiveSkinId() : 'p3_nu_ao_vang';
+      this.rig = new CharacterRig(activeSkinId);
+      this.rigP1 = new CharacterRig(activeSkinId, P1_ANCHOR_X);
       this.rigP2 = new CharacterRig('nu_tay_truyen_thong', P2_ANCHOR_X);
 
       // UI Elements
@@ -2814,23 +2815,31 @@
       // Load new skin assets
       const charAssets = CHARACTER_CONFIG.getCharacterAssetEntries(skinId);
       await Promise.all(charAssets.map(item => {
-        return new Promise(resolve => {
+        return new Promise(pResolve => {
           const img = new Image();
           img.onload = () => {
             this.assets[item.key] = img;
-            resolve();
+            pResolve();
           };
           img.onerror = () => {
-            resolve();
+            pResolve();
           };
-          img.src = resolve(item.src);
+          img.src = item.src;
         });
       }));
 
-      // Update Character Rig
+      // Update Character Rigs & Assets for Player 1
       this.rig.setSkin(cfg);
+      this.rigP1.setSkin(cfg);
+      this.assetsP1 = {
+        body: this.assets.body,
+        upper_arm: this.assets.upper_arm,
+        forearm: this.assets.forearm,
+        hand: this.assets.hand
+      };
       if (this.state === STATE.IDLE || this.state === STATE.LOADING) {
-        this.cord.reset(this.rig.handGripX, this.rig.handGripY);
+        const activeRig = (this.isMultiplayerMode && this.currentTurn === 2) ? this.rigP2 : (this.isMultiplayerMode ? this.rigP1 : this.rig);
+        this.cord.reset(activeRig.handGripX, activeRig.handGripY);
       }
       this.updateSkinUI();
     }
@@ -2955,10 +2964,10 @@
           this.assetsLoaded++;
           if (this.assetsLoaded === this.totalAssets) {
             this.assetsP1 = {
-              body: this.assets.p1_body,
-              upper_arm: this.assets.p1_upper_arm,
-              forearm: this.assets.p1_forearm,
-              hand: this.assets.p1_hand
+              body: this.assets.body,
+              upper_arm: this.assets.upper_arm,
+              forearm: this.assets.forearm,
+              hand: this.assets.hand
             };
             this.assetsP2 = {
               body: this.assets.p2_body,
