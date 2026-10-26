@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Trình diễn Biomechanic & Khớp Nối Đẩy Gậy (OpenToonz)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700;800&family=Noto+Serif:wght@400;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .showcase {
+      display: grid;
+      gap: 24px;
+      margin-top: 16px;
+    }
+    .panel-card {
+      background: linear-gradient(135deg, #2b190fee, #191009ee);
+      border: 1px solid var(--gold);
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+    .panel-card h2 {
+      font-family: 'Noto Serif', serif;
+      color: var(--gold);
+      margin-top: 0;
+      margin-bottom: 8px;
+      font-size: 20px;
+    }
+    .panel-card p {
+      color: var(--paper);
+      margin: 0 0 16px;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .canvas-wrap {
+      position: relative;
+      border: 2px solid #926322;
+      border-radius: 6px;
+      overflow: hidden;
+      background: #4d6739;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+    .badge-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      background: #39230f;
+      border: 1px solid #c89e47;
+      color: #ffe6a3;
+    }
+    .badge.active {
+      background: var(--gold);
+      color: #2b1708;
+    }
+    .toolbar {
+      display: flex;
+      gap: 12px;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <a href="../index.html" title="Trở về Trang Chủ">← Trang chủ</a>
+    <div>
+      <span class="eyebrow">HỌC HỎI CƠ CHẾ OPENTOONZ · KHỚP NỐI & BIOMECHANICS</span>
+      <h1>ĐẨY GẬY · CÁC THẾ ĐỘNG LỰC HỌC</h1>
+    </div>
+    <a href="index.html" class="button" style="text-decoration:none;padding:8px 16px;border:1px solid var(--gold);border-radius:4px;background:var(--gold);color:#2b1708;font-weight:700;">Vào Game Chơi →</a>
+  </header>
+
+  <div class="showcase">
+    <!-- Panel 1: DƯỚN CAO vs HẠ TẤN -->
+    <div class="panel-card">
+      <div class="badge-bar">
+        <span class="badge active">1. Biomechanics</span>
+        <span class="badge">P1: Dướn Cao (Công)</span>
+        <span class="badge">P2: Hạ Tấn (Thủ)</span>
+      </div>
+      <h2>Thế 1: P1 Dướn Cao Vươn Người · P2 Hạ Tấn Trụ Vững</h2>
+      <p>Áp dụng hình học động lực học: Bên tấn công (P1) đẩy hông và sống lưng dướn cao lên <b>-26px</b>, nghiêng thân đổ dồn trọng tâm về trước <b>+0.18 rad</b>. Bên phòng thủ (P2) hạ tấn sâu <b>+32px</b> ghì sát mặt sàn, ngửa người chống lực <b>-0.12 rad</b>.</p>
+      <div class="canvas-wrap">
+        <canvas id="canvas-duon" width="1447" height="616"></canvas>
+      </div>
+    </div>
+
+    <!-- Panel 2: CÙNG DƯỚN & GẬY ĐẨY THẲNG -->
+    <div class="panel-card">
+      <div class="badge-bar">
+        <span class="badge active">2. Mutual Clash</span>
+        <span class="badge">Cùng Dướn</span>
+        <span class="badge">Straight Stick Direct Joint</span>
+        <span class="badge">Muscle Tremor</span>
+      </div>
+      <h2>Thế 2: Cả Hai Cùng Dướn Lực · Gậy Đẩy Thẳng & Nối Trực Tiếp</h2>
+      <p>Khi cả 2 võ sĩ cùng kích hoạt tấn công tối đa (giằng co cao độ): Cả 2 cùng dướn cao thân người ghì chặt gậy. Thân gậy tre thẳng tắp nối trực tiếp giữa hai bàn tay đối kháng (nửa trắng P1 tiếp giáp trực tiếp nửa đỏ P2, không dùng vòng khớp nối trung gian), cơ bắp gồng đầm chắc với rung chấn vi mô tinh tế.</p>
+      <div class="canvas-wrap">
+        <canvas id="canvas-clash" width="1447" height="616"></canvas>
+      </div>
+    </div>
+
+    <!-- Panel 3: BƯỚC CHÂN RỘNG TIẾN VỀ TRƯỚC -->
+    <div class="panel-card">
+      <div class="badge-bar">
+        <span class="badge active">3. Walking Gait</span>
+        <span class="badge">Sải Bước Chân Rộng Về Trước</span>
+        <span class="badge">Đảo Chân Luân Phiên (Trái → Phải)</span>
+        <span class="badge">Dust Stomp Particles</span>
+      </div>
+      <h2>Thế 3: Tiến Sân Sải Bước Rộng Về Trước & Bước Chân Luân Phiên</h2>
+      <p>Bên chiếm ưu thế tiến bước mạnh mẽ: chân sau (Trái) vung sải dài +110px về phía trước rồi hạ gót, nhịp tiếp theo chân trước (Phải) dấn sâu +105px lao tới dồn sức ép, thân người dướn theo từng bước tiến. Không có bóng nền thừa, nhân vật thu gọn tỷ lệ cân đối hoàn hảo trong vòng đấu.</p>
+      <div class="canvas-wrap">
+        <canvas id="canvas-walk" width="1447" height="616"></canvas>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script defer src="preview.js"></script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#241c19">
+  <title>Đẩy gậy · Sơn Mạch</title>
+  <link rel="stylesheet" href="style.css?v=ssg105">
+  <script src="../shared/game-loader.js?v=1"></script>
+</head>
+<body>
+  <main class="game-shell">
+    <header>
+      <a href="../index.html" title="Trở về Trang Chủ">← Trang chủ</a>
+      <div class="brand"><h1>ĐẨY GẬY</h1></div>
+      <div class="tools">
+        <a href="../tro-choi/?game=day-gay" class="tool-link" title="Khám phá văn hóa Đẩy Gậy" style="color: #edc35b; text-decoration: none; font-size: 13px; font-weight: 600; padding: 4px 8px; border: 1px solid rgba(237, 195, 91, 0.4); border-radius: 4px;">Văn hóa ↗</a>
+        <button id="help">Cách chơi</button>
+        <button id="sound" aria-label="Bật âm thanh" aria-pressed="false" title="Bật âm thanh">♪</button>
+        <button id="pause" disabled>Tạm dừng</button>
+      </div>
+    </header>
+
+    <section class="arena" aria-label="Sân thi đấu đẩy gậy">
+      <canvas id="scene" width="960" height="540" aria-label="Hai người chơi ghì gậy trên sân hội pixel"></canvas>
+      <div class="scoreboard">
+        <div class="team blue"><span id="name1">BẠN</span><b id="score1">○ ○</b></div>
+        <div class="clock"><small id="round">HIỆP 1</small><strong id="clock">25</strong></div>
+        <div class="team red"><span id="name2">ĐỐI THỦ</span><b id="score2">○ ○</b></div>
+      </div>
+      <div class="callout" id="callout" aria-live="polite"></div>
+
+      <div id="overlay" class="overlay">
+        <div class="panel">
+          <h2 id="panel-title">Giữ thế.<br>Chớp thời cơ.</h2>
+          <p id="panel-copy">Bám vùng vàng để đẩy đối thủ khỏi vòng. Thắng 2 hiệp để thắng trận.</p>
+          <div id="setup">
+            <fieldset>
+              <legend class="sr-only">Chế độ chơi</legend>
+              <div class="choices">
+                <button data-mode="bot" aria-pressed="true">Đấu máy</button>
+                <button data-mode="versus" aria-pressed="false">2 người</button>
+              </div>
+            </fieldset>
+            <fieldset id="difficulty">
+              <legend>Độ khó</legend>
+              <div class="choices">
+                <button data-level="easy" aria-pressed="false">Làm quen</button>
+                <button data-level="normal" aria-pressed="true">Thử sức</button>
+                <button data-level="hard" aria-pressed="false">Cao thủ</button>
+              </div>
+            </fieldset>
+          </div>
+          <button id="start" class="primary">Vào sân →</button>
+          <button id="menu" class="text-button" hidden>Đổi chế độ</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="controls" aria-label="Điều khiển">
+      <div class="control" id="control1">
+        <div class="meter-label"><b id="label1">LỰC CỦA BẠN</b><span id="quality1">Bám vùng vàng</span></div>
+        <div class="meter"><div class="target" id="target1"><i></i></div><div class="needle" id="needle1"></div></div>
+        <button class="hold" id="hold1"><kbd>SPACE</kbd><strong>Giữ tăng · Thả giảm</strong></button>
+      </div>
+      <div class="control" id="control2" hidden>
+        <div class="meter-label"><b>NGƯỜI CHƠI 2</b><span id="quality2">Bám vùng vàng</span></div>
+        <div class="meter"><div class="target" id="target2"><i></i></div><div class="needle" id="needle2"></div></div>
+        <button class="hold red-hold" id="hold2"><kbd>↑</kbd><strong>Giữ tăng · Thả giảm</strong></button>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="guide">
+    <button id="close-guide" aria-label="Đóng hướng dẫn">×</button>
+    <h2>Cách chơi</h2>
+    <ol>
+      <li><b>Giữ để tăng, thả để giảm.</b> Con trỏ trắng là mức lực của bạn.</li>
+      <li><b>Bám vùng vàng.</b> Ở ngoài vùng, bạn mất thế và bị đối thủ đẩy lùi.</li>
+      <li><b>Nhắm tâm sáng.</b> Giữ đúng tâm liên tục để tung một đợt dồn lực. Sau đó cần hồi thế trước lần tiếp theo.</li>
+      <li><b>Đẩy đối thủ khỏi vòng.</b> Hết giờ, bên chiếm ưu thế thắng hiệp. Thắng hai hiệp để thắng trận.</li>
+    </ol>
+    <p>Hai người: P1 giữ phím <b>A</b>, P2 giữ <b>↑</b>; trên màn hình cảm ứng mỗi người giữ nút riêng. Phím <b>Esc</b> tạm dừng.</p>
+    <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.15); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+      <a href="../tro-choi/?game=day-gay" style="color: #edc35b; text-decoration: none; font-weight: 600;">📖 Nét đẹp văn hóa Đẩy Gậy ↗</a>
+      <a href="../van-hoa.html" style="color: #a3e635; text-decoration: none; font-size: 13px;">🌾 Chuyên trang Sắc Việt ↗</a>
+    </div>
+  </dialog>
+
+  <script src="engine.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>

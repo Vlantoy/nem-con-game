@@ -2,827 +2,211 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Lễ Hội Ném Còn - Trò Chơi Dân Gian Việt Nam</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>SẮC VIỆT — Tinh Hoa Trò Chơi Dân Gian Việt Nam</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="homepage.css?v=20261022_final">
 </head>
 <body>
-  <div id="game-container">
-    <!-- Top HUD Bar -->
-    <header id="hud-top">
-      <!-- 1. Left: Stylized Ném Còn Graphic Logo (Overhanging slightly into background) -->
-      <div class="hud-logo-wrap">
-        <img src="assets/items/logo_nem_con.png" alt="Ném Còn Dân Tộc" class="hud-game-logo" id="hud-game-logo" title="Ném Còn Dân Tộc - Lễ Hội Lồng Tồng">
+  <div class="homepage-container">
+    <div class="homepage-stage" id="homepage-stage">
+      
+      <!-- ENDLESS SEAMLESS SCROLLING BACKGROUND -->
+      <div class="endless-bg-track" id="endless-bg-track" aria-hidden="true">
+        <img src="assets/ui/seamless_panorama.png" class="endless-bg-img" alt="">
+        <img src="assets/ui/seamless_panorama.png" class="endless-bg-img" alt="">
       </div>
 
-      <!-- 2. Center: Prominent Centered Score Displays -->
-      <div class="hud-center-score-wrap">
-        <!-- 1-Player Standard Score Group -->
-        <div class="hud-group single-score-group" id="single-hud-group">
-          <div class="hud-card score-card-main">
-            <span class="hud-label">ĐIỂM SỐ</span>
-            <span id="score-val" class="hud-num">0</span>
-          </div>
-          <div class="hud-card">
-            <span class="hud-label">KỶ LỤC</span>
-            <span id="highscore-val" class="hud-num">0</span>
-          </div>
-          <div class="hud-card" id="streak-card">
-            <span class="hud-label">CHUỖI</span>
-            <span id="streak-val" class="hud-num">0</span>
-          </div>
-        </div>
-
-        <!-- 2-Player Versus Scoreboard (Thi đấu 1v1 đối kháng 10 điểm) -->
-        <div class="hud-group versus-scoreboard" id="versus-hud-group" style="display: none;">
-          <div class="player-hud-card p1-hud-card active" id="p1-hud-card">
-            <span class="p-avatar">👦</span>
-            <div class="p-info">
-              <span class="p-name">NGƯỜI CHƠI 1</span>
-              <span class="p-score" id="p1-score-display">0 / 10</span>
-            </div>
-          </div>
-          <div class="versus-vs-badge">
-            <span class="vs-label">⚔️ ĐỐI ĐẦU</span>
-            <span class="turn-badge" id="hud-turn-badge">LƯỢT P1</span>
-          </div>
-          <div class="player-hud-card p2-hud-card" id="p2-hud-card">
-            <span class="p-avatar">👧</span>
-            <div class="p-info">
-              <span class="p-name">NGƯỜI CHƠI 2</span>
-              <span class="p-score" id="p2-score-display">0 / 10</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 3. Right: Minimalist Audio & Unified Menu -->
-      <div class="hud-right-wrap">
-        <button id="btn-audio" class="btn-tool btn-audio-mini" title="Bật/Tắt âm thanh">
-          <span class="icon" id="audio-icon">🔊</span>
+      <!-- TOP UTILITY CONTROLS (ÂM THANH & CÀI ĐẶT) -->
+      <div class="top-controls">
+        <button type="button" class="ctrl-btn btn-audio" id="btn-audio-toggle" title="Âm thanh hội xuân (Bật/Tắt)" aria-label="Bật tắt âm thanh">
+          <img src="assets/ui/btn_audio_pixel.png" alt="Âm thanh" id="img-audio-state" class="ctrl-icon-pixel">
         </button>
+        <button type="button" class="ctrl-btn btn-settings" id="btn-settings-toggle" title="Cài đặt & Điểm kỷ lục" aria-label="Cài đặt">
+          <img src="assets/ui/btn_settings_pixel.png" alt="Cài đặt" class="ctrl-icon-pixel">
+        </button>
+      </div>
 
-        <div class="menu-dropdown-container">
-          <button id="btn-menu-toggle" class="btn-tool btn-menu-toggle" title="Menu chức năng & Tùy chọn">
-            <span class="icon">☰</span> <span class="btn-text" id="menu-toggle-label">MENU</span>
-          </button>
+      <!-- AMBIENT FLOATING PETALS -->
+      <div class="ambient-particles" id="ambient-particles" aria-hidden="true"></div>
 
-          <!-- Dropdown Menu Box -->
-          <div id="hud-menu-dropdown" class="hud-menu-dropdown hidden">
-            <div class="menu-sec-title">CHẾ ĐỘ</div>
-            <div class="menu-mode-list">
-              <button class="menu-btn-item active" id="btn-bot">
-                <span class="icon">🤖</span>
-                <span class="label" id="bot-label">Bot</span>
-              </button>
+      <!-- 1. HEADER LOGO "SẮC VIỆT" -->
+      <div class="layer-logo-wrap" id="logo-layer" title="Sắc Việt — Tinh hoa Trò chơi Dân gian Việt Nam" role="banner">
+        <img src="assets/ui/layer_logo_sac_viet.png" alt="SẮC VIỆT" class="layer-img logo-img" decoding="async">
+      </div>
 
-              <button class="menu-btn-item" id="btn-versus">
-                <span class="icon">👥</span>
-                <span class="label" id="versus-label">2 Người</span>
-              </button>
+      <!-- 2. CAROUSEL NAVIGATION ARROWS (MŨI TÊN TAM GIÁC HOÀNG KIM) -->
+      <button type="button" class="carousel-arrow btn-arrow-prev" id="btn-slide-prev" title="Trò chơi trước (Phím ←)" aria-label="Trò chơi trước">
+        <img src="assets/ui/btn_arrow_left.png" alt="Trước" class="arrow-img" decoding="async">
+      </button>
 
-              <button class="menu-btn-item" id="btn-mode-single">
-                <span class="icon">🎯</span>
-                <span class="label">1 Người</span>
-              </button>
-            </div>
+      <button type="button" class="carousel-arrow btn-arrow-next" id="btn-slide-next" title="Trò chơi tiếp theo (Phím →)" aria-label="Trò chơi tiếp theo">
+        <img src="assets/ui/btn_arrow_right.png" alt="Tiếp" class="arrow-img" decoding="async">
+      </button>
 
-            <div class="menu-hr"></div>
+      <!-- 3. MULTI-GAME CAROUSEL VIEWPORT (TẤT CẢ 6 GAME VỚI HIỆU ỨNG SLIDE, BLUR VÀ HÀO QUANG) -->
+      <div class="carousel-viewport" id="carousel-viewport" role="region" aria-label="Danh sách trò chơi dân gian">
+        <!-- CARD 1: NÉM CÒN (INDEX 0) -->
+        <div class="card-item slot-center selected" id="card-nem-con" data-game="nem-con" data-index="0" tabindex="0" role="button" aria-label="Ném Còn Dân Tộc">
+          <img src="assets/ui/card_1_nem_con.png" alt="Ném Còn" class="layer-img card-img" decoding="async">
+        </div>
 
-            <div class="menu-sec-title">ĐỘ KHÓ</div>
-            <div class="menu-diff-pills" id="menu-diff-pills" style="margin-bottom: 8px;">
-              <button class="diff-pill" data-diff="easy" id="diff-pill-easy">Dễ</button>
-              <button class="diff-pill active" data-diff="medium" id="diff-pill-medium">Vừa</button>
-              <button class="diff-pill" data-diff="hard" id="diff-pill-hard">Khó</button>
-            </div>
+        <!-- CARD 2: ĐẨY GẬY (INDEX 1) -->
+        <div class="card-item slot-right" id="card-day-gay" data-game="day-gay" data-index="1" tabindex="0" role="button" aria-label="Đẩy Gậy Đối Kháng">
+          <img src="assets/ui/card_2_day_gay.png" alt="Đẩy Gậy" class="layer-img card-img" decoding="async">
+        </div>
 
-            <div class="menu-hr"></div>
+        <!-- CARD 3: NHẢY SẠP (INDEX 2) -->
+        <div class="card-item slot-hidden-right" id="card-nhay-sap" data-game="nhay-sap" data-index="2" tabindex="0" role="button" aria-label="Nhảy Sạp Vùng Cao">
+          <img src="assets/ui/card_3_nhay_sap.png" alt="Nhảy Sạp" class="layer-img card-img" decoding="async">
+        </div>
 
-            <div class="menu-sec-title">TÙY CHỌN</div>
-            <div class="menu-opt-grid">
-              <button class="menu-opt-btn" id="btn-skin">
-                <span class="icon">👘</span>
-                <span class="label" id="skin-label">Nhân Vật</span>
-              </button>
-              <button class="menu-opt-btn" id="btn-grip">
-                <span class="icon">🧵</span>
-                <span class="label" id="grip-label">Đuôi Dây</span>
-              </button>
-              <button class="menu-opt-btn" id="btn-help">
-                <span class="icon">📖</span>
-                <span class="label">Hướng Dẫn</span>
-              </button>
-              <button class="menu-opt-btn" id="btn-culture">
-                <span class="icon">🌾</span>
-                <span class="label">Văn Hóa</span>
-              </button>
-            </div>
+        <!-- CARD 4: ĐI CÀ KHEO (INDEX 3) -->
+        <div class="card-item slot-hidden-back" id="card-ca-kheo" data-game="ca-kheo" data-index="3" tabindex="0" role="button" aria-label="Đi Cà Kheo Khéo Léo">
+          <img src="assets/ui/card_4_ca_kheo.png" alt="Đi Cà Kheo" class="layer-img card-img" decoding="async">
+        </div>
 
-            <div class="menu-hr"></div>
+        <!-- CARD 5: BẮN NỎ (INDEX 4) -->
+        <div class="card-item slot-hidden-left" id="card-ban-no" data-game="ban-no" data-index="4" tabindex="0" role="button" aria-label="Bắn Nỏ Thiện Xạ">
+          <img src="assets/ui/card_5_ban_no.png" alt="Bắn Nỏ" class="layer-img card-img" decoding="async">
+        </div>
 
-            <button class="menu-opt-btn dev-toggle-btn" id="btn-dev-test" style="width: 100%; margin-bottom: 6px; background: rgba(30, 41, 59, 0.8); border: 1px dashed #38bdf8; color: #38bdf8;">
-              <span class="icon">🛠️</span>
-              <span class="label">Dev Test Chiêu</span>
-            </button>
-
-            <button class="menu-reset-btn" id="btn-reset">
-              <span class="icon">🔄</span> Chơi Lại Lượt Này
-            </button>
-          </div>
+        <!-- CARD 6: ĐÁNH QUAY / NÉM QUAY (INDEX 5) -->
+        <div class="card-item slot-left" id="card-danh-quay" data-game="danh-quay" data-index="5" tabindex="0" role="button" aria-label="Ném Quay - Đánh Cù">
+          <img src="assets/ui/card_6_danh_quay.png" alt="Ném Quay" class="layer-img card-img" decoding="async">
         </div>
       </div>
-    </header>
 
-    <!-- Main Canvas Viewport -->
-    <div id="canvas-wrapper">
-      <canvas id="gameCanvas" width="1672" height="941"></canvas>
-
-      <!-- Player 1 Skills Tray (Top-Left Corner - Vertical Compact) -->
-      <div id="p1-skills-tray" class="skills-tray p1-tray" style="display: none;">
-        <div class="tray-header">
-          <span class="tray-icon">⚡</span>
-          <span class="tray-title">P1</span>
-          <span class="tray-dot turn-active" id="p1-tray-dot" title="Lượt của bạn"></span>
-        </div>
-        <div class="skills-slots" id="p1-skills-slots">
-          <!-- Dynamically populated 3 random skill icons -->
-        </div>
-        <div class="tray-status-badge" id="p1-tray-status"></div>
+      <!-- CAROUSEL INDICATOR DOTS -->
+      <div class="carousel-dots" id="carousel-dots" aria-hidden="true">
+        <span class="dot active" data-dot="0"></span>
+        <span class="dot" data-dot="1"></span>
+        <span class="dot" data-dot="2"></span>
+        <span class="dot" data-dot="3"></span>
+        <span class="dot" data-dot="4"></span>
+        <span class="dot" data-dot="5"></span>
       </div>
 
-      <!-- Player 2 / Bot Skills Tray (Top-Right Corner - Vertical Compact) -->
-      <div id="p2-skills-tray" class="skills-tray p2-tray" style="display: none;">
-        <div class="tray-header">
-          <span class="tray-icon">⚡</span>
-          <span class="tray-title" id="p2-tray-title">BOT</span>
-          <span class="tray-dot" id="p2-tray-dot" title="Chờ lượt"></span>
-        </div>
-        <div class="skills-slots" id="p2-skills-slots">
-          <!-- Dynamically populated 3 random skill icons -->
-        </div>
-        <div class="tray-status-badge" id="p2-tray-status"></div>
-      </div>
+      <!-- 4. ACTION BUTTONS (CHƠI NGAY & KHÁM PHÁ VĂN HÓA) -->
+      <!-- NÚT CHƠI NGAY -->
+      <a href="nem-con/index.html" class="action-btn btn-play" id="btn-play-game" title="Bắt đầu trò chơi đã chọn">
+        <img src="assets/ui/btn_play_sac_viet.png" alt="CHƠI NGAY" class="layer-img btn-img" decoding="async">
+      </a>
 
-      <!-- Floating Score Announcement Popup -->
-      <div id="announcement-banner">
-        <div id="announce-title"></div>
-        <div id="announce-score"></div>
-      </div>
+      <!-- NÚT KHÁM PHÁ VĂN HÓA -->
+      <a href="van-hoa.html" class="action-btn btn-culture" id="btn-kham-pha" title="Tìm hiểu nét đẹp văn hóa dân gian">
+        <img src="assets/ui/btn_culture_sac_viet.png" alt="KHÁM PHÁ VĂN HÓA" class="layer-img btn-img" decoding="async">
+      </a>
 
-      <!-- Skill Card Visual Popups (Replaces text banners for skill triggers) -->
-      <div id="skill-card-popups" class="skill-card-popups-container"></div>
-
-    </div>
-
-    <!-- Bottom Status / Dynamic Culture Ticker Footer -->
-    <footer id="hud-bottom">
-      <div class="tip-box" id="culture-ticker" title="Nhấp để khám phá nét đẹp văn hóa lễ hội">
-        <span class="tip-badge" id="ticker-badge">🌾 GÓC VĂN HÓA:</span>
-        <span class="tip-text" id="ticker-text">Cột còn cao từ 15 - 30m bằng thân tre già vươn thẳng, tượng trưng cho trục vũ trụ nối Đất với Trời.</span>
-      </div>
-      <div class="footer-stats">
-        <span>Lượt ném: <strong id="throws-count">0</strong></span>
-        <span>|</span>
-        <span>Tỉ lệ trúng: <strong id="accuracy-val">0%</strong></span>
-        <button id="btn-reset" class="btn-small" title="Chơi lại từ đầu">↺ Chơi lại</button>
-      </div>
-    </footer>
-  </div>
-
-  <!-- Interactive Wager Modal for Cuoc Diem Skill (Minimalist Slider) -->
-  <div id="wager-modal" class="modal-overlay wager-modal-overlay hidden">
-    <div class="wager-modal-box">
-      <div class="wager-modal-header">
-        <div class="wager-header-left">
-          <span class="wager-modal-title">🎲 CƯỢC ĐIỂM</span>
-          <div class="wager-help-container">
-            <button type="button" class="wager-help-btn" id="wager-help-btn" title="Xem luật cược">?</button>
-            <div class="wager-help-tooltip" id="wager-help-tooltip">
-              <div class="wager-help-item win">🎯 <strong>Thắng:</strong> Thu hồi vốn + nhận thêm điểm cược (x2)</div>
-              <div class="wager-help-item lose">❌ <strong>Thua:</strong> Mất số điểm đã cược</div>
-            </div>
-          </div>
-        </div>
-        <button class="wager-btn-close" id="wager-btn-cancel" aria-label="Đóng">✕</button>
-      </div>
-
-      <div class="wager-slider-container">
-        <div class="wager-value-badge" id="wager-val-display">1</div>
-        <div class="wager-value-unit">ĐIỂM CƯỢC</div>
-
-        <div class="wager-slider-row">
-          <span class="wager-slider-edge min">1</span>
-          <input type="range" id="wager-slider" class="wager-slider-range" min="1" max="1" value="1" step="1">
-          <span class="wager-slider-edge max" id="wager-slider-max">1</span>
-        </div>
-        <div class="wager-balance-hint" id="wager-balance-hint">Tổng điểm hiện có: <strong id="wager-balance-val">1</strong></div>
-      </div>
-
-      <button class="wager-btn-confirm" id="wager-btn-confirm">CƯỢC 1 ĐIỂM</button>
     </div>
   </div>
 
-  <!-- Help & Cultural Heritage Modal -->
-  <div id="modal-help" class="modal-overlay hidden">
-    <div class="modal-box modal-culture-box">
+  <!-- MODAL: KHÁM PHÁ VĂN HÓA (ĐẦY ĐỦ 6 TRÒ CHƠI DÂN GIAN) -->
+  <div class="modal-overlay" id="modal-culture" role="dialog" aria-modal="true" aria-labelledby="culture-modal-title">
+    <div class="modal-box">
       <div class="modal-header">
-        <div class="modal-tabs">
-          <button id="tab-btn-culture" class="modal-tab active">🌾 Nét Đẹp Văn Hóa</button>
-          <button id="tab-btn-gameplay" class="modal-tab">🎯 Hướng Dẫn Chơi</button>
-        </div>
-        <button id="btn-close-modal" class="modal-close" title="Đóng">&times;</button>
-      </div>
-
-      <!-- Tab 1: Cultural Heritage Magazine Content (Báo chuyên đề văn hóa đa trang) -->
-      <div id="tab-content-culture" class="modal-body tab-pane active culture-magazine-pane">
-        <!-- Magazine Masthead Header -->
-        <div class="culture-masthead">
-          <div class="culture-badge-row">
-            <span class="culture-tag">🌾 DI SẢN VĂN HÓA PHI VẬT THỂ</span>
-            <span class="culture-read-time">⏱️ 5 phút đọc</span>
-          </div>
-          <h2 class="culture-main-title">NÉM CÒN — HỒN THƠ & SỨC SỐNG LỄ HỘI LỒNG TỒNG</h2>
-          <p class="culture-subtitle">Huyền tích ngàn năm, cấu trúc vũ trụ luận, video phóng sự thực tế và nét duyên dáng của trò chơi dân gian Tày, Nùng, Thái, Mường</p>
-        </div>
-
-        <!-- Chapter Navigation Bar -->
-        <nav class="culture-chapter-nav" aria-label="Mục lục phóng sự">
-          <button class="chapter-nav-btn active" data-chapter="1">
-            <span class="chap-num">1</span>
-            <span class="chap-title">Nguồn Gốc & Huyền Tích</span>
-          </button>
-          <button class="chapter-nav-btn" data-chapter="2">
-            <span class="chap-num">2</span>
-            <span class="chap-title">Cấu Trúc Vũ Trụ & Quả Còn</span>
-          </button>
-          <button class="chapter-nav-btn" data-chapter="3">
-            <span class="chap-num">3</span>
-            <span class="chap-title">Nghi Lễ & Trao Duyên</span>
-          </button>
-          <button class="chapter-nav-btn" data-chapter="4">
-            <span class="chap-num">4</span>
-            <span class="chap-title">Video Thực Tế 🎬</span>
-          </button>
-          <button class="chapter-nav-btn" data-chapter="5">
-            <span class="chap-num">5</span>
-            <span class="chap-title">Cơ Học & Nghệ Thuật Ném</span>
-          </button>
-        </nav>
-
-        <!-- Chapter 1: Nguồn Gốc & Ý Nghĩa Lễ Hội -->
-        <article class="culture-page active" id="culture-page-1">
-          <div class="page-header-row">
-            <span class="page-indicator">Trang 1 / 5 • Chương 1</span>
-            <h3 class="page-title">Huyền Tích Ngàn Đời & Khát Vọng Phồn Thực Mùa Lễ Hội</h3>
-          </div>
-
-          <div class="article-body">
-            <p class="article-lead">
-              <span class="dropcap">M</span>ỗi độ xuân về khi hoa mơ, hoa mận nở trắng sườn đồi và chồi non cựa mình sau giấc ngủ đông, khắp các bản làng rẻo cao Việt Bắc và Tây Bắc lại rộn rã bước chân trẩy hội <strong>Lồng Tồng</strong> (Lễ hội Xuống Đồng). Giữa thung lũng bao la, tiếng cười nói hòa cùng tiếng trống chiêng thôi thúc muôn người hướng về trò chơi trung tâm: <strong>Ném Còn (Phóng Còn)</strong>.
-            </p>
-
-            <div class="culture-callout-box">
-              <div class="callout-icon">📜</div>
-              <div class="callout-content">
-                <h4>Huyền Tích Đôi Lứa Bện Cầu Cứu Bản Làng</h4>
-                <p>Truyền thuyết dân gian Tày - Nùng kể rằng, thuở xưa trời đại hạn kéo dài ba năm chín tháng, ruộng nương nứt nẻ, chim muông kiệt sức. Một đôi trai gái nghèo yêu nhau thắm thiết đã cùng bà con gom nhặt những sợi bông, vỏ cây rừng bện thành quả cầu ngũ sắc, nhồi vào đó những hạt thóc giống quý giá nhất. Chàng trai vung sức ném quả cầu bay vút qua chín tầng mây chạm tới Thiên Đình. Cảm động trước ý chí và tấm lòng son sắt, Ngọc Hoàng đã ban mưa lành xuống nhân gian, cứu sống muôn loài. Kể từ đó, tục Ném Còn trở thành nghi thức cầu mùa linh thiêng không thể thiếu mỗi độ Tết đến xuân về.</p>
-              </div>
-            </div>
-
-            <div class="article-section-grid">
-              <div class="article-feature-card">
-                <div class="feature-badge">🌱 Ý Nghĩa Phồn Thực</div>
-                <h4>Khát Vọng Sinh Sôi & Mùa Vàng Bội Thu</h4>
-                <p>Ném còn là biểu tượng sinh động của tín ngưỡng phồn thực nguyên thủy. Quả còn tượng trưng cho bọc mầm sống, đường bay vút cao là khát vọng giao hòa giữa Đất và Trời. Khi quả còn rơi xuống, người đón được xem như đã hứng trọn sinh khí của tạo hóa, mang lại vụ mùa lúa ngô trĩu bắp, thóc đầy bồ, lợn gà đầy chuồng.</p>
-              </div>
-
-              <div class="article-feature-card">
-                <div class="feature-badge">⚡ Khai Mở Sinh Khí</div>
-                <h4>Đánh Thức Thần Sấm & Đất Trời</h4>
-                <p>Đồng bào quan niệm rằng mùa đông u ám đã kìm hãm sinh lực cây cỏ. Quả còn bay xé gió vun vút và tiếng reo hò dậy sóng của dân làng là hồi chuông đánh thức thần Sấm, thần Mưa và thần Nông trỗi dậy, xua tan mọi rủi ro xui xẻo của năm cũ, mở ra một năm mưa thuận gió hòa.</p>
-              </div>
-            </div>
-
-            <blockquote class="article-pullquote">
-              <p>“Cây còn chọc thủng màn sương xám,<br>Quả còn trao duyên, thóc ngọc về bản.”</p>
-              <cite>— Dân ca Lễ hội Lồng Tồng Tây Bắc</cite>
-            </blockquote>
-          </div>
-        </article>
-
-        <!-- Chapter 2: Cột Còn & Quả Còn -->
-        <article class="culture-page" id="culture-page-2">
-          <div class="page-header-row">
-            <span class="page-indicator">Trang 2 / 5 • Chương 2</span>
-            <h3 class="page-title">Bí Thuật Chế Tác: Cột Còn Vũ Trụ & Quả Còn Ngũ Hành</h3>
-          </div>
-
-          <div class="article-body">
-            <p class="article-lead">
-              Đằng sau mỗi cuộc ném còn tưng bừng là sự chuẩn bị công phu, tỉ mỉ theo đúng chuẩn mực vũ trụ luận cổ truyền. Từng thân tre, từng đường kim mũi chỉ khâu quả còn đều mang triết lý nhân sinh sâu sắc.
-            </p>
-
-            <div class="craft-grid">
-              <!-- Item 1: Cột Tre -->
-              <div class="craft-item">
-                <div class="craft-header">
-                  <span class="craft-num">01</span>
-                  <div>
-                    <h4>Cột Còn (Cây Nêu Vũ Trụ)</h4>
-                    <span class="craft-sub">Chiếc thang nối liền Nhân gian và Thần linh</span>
-                  </div>
-                </div>
-                <p>Dân bản chọn cây tre bương hoặc cây mai già từ <strong>15 đến 30 mét</strong>, thân thẳng tắp không vết sâu mọt, ngọn vút cong thanh thoát. Dựng cột còn giữa khoảng đất rộng bằng phẳng nhất thung lũng, cột còn đóng vai trò trục tâm vũ trụ (Axis Mundi), dẫn dắt linh khí trời đất hội tụ về bản.</p>
-              </div>
-
-              <!-- Item 2: Vòng Búp Còn -->
-              <div class="craft-item">
-                <div class="craft-header">
-                  <span class="craft-num">02</span>
-                  <div>
-                    <h4>Vòng Còn Nhật Nguyệt (Cổng Trời)</h4>
-                    <span class="craft-sub">Đường kính 40 - 50cm dán giấy bản 2 mặt</span>
-                  </div>
-                </div>
-                <p>Đỉnh cột uốn vòng tre tròn trịa, dán kín bằng giấy bản truyền thống: mặt hướng Đông dán <strong>giấy đỏ (Mặt Trời — Dương)</strong>, mặt hướng Tây dán <strong>giấy vàng/trắng (Mặt Trăng — Âm)</strong>. Khoảnh khắc quả còn đâm thủng tâm giấy là lúc <em>"Khai mở cổng trời"</em>, âm dương giao hòa tuyệt đối.</p>
-              </div>
-
-              <!-- Item 3: Ruột Quả Còn -->
-              <div class="craft-item">
-                <div class="craft-header">
-                  <span class="craft-num">03</span>
-                  <div>
-                    <h4>Ruột Quả Còn — Túi Hạt Mầm No Ấm</h4>
-                    <span class="craft-sub">Khâu bằng thổ cẩm ngũ sắc ngũ hành</span>
-                  </div>
-                </div>
-                <p>Quả còn hình lập phương hoặc múi khế, may bằng vải chàm và thổ cẩm ngũ sắc. Ruột quả còn tuyệt đối <strong>không nhồi cát đá</strong>, mà được bà mẹ vùng cao nhồi đầy <strong>hạt thóc giống lúa nương, ngô, vừng, hạt cải và sợi bông vải</strong> — gửi gắm ước nguyện mầm sống no ấm nảy nở.</p>
-              </div>
-
-              <!-- Item 4: Tua Rua & Dây Còn -->
-              <div class="craft-item">
-                <div class="craft-header">
-                  <span class="craft-num">04</span>
-                  <div>
-                    <h4>Dây Còn & Tua Rua Cầu Mưa</h4>
-                    <span class="craft-sub">Dải lụa ngũ sắc uốn lượn tựa mây trời</span>
-                  </div>
-                </div>
-                <p>Dây còn bện sợi gai dài khoảng 70 - 90cm. Bốn góc quả còn gắn các dải tua rua lụa dài mềm mại. Khi bay vút lên không trung, dải tua rua xoay tròn rực rỡ như những đám mây ngũ sắc mang mưa lành tưới mát nương ngô.</p>
-              </div>
-            </div>
-          </div>
-        </article>
-
-        <!-- Chapter 3: Nghi Lễ Khai Hội & Tục Trao Duyên -->
-        <article class="culture-page" id="culture-page-3">
-          <div class="page-header-row">
-            <span class="page-indicator">Trang 3 / 5 • Chương 3</span>
-            <h3 class="page-title">Nghi Lễ Khai Hội & Tục Ném Còn Giao Duyên</h3>
-          </div>
-
-          <div class="article-body">
-            <div class="ritual-timeline">
-              <div class="ritual-step">
-                <div class="step-badge">Nghi thức 1</div>
-                <h4>Lễ Tế Khai Hội & Cú Phóng Còn Mở Màn</h4>
-                <p>Trước giờ hội, thầy Tào hoặc già làng đức cao vọng trọng dâng mâm lễ cúng Thần Nông, Thần Núi, Thần Sông. Sau bài khấn thiêng, cụ già cầm quả còn đầu tiên vung tay phóng về phía vòng còn. Khi quả còn khai hội bay lên, cả thung lũng cùng hò reo, tiếng cồng chiêng tấu lên khai mạc hội thi.</p>
-              </div>
-
-              <div class="ritual-step">
-                <div class="step-badge">Nghi thức 2</div>
-                <h4>Thi Tài "Tọt Con Vong" (Xuyên Vòng Cổng Trời)</h4>
-                <p>Hàng trăm chàng trai cô gái cùng thi tài ném còn. Cú ném đòi hỏi sự kết hợp tuyệt mỹ giữa lực quay ly tâm, quán tính con lắc và cảm giác góc phóng vút lên 50°. Người ném thủng vòng còn đầu tiên được coi là người may mắn nhất năm, được bà con tán dương và trao phần thưởng danh giá.</p>
-              </div>
-
-              <div class="ritual-step">
-                <div class="step-badge">Nghi thức 3</div>
-                <h4>Ném Còn Giao Duyên — Tơ Duyên Trăm Năm</h4>
-                <p>Bên lề cuộc thi tài, nam thanh nữ tú đứng đối diện thành hai hàng tung còn qua lại. Bắt được quả còn của đối phương là đón nhận tín hiệu giao duyên. Nếu bắt trượt, chàng trai hoặc cô gái trao cho nhau chiếc khăn piêu, vòng bạc, lược cài làm kỷ vật hẹn ước nên duyên vợ chồng.</p>
-              </div>
-            </div>
-
-            <div class="culture-quote-box">
-              <div class="quote-text">
-                🌸 <em>"Còn bay qua đỉnh dốc dài, người thương đứng đợi áo cài hoa lan. Cầm dây còn xoay vội vàng, buông tay một nhịp rộn ràng duyên ta."</em>
-              </div>
-            </div>
-          </div>
-        </article>
-
-        <!-- Chapter 4: Video Phóng Sự & Trải Nghiệm Thực Tế (Nhúng Trực Tiếp YouTube Player) -->
-        <article class="culture-page" id="culture-page-4">
-          <div class="page-header-row">
-            <span class="page-indicator">Trang 4 / 5 • Chương 4</span>
-            <h3 class="page-title">Thư Viện Video Phóng Sự & Không Khí Lễ Hội Thực Tế (Phát Trực Tiếp)</h3>
-          </div>
-
-          <div class="article-body">
-            <p class="article-lead">
-              Dưới đây là các video phóng sự truyền hình và phim tài liệu chân thực về Lễ hội Lồng Tồng và trò chơi Ném Còn được phát trực tiếp tại đây:
-            </p>
-
-            <div class="video-embed-grid">
-              <!-- Video 1 -->
-              <div class="video-embed-card">
-                <div class="video-embed-player">
-                  <iframe 
-                    src="https://www.youtube-nocookie.com/embed/R9K2t5i7U5c" 
-                    title="Lễ Hội Lồng Tồng Ba Bể Bắc Kạn — Ném Còn Dân Tộc Tày" 
-                    frameborder="0" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                    allowfullscreen>
-                  </iframe>
-                </div>
-                <div class="video-embed-meta">
-                  <span class="video-meta-badge">🎋 LỄ HỘI LỒNG TỒNG BA BỂ</span>
-                  <h4>Không Khí Lễ Hội Xuống Đồng Của Người Tày Bên Hồ Ba Bể</h4>
-                  <p>Phóng sự tài liệu ghi lại cảnh dân làng và du khách dựng cây còn cao vút 25 mét, nghi thức khâu quả còn và cuộc thi ném còn sôi động nghìn người reo hò giữa núi rừng Việt Bắc.</p>
-                  <a href="https://www.youtube.com/watch?v=R9K2t5i7U5c" target="_blank" rel="noopener noreferrer" class="btn-yt-direct">Mở trong YouTube ↗</a>
-                </div>
-              </div>
-
-              <!-- Video 2 -->
-              <div class="video-embed-card">
-                <div class="video-embed-player">
-                  <iframe 
-                    src="https://www.youtube-nocookie.com/embed/A851_PjXU5Q" 
-                    title="Lễ Hội Lồng Tồng Dân Tộc Thái Tây Bắc" 
-                    frameborder="0" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                    allowfullscreen>
-                  </iframe>
-                </div>
-                <div class="video-embed-meta">
-                  <span class="video-meta-badge">🌄 VĂN HÓA THÁI TÂY BẮC</span>
-                  <h4>Ném Còn & Trò Chơi Dân Gian Người Thái Vùng Cao</h4>
-                  <p>Hình ảnh chân thực về kỹ thuật vung dây còn, nhịp điệu dân ca và tục ném còn giao duyên của các cô gái Thái duyên dáng trong bộ váy áo cóm và khăn piêu truyền thống.</p>
-                  <a href="https://www.youtube.com/watch?v=A851_PjXU5Q" target="_blank" rel="noopener noreferrer" class="btn-yt-direct">Mở trong YouTube ↗</a>
-                </div>
-              </div>
-
-              <!-- Video 3 -->
-              <div class="video-embed-card">
-                <div class="video-embed-player">
-                  <iframe 
-                    src="https://www.youtube-nocookie.com/embed/xUQ9W45XbYM" 
-                    title="Trò Chơi Dân Gian Ném Còn Tây Bắc" 
-                    frameborder="0" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                    allowfullscreen>
-                  </iframe>
-                </div>
-                <div class="video-embed-meta">
-                  <span class="video-meta-badge">📺 VTV / VTC PHÓNG SỰ</span>
-                  <h4>Theo Đường Còn Bay — Phóng Sự Văn Hóa Thể Thao Dân Tộc</h4>
-                  <p>Chuyên mục phân tích ý nghĩa biểu tượng âm dương, nghệ thuật chế tác quả còn ngũ sắc và tinh thần gắn kết cộng đồng bền chặt qua bao thế hệ người vùng cao.</p>
-                  <a href="https://www.youtube.com/watch?v=xUQ9W45XbYM" target="_blank" rel="noopener noreferrer" class="btn-yt-direct">Mở trong YouTube ↗</a>
-                </div>
-              </div>
-
-              <!-- Video 4 -->
-              <div class="video-embed-card">
-                <div class="video-embed-player">
-                  <iframe 
-                    src="https://www.youtube-nocookie.com/embed/LHDcW2BBkRs" 
-                    title="Trải Nghiệm Ném Còn Hội Xuân Bắc Kạn" 
-                    frameborder="0" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                    allowfullscreen>
-                  </iframe>
-                </div>
-                <div class="video-embed-meta">
-                  <span class="video-meta-badge">🎯 TRẢI NGHIỆM THỰC TẾ</span>
-                  <h4>Cận Cảnh Pha Phóng Còn Trúng Tâm Vòng Tre Đầu Xuân</h4>
-                  <p>Thước phim quay chậm khoảnh khắc quả còn ngũ sắc bay vút lên bầu trời, đâm thủng tâm giấy bản đỏ rực và tiếng reo hò rền vang chúc mừng người thắng hội.</p>
-                  <a href="https://www.youtube.com/watch?v=LHDcW2BBkRs" target="_blank" rel="noopener noreferrer" class="btn-yt-direct">Mở trong YouTube ↗</a>
-                </div>
-              </div>
-            </div>
-
-            <!-- YouTube Search Explorer Hub -->
-            <div class="culture-yt-banner">
-              <div class="yt-banner-text">
-                <strong>🎥 Thư Viện Tra Cứu Video Lễ Hội Ném Còn Tây Bắc</strong>
-                <p>Khám phá trọn vẹn hàng trăm video tư liệu, lễ hội ném còn 3 nước Việt - Lào - Trung và phóng sự văn hóa các dân tộc thiểu số trên YouTube.</p>
-              </div>
-              <a href="https://www.youtube.com/results?search_query=lễ+hội+lồng+tồng+ném+còn" target="_blank" rel="noopener noreferrer" class="btn-yt-hub">
-                🔍 Tìm Kiếm Trên YouTube ↗
-              </a>
-            </div>
-          </div>
-        </article>
-
-        <!-- Chapter 5: Cơ Học & Nghệ Thuật Ném Còn -->
-        <article class="culture-page" id="culture-page-5">
-          <div class="page-header-row">
-            <span class="page-indicator">Trang 5 / 5 • Chương 5</span>
-            <h3 class="page-title">Góc Nhìn Cơ Học & Nghệ Thuật Ném Còn Dân Gian</h3>
-          </div>
-
-          <div class="article-body">
-            <p class="article-lead">
-              Tuy là một trò chơi dân gian mộc mạc, ném còn ẩn chứa những nguyên lý vật lý cơ học con lắc và động lực học chuyển động tròn cực kỳ tinh tế mà cha ông ta đã đúc kết qua hàng ngàn năm.
-            </p>
-
-            <div class="article-section-grid">
-              <div class="article-feature-card">
-                <div class="feature-badge">📐 Động Lực Học Ly Tâm</div>
-                <h4>Lấy Đà Vòng Xoay (Gia Tốc Tiếp Tuyến)</h4>
-                <p>Khi người chơi xoay cánh tay và dây còn thành những vòng tròn liên tục, quả còn tích lũy động năng quay <em>E<sub>k</sub> = ½ m v²</em>. Bán kính dây càng dài (<em>r</em>), lực ly tâm <em>F<sub>cf</sub> = m v² / r</em> càng lớn, giúp quả còn đạt vận tốc phóng cực đại khi buông tay.</p>
-              </div>
-
-              <div class="article-feature-card">
-                <div class="feature-badge">🎯 Quỹ Đạo Parabol</div>
-                <h4>Góc Phóng Tối Ưu 45° — 55°</h4>
-                <p>Do vòng búp còn nằm ở độ cao 15m đến 30m, góc phóng lý tưởng không phải là ném thẳng đứng (90°) hay ném phẳng (0°), mà là buông tay khi quả còn đang vung hướng lên phía trước một góc khoảng <strong>45° đến 55°</strong> so với mặt đất.</p>
-              </div>
-
-              <div class="article-feature-card">
-                <div class="feature-badge">🎈 Khí Động Học Dải Lụa</div>
-                <h4>Hiệu Ứng Cân Bằng Của Dải Tua Rua</h4>
-                <p>Bốn dải tua rua mềm mại không chỉ mang ý nghĩa ngũ hành trang trí, mà đóng vai trò như cánh đuôi khí động học (Stabilizing Tail), giúp quả còn giữ trục xoay ổn định, không bị chao đảo theo gió lốc trên tầng cao.</p>
-              </div>
-
-              <div class="article-feature-card">
-                <div class="feature-badge">🏆 Tinh Thần Thượng Võ</div>
-                <h4>Gắn Kết Tình Thân Bản Làng</h4>
-                <p>Ném còn tôi luyện sự khéo léo, dẻo dai của đôi tay, khả năng phán đoán hướng gió và nhịp thở của người chơi, đồng thời nuôi dưỡng tình yêu quê hương, đất nước và truyền thống cội nguồn dân tộc.</p>
-              </div>
-            </div>
-
-            <blockquote class="article-pullquote">
-              <p>“Cầm còn quay tít gió lùa mây,<br>Ngắm đích buông tay thẳng hướng này.<br>Quả lọt vòng tre vang tiếng trống,<br>Đất trời hoan hỉ phúc đong đầy.”</p>
-              <cite>— Thơ Dân Gian Hội Lồng Tồng</cite>
-            </blockquote>
-          </div>
-        </article>
-
-        <!-- Chapter Pagination Controls Footer -->
-        <div class="culture-pagination-footer">
-          <button class="btn-page-nav" id="btn-page-prev" disabled>← Trang Trước</button>
-          <div class="page-dots-indicator" id="culture-page-dots">
-            <span class="dot active" data-page="1">1</span>
-            <span class="dot" data-page="2">2</span>
-            <span class="dot" data-page="3">3</span>
-            <span class="dot" data-page="4">4</span>
-            <span class="dot" data-page="5">5</span>
-          </div>
-          <button class="btn-page-nav" id="btn-page-next">Trang Kế Tiếp →</button>
-        </div>
-      </div>
-
-      <!-- Tab 2: Gameplay Instructions Content -->
-      <div id="tab-content-gameplay" class="modal-body tab-pane">
-        <div class="guide-item">
-          <div class="guide-icon">🖱️</div>
-          <div class="guide-desc">
-            <h4>1. Giữ chuột & Xoay vòng (Getting Over It)</h4>
-            <p>Nhấn giữ chuột trái (hoặc chạm kéo trên màn hình) và xoay chuột xung quanh nhân vật. Cánh tay nhân vật và dây còn sẽ cử động theo hướng chuột, tích lũy động năng và lực căng ly tâm.</p>
-          </div>
-        </div>
-
-        <div class="guide-item">
-          <div class="guide-icon">🔄</div>
-          <div class="guide-desc">
-            <h4>2. Quán tính con lắc khi dừng đột ngột</h4>
-            <p>Nếu đang xoay nhanh mà bạn dừng chuột đột ngột giữa chừng, cánh tay dừng lại nhưng quả còn tiếp tục vung mạnh về phía trước theo nguyên lý quán tính và bảo toàn động lượng!</p>
-          </div>
-        </div>
-
-        <div class="guide-item">
-          <div class="guide-icon">🚀</div>
-          <div class="guide-desc">
-            <h4>3. Buông chuột đúng nhịp hướng lên vòng còn</h4>
-            <p>Buông chuột khi quả còn đang vung hướng lên phía trước (khoảng góc 45° - 55°). Quả còn sẽ được phóng đi với trọn vẹn động năng và bay vút qua tâm vòng tre!</p>
-          </div>
-        </div>
-
-        <div class="guide-item">
-          <div class="guide-icon">🎉</div>
-          <div class="guide-desc">
-            <h4>4. Xuyên tâm vòng còn — Nhận phúc lộc đầu xuân</h4>
-            <p>Quả còn chui lọt qua vòng búp còn: <strong>+100 điểm</strong>, vòng còn bừng sáng, pháo giấy mừng hội và đón nhận lời chúc phúc lành truyền thống!</p>
-          </div>
-        </div>
-
-        <div class="guide-item">
-          <div class="guide-icon">👥</div>
-          <div class="guide-desc">
-            <h4>5. Hai Chế Độ Chơi: Đơn Đấu & Đối Kháng 1v1</h4>
-            <p><strong>Chơi Đơn:</strong> Thử thách cá nhân, tính chuỗi trúng liên tiếp và phá kỷ lục điểm số.<br>
-            <strong>Đấu 2 Người:</strong> Chàng trai Mường & Cô gái Thái so tài luân phiên 2 đầu sân, bên nào đạt 10 điểm trước sẽ giành chiến thắng!</p>
-          </div>
-        </div>
-
-        <div class="guide-item">
-          <div class="guide-icon">🧵</div>
-          <div class="guide-desc">
-            <h4>6. Tùy Chọn Cầm Dây Còn (Nút [🧵 Cầm Dây] trên thanh công cụ)</h4>
-            <p><strong>Đuôi Dây (Sải Dài):</strong> Bán kính quay lớn, lực ly tâm cực đại, bay cao và xa nhất.<br>
-            <strong>Giữa Dây (Sải Vừa):</strong> Cân bằng nhịp vung, ổn định và dễ điều khiển.<br>
-            <strong>Gần Quả Còn (Sải Ngắn):</strong> Vung nhanh thoăn thoắt, quỹ đạo bay căng và trực diện.</p>
-          </div>
-        </div>
-
-        <div class="guide-item">
-          <div class="guide-icon">⚡</div>
-          <div class="guide-desc">
-            <h4>7. Hệ Thống 3 Kỹ Năng Độc Bản (Khay Kỹ Năng Góc Màn Hình)</h4>
-            <p>Mỗi bên sở hữu 3 kỹ năng dùng 1 lần (dùng xong sẽ biến mất), mỗi lượt chỉ kích hoạt tối đa 1 kỹ năng:<br>
-            • <strong>🎯 Tâm Nhắm (Hỗ Trợ):</strong> Kích hoạt ngay trong lượt — Hiện đường ngắm bay laser chuẩn xác xuyên tâm vòng! (Bot dùng: tăng tỉ lệ trúng lên 55-60%).<br>
-            • <strong>🌪️ Gió Mạnh (Gây Nhiễu):</strong> Kích hoạt để phóng bão gió sang lượt kế tiếp của đối thủ — Bẻ cong quỹ đạo quả còn! (Bot dính bão sẽ trượt 100%).<br>
-            • <strong>🛡️ Khiên Chắn (Bảo Vệ):</strong> Dựng hào quang hoàng kim bảo hộ — Chặn đứng và giải trừ 100% kỹ năng gây nhiễu của đối thủ!</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="modal-footer">
-        <button id="btn-modal-ok" class="btn-primary">Đã Hiểu — Bắt Đầu Chơi!</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Mode Selection Modal (Hiển thị khi mới vào game hoặc khi nhấn nút Đổi Chế Độ) -->
-  <div id="modal-mode" class="modal-overlay hidden">
-    <div class="modal-box modal-start-box">
-      <div class="modal-header start-modal-header">
-        <div class="start-title-wrap">
-          <span class="start-fest-badge">🎋 LỄ HỘI LỒNG TỒNG VÙNG CAO</span>
-          <h2 class="start-main-title">NÉM CÒN DÂN TỘC</h2>
-          <p class="start-sub-desc">Chọn chế độ để bắt đầu trẩy hội</p>
-        </div>
-        <button id="btn-close-mode" class="modal-close" title="Đóng">&times;</button>
-      </div>
-
-      <div class="modal-body start-modal-body">
-        <div class="start-modes-grid">
-          <!-- Card 1: Bot -->
-          <div class="start-mode-card active" id="card-mode-bot" data-mode="bot">
-            <div class="start-card-badge start-badge-bot">🤖 Bot</div>
-            <div class="start-card-icon start-icon-bot">🤖</div>
-            <h3>Bot</h3>
-            <p class="start-card-desc" id="bot-card-desc">Thi đấu 10 điểm với Bot.</p>
-            <button class="btn-start-choice btn-choice-bot">Bot</button>
-          </div>
-
-          <!-- Card 2: 2 Người -->
-          <div class="start-mode-card" id="card-mode-versus" data-mode="versus">
-            <div class="start-card-badge start-badge-vs">👥 2 Người</div>
-            <div class="start-card-icon start-icon-vs">👥</div>
-            <h3>2 Người</h3>
-            <p class="start-card-desc">Thi đấu 2 người đối kháng.</p>
-            <button class="btn-start-choice btn-choice-vs">2 Người</button>
-          </div>
-
-          <!-- Card 3: 1 Người -->
-          <div class="start-mode-card" id="card-mode-single" data-mode="single">
-            <div class="start-card-badge">🎯 1 Người</div>
-            <div class="start-card-icon">🎯</div>
-            <h3>1 Người</h3>
-            <p class="start-card-desc">Chơi đơn tính điểm.</p>
-            <button class="btn-start-choice">1 Người</button>
-          </div>
-        </div>
-
-        <div class="bot-diff-selector" id="bot-diff-selector" style="margin-top: 14px; width: 100%;">
-          <span class="diff-title">🎯 Độ khó:</span>
-          <div class="diff-btn-group">
-            <button type="button" class="btn-diff" data-diff="easy">Dễ</button>
-            <button type="button" class="btn-diff active" data-diff="medium">Vừa</button>
-            <button type="button" class="btn-diff" data-diff="hard">Khó</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="modal-footer start-modal-footer">
-        <button id="btn-start-help" class="btn-tool btn-start-tool" title="Xem hướng dẫn chi tiết cách chơi">
-          <span class="icon">📖</span> <span class="btn-text">Hướng Dẫn Chơi</span>
-        </button>
-        <button id="btn-start-skin" class="btn-tool btn-start-tool" title="Chọn nhân vật & trang phục hội">
-          <span class="icon">👘</span> <span class="btn-text">Chọn Nhân Vật</span>
-        </button>
-        <button id="btn-start-game" class="btn-primary" style="margin-left: auto;">VÀO CHƠI NGAY 🎯</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Character / Skin Selection Modal (Đổi trang phục & nhân vật bất kỳ lúc nào) -->
-  <div id="modal-skin" class="modal-overlay hidden">
-    <div class="modal-box modal-skin-box">
-      <div class="modal-header">
-        <div class="modal-tabs">
-          <span class="modal-header-title">👘 CHỌN NHÂN VẬT & TRANG PHỤC HỘI</span>
-        </div>
-        <button id="btn-close-skin" class="modal-close" title="Đóng">&times;</button>
+        <h2 id="culture-modal-title">🌾 SẮC VIỆT — DI SẢN TRÒ CHƠI DÂN GIAN VIỆT NAM</h2>
+        <button type="button" class="modal-close-btn" aria-label="Đóng">&times;</button>
       </div>
       <div class="modal-body">
-        <p class="modal-intro">Chọn nhân vật tham gia trẩy hội ném còn vùng cao (có thể đổi bất cứ lúc nào khi chơi):</p>
-        
-        <div class="skin-selection-grid" id="skin-grid-container">
-          <!-- Dynamic Skin Cards rendered by game.js from CHARACTER_CONFIG -->
+        <div class="culture-section">
+          <h3>1. Lễ hội Lồng Tồng (Xuống Đồng) Vùng Cao</h3>
+          <p>Lễ hội Lồng Tồng là ngày hội xuân thiêng liêng và tưng bừng bậc nhất của các đồng bào dân tộc Tày, Nùng, Thái, Mường tại vùng núi phía Bắc. Đây là dịp người dân tạ ơn trời đất, thần linh đã ban cho một năm mưa thuận gió hòa, cầu chúc mùa màng bội thu, bản làng ấm no hạnh phúc.</p>
+        </div>
+
+        <div class="culture-section">
+          <h3>2. Ném Còn — Linh hồn hội xuân</h3>
+          <p>Giữa sân hội dựng cây nêu cao từ 15-20 mét bằng cây bương già. Trên đỉnh gắn chiếc vòng tròn bọc giấy đỏ và vàng (tượng trưng cho Mặt Trời và Mặt Trăng). Quả còn may bằng vải hoa rực rỡ, bên trong nhồi hạt thóc, hạt bông, tượng trưng cho sự sinh sôi nảy nở. Người ném còn trúng qua tâm vòng sẽ mang lại may mắn, phúc lộc cho cả bản làng.</p>
+        </div>
+
+        <div class="culture-section">
+          <h3>3. Đẩy Gậy — Ý chí và sức mạnh quật cường</h3>
+          <p>Môn thể thao cổ truyền thử thách bản lĩnh đàn ông vùng cao. Hai đấu thủ nắm chặt thân gậy tre bóng loáng, dồn toàn bộ sức mạnh vào đôi chân trụ vững vàng để đẩy đối phương ra khỏi vòng thi đấu. Trò chơi tôn vinh tinh thần thượng võ, sự dũng cảm và kiên cường vượt qua mọi gian khó.</p>
+        </div>
+
+        <div class="culture-section">
+          <h3>4. Nhảy Sạp — Giai điệu tre nứa kết nối tình thân</h3>
+          <p>Nhảy sạp là điệu múa sinh hoạt cộng đồng giàu sức sống. Tiếng gõ tre giòn giã "Cộc - Cộc - Cộc - Chách" hòa cùng tiếng khèn bè, tiếng chiêng rộn rã. Từng đôi chân thoăn thoắt nhịp nhàng vượt qua các luống tre khép mở không chỉ thể hiện tài hoa, sức trẻ mà còn là cầu nối giao duyên thắm thiết cho các chàng trai cô gái.</p>
+        </div>
+
+        <div class="culture-section">
+          <h3>5. Đi Cà Kheo — Nghệ thuật thăng bằng vùng sông suối</h3>
+          <p>Khởi nguồn từ phương thức di chuyển qua các triền suối đá và vùng nước ngập lũ, đi cà kheo dần trở thành trò chơi thi tài khéo léo bậc nhất trong các ngày hội. Đòi hỏi sự kết hợp nhịp nhàng giữa tay, chân và khả năng giữ trọng tâm trên những thân tre khẳng khiu.</p>
+        </div>
+
+        <div class="culture-section">
+          <h3>6. Bắn Nỏ — Tài nghệ thiện xạ bảo vệ bản làng</h3>
+          <p>Chiếc nỏ bằng gỗ nghiến và dây cung sợi gai là báu vật truyền đời của đồng bào miền núi. Bắn nỏ đòi hỏi sự điềm tĩnh, nhãn lực chuẩn xác và hơi thở đều đặn. Trong các hội xuân, bia bắn thường là các hình tượng chim thú hoặc tâm tròn tượng trưng cho sự đắc thắng.</p>
+        </div>
+
+        <div class="culture-section">
+          <h3>7. Ném Quay (Đánh Quay / Đánh Cù) — Niềm vui rộn ràng</h3>
+          <p>Con quay được đẽo gọt tỉ mỉ từ các loại gỗ cứng như gỗ dẻ, gỗ nghiến, gắn chiếc đinh sắt ở đáy. Người chơi dùng sợi dây gai bện chặt quấn quanh thân quay rồi vung mạnh để con quay xoay tít trên mặt đất. Tiếng rít xé gió của con quay rộn vang khắp triền đồi ngày hội.</p>
         </div>
       </div>
       <div class="modal-footer">
-        <button id="btn-skin-done" class="btn-primary">HOÀN TẤT & TRỞ LẠI SÂN HỘI 🎯</button>
+        <button type="button" class="btn-modal-action btn-modal-close">ĐÃ HIỂU & QUAY LẠI</button>
       </div>
     </div>
   </div>
 
-  <!-- 2-Player Match Victory Modal (Bảng vinh danh chiến thắng đua 10 điểm) -->
-  <div id="modal-match-victory" class="modal-overlay hidden">
-    <div class="modal-box modal-victory-box">
-      <div class="victory-header">
-        <span class="victory-crown">🏆</span>
-        <h2 id="victory-title">CHIẾN THẮNG!</h2>
-        <p id="victory-subtitle" class="victory-subtitle">10 điểm</p>
+  <!-- MODAL: CÀI ĐẶT & KỶ LỤC -->
+  <div class="modal-overlay" id="modal-settings" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2 id="settings-title">⚙️ TÙY CHỌN & THÀNH TÍCH</h2>
+        <button type="button" class="modal-close-btn" aria-label="Đóng">&times;</button>
       </div>
-      <div class="victory-scores-summary">
-        <div class="v-card v-p1">
-          <span class="v-avatar">👦</span>
-          <span class="v-label">P1</span>
-          <span class="v-score" id="v-p1-score">10</span>
+      <div class="modal-body">
+        <h3>Bản nhạc hội xuân Tây Bắc</h3>
+        <p>Bấm vào biểu tượng chiếc loa gỗ ở góc trên bên phải màn hình để bật/tắt giai điệu khèn năm cung rộn rã.</p>
+        
+        <h3>Thành tích kỷ lục hiện tại</h3>
+        <div class="score-board-grid">
+          <div class="score-card">
+            <span class="score-game-name">🧵 NÉM CÒN</span>
+            <span class="score-val" id="val-nemcon-hs">0</span>
+            <span class="score-unit">điểm</span>
+          </div>
+          <div class="score-card">
+            <span class="score-game-name">🎋 NHẢY SẠP</span>
+            <span class="score-val" id="val-nhaysap-hs">0</span>
+            <span class="score-unit">điểm</span>
+          </div>
+          <div class="score-card">
+            <span class="score-game-name">🪵 ĐẨY GẬY</span>
+            <span class="score-val" id="val-daygay-hs">0</span>
+            <span class="score-unit">trận thắng</span>
+          </div>
+          <div class="score-card">
+            <span class="score-game-name">🏹 BẮN NỎ</span>
+            <span class="score-val" id="val-banno-hs">0</span>
+            <span class="score-unit">điểm</span>
+          </div>
         </div>
-        <div class="v-divider">
-          <span>⚔️</span>
-          <small>TỈ SỐ</small>
-        </div>
-        <div class="v-card v-p2">
-          <span class="v-avatar">👧</span>
-          <span class="v-label">P2</span>
-          <span class="v-score" id="v-p2-score">8</span>
+
+        <div class="reset-data-wrap">
+          <button type="button" id="btn-reset-data" class="btn-modal-action btn-danger">
+            🗑️ XÓA DỮ LIỆU ĐIỂM KỶ LỤC
+          </button>
         </div>
       </div>
-      <div class="modal-footer" style="justify-content: center; gap: 16px;">
-        <button id="btn-rematch" class="btn-primary">↺ Chơi Lại</button>
-        <button id="btn-exit-versus" class="btn-secondary" style="background: rgba(255,255,255,0.15); color: #fff; padding: 10px 18px; border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; cursor: pointer;">👤 1 Người</button>
+      <div class="modal-footer">
+        <button type="button" class="btn-modal-action btn-modal-close">HOÀN TẤT</button>
       </div>
     </div>
   </div>
 
-  <!-- Dev Test Skills Modal / Floating Drawer (Dev Only) -->
-  <div id="dev-test-panel" class="dev-panel hidden">
-    <div class="dev-panel-header">
-      <div class="dev-panel-title">🛠️ DEV TEST SKILLS</div>
-      <div class="dev-panel-header-actions">
-        <span class="dev-badge-hotkey">[F2 / `]</span>
-        <button id="dev-panel-close" class="dev-btn-close" title="Đóng panel">✕</button>
-      </div>
-    </div>
-
-    <div class="dev-panel-body">
-      <!-- Quick Controls Toolbar -->
-      <div class="dev-section-title">ĐIỀU KHIỂN & ĐỘ KHÓ</div>
-      <div class="dev-toolbar-row">
-        <button class="dev-btn-action" id="dev-btn-reset-throw">↺ Đặt lại lượt</button>
-        <button class="dev-btn-action dev-danger" id="dev-btn-clear-all">✕ Xóa chiêu & debuff</button>
-        <div class="dev-diff-group">
-          <button class="dev-diff-btn" data-diff="easy" id="dev-diff-easy">Dễ</button>
-          <button class="dev-diff-btn active" data-diff="medium" id="dev-diff-medium">Vừa</button>
-          <button class="dev-diff-btn" data-diff="hard" id="dev-diff-hard">Khó</button>
-        </div>
-      </div>
-
-      <div class="dev-target-row">
-        <span>Áp dụng vào:</span>
-        <label class="dev-radio-label">
-          <input type="radio" name="dev-target" value="current" checked id="dev-target-cur"> Lượt hiện tại
-        </label>
-        <label class="dev-radio-label">
-          <input type="radio" name="dev-target" value="p1" id="dev-target-p1"> P1
-        </label>
-        <label class="dev-radio-label">
-          <input type="radio" name="dev-target" value="p2" id="dev-target-p2"> P2 / Bot
-        </label>
-      </div>
-
-      <!-- Live Physics Monitor -->
-      <div class="dev-section-title">THÔNG SỐ VẬT LÝ LIVE</div>
-      <div class="dev-telemetry-box" id="dev-telemetry">
-        <div>Trạng thái: <strong id="dev-stat-state">IDLE</strong></div>
-        <div>Lực vung: <strong id="dev-stat-charge">0%</strong></div>
-        <div>Vận tốc: <strong id="dev-stat-vel">vx: 0 | vy: 0 | v: 0 px/s</strong></div>
-        <div>Góc ném: <strong id="dev-stat-angle">0°</strong></div>
-        <div>Chiêu dùng: <strong id="dev-stat-skill">Không</strong></div>
-        <div>Debuff: <strong id="dev-stat-debuff">Không</strong></div>
-      </div>
-
-      <!-- Skills Categories -->
-      <div class="dev-section-title">CHIÊU HỖ TRỢ / VẬT LÝ (CLICK ĐỂ TEST)</div>
-      <div class="dev-skills-grid" id="dev-skills-support"></div>
-
-      <div class="dev-section-title">CHIÊU BẢO VỆ / PHẢN ĐÒN</div>
-      <div class="dev-skills-grid" id="dev-skills-shield"></div>
-
-      <div class="dev-section-title">CHIÊU GÂY NHIỄU (DEBUFF)</div>
-      <div class="dev-skills-grid" id="dev-skills-debuff"></div>
+  <!-- TRANSITION OVERLAY KHI VÀO GAME -->
+  <div class="page-transition-overlay" id="page-transition-overlay">
+    <div class="transition-spinner">
+      <div class="spinner-ring"></div>
+      <span class="spinner-text" id="spinner-text">ĐANG VÀO HỘI XUÂN...</span>
     </div>
   </div>
 
-  <script src="character-config.js"></script>
-  <script src="game.js"></script>
+  <script src="homepage.js?v=20261022_final"></script>
 </body>
 </html>

@@ -1,0 +1,106 @@
+/* Readable game introductions, scoped to the detail pages. */
+.detail-page .site-header{height:80px;border-radius:0;padding-inline:6%}
+.detail-page .back-link{font-size:15px;color:#d1dcc9}
+.detail-page .detail-main{max-width:1480px;padding:32px 6% 72px}
+.detail-page .detail-layout{grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:clamp(32px,5vw,76px);align-items:center;margin:30px 0 0}
+.detail-page .detail-visual{height:100%;min-height:560px;max-height:650px;border-radius:28px;box-shadow:none}
+.detail-page .detail-visual:after{border-radius:20px}
+.detail-page .detail-copy{padding-block:12px}
+.detail-page .detail-copy .eyebrow{font-size:12px;letter-spacing:2px;color:#edcc89;margin-bottom:18px}
+.detail-page .detail-copy h1{font-size:clamp(64px,6.8vw,100px);line-height:1.12;letter-spacing:-3px;margin-bottom:20px}
+.detail-page .detail-copy>#description{font-size:21px;line-height:1.7;max-width:34ch;color:#e0e6d5;margin-bottom:0}
+.detail-page .quick-guide{padding:24px 0;margin:26px 0;background:none;border:0;border-top:1px solid #e5cf9638;border-radius:0}
+.detail-page .quick-guide h2{font-family:inherit;font-size:17px;font-weight:bold;letter-spacing:0;color:#f7ecd5;margin:0 0 20px}
+.detail-page .quick-guide ol{list-style:none;padding:0;margin:0;counter-reset:steps;display:grid;gap:20px}
+.detail-page .quick-guide li{counter-increment:steps;display:grid;grid-template-columns:34px minmax(0,1fr);gap:14px;align-items:start}
+.detail-page .quick-guide li:before{content:counter(steps,decimal-leading-zero);font-size:14px;color:#efcf8a;border:1px solid #e9ca8b55;border-radius:50%;width:32px;height:32px;display:grid;place-items:center;margin-top:1px}
+.detail-page .quick-guide strong{display:block;font-size:19px;line-height:1.5;margin-bottom:4px;color:#f7ecd5}
+.detail-page .quick-guide p{font-size:17px;line-height:1.65;color:#cbd7c4;margin:0;max-width:40ch}
+.detail-page .quick-guide kbd{font-family:inherit;font-size:14px}
+.detail-page .detail-copy .button{min-height:64px;min-width:245px;font-size:18px;padding:18px 26px;gap:50px}
+.detail-page .detail-copy .button:hover{background:#ffe6b3}
+.detail-page .media-peek{font-size:15px;line-height:1.6;margin-top:24px;color:#d3dec9}
+.detail-page .detail-photo-credit{font-size:12px;line-height:1.6;margin:16px 0 0;max-width:46%;color:#bfcdb7}
+.detail-page .culture{margin-top:48px;padding:28px 32px;border-radius:20px;background:#1b4034}
+.detail-page .culture summary{font-size:32px;line-height:1.3;align-items:center;gap:20px}
+.detail-page .culture p{font-size:18px;line-height:1.85;max-width:72ch;color:#d7e1ce}
+.detail-page .culture .adaptation{font-size:16px;color:#bccdb5}
+.detail-page .culture a{font-size:16px}
+.detail-page .next-game{margin-top:32px}
+.detail-page .next-game span{font-size:14px}
+.detail-page a:focus-visible,.detail-page button:focus-visible,.detail-page summary:focus-visible{outline-color:#f2d18b}
+@media(max-width:1000px) and (min-width:701px){
+ .detail-page .detail-main{padding-inline:5%}
+ .detail-page .detail-layout{gap:32px;grid-template-columns:minmax(0,.85fr) minmax(0,1fr)}
+ .detail-page .detail-visual{min-height:600px}
+ .detail-page .detail-copy h1{font-size:66px}
+ .detail-page .detail-copy>#description{font-size:19px}
+}
+@media(max-width:700px){
+ .detail-page .site-header{height:76px;gap:15px}
+ .detail-page .site-header .back-link{font-size:13px}
+ .detail-page .detail-main{padding:24px 6% 48px}
+ .detail-page .detail-layout{grid-template-columns:minmax(0,1fr);gap:30px;margin-top:24px}
+ .detail-page .detail-copy{grid-row:1;padding:0}
+ .detail-page .detail-copy h1{font-size:clamp(58px,15vw,78px);letter-spacing:-2px;margin-bottom:16px}
+ .detail-page .detail-copy .eyebrow{font-size:11px;margin-bottom:12px}
+ .detail-page .detail-copy>#description{font-size:19px;max-width:none}
+ .detail-page .quick-guide{margin:24px 0;padding:22px 0 0}
+ .detail-page .quick-guide strong{font-size:18px}
+ .detail-page .quick-guide p{font-size:16px}
+ .detail-page .detail-copy .button{width:100%;font-size:18px;min-height:60px}
+ .detail-page .media-peek{margin:22px 0 0;font-size:14px}
+ .detail-page .detail-visual{height:360px;min-height:0;max-height:none;border-radius:22px}
+ .detail-page .detail-photo-credit{max-width:100%;margin:12px 0 0}
+ .detail-page .culture{margin-top:32px;padding:24px 20px}
+ .detail-page .culture summary{font-size:27px}
+ .detail-page .culture p{font-size:17px}
+ .detail-page .next-game{max-width:none}
+}
+.detail-page .detail-visual>.landscape{object-position:100% center}
+/* Culture leads; the digital adaptation follows the real-world story. */
+.detail-page .detail-copy>#description{max-width:42ch}
+.detail-page .detail-copy .media-peek{margin-top:0;font-size:16px;color:#edcc89}
+.detail-page .culture h2{font-size:36px;line-height:1.25;letter-spacing:-.6px}
+.detail-page .culture .real-photo{display:none}
+.detail-page .culture .video-wrap{max-width:880px}
+.detail-page .digital-experience{display:flex;align-items:center;justify-content:space-between;gap:40px;margin-top:40px;padding:32px 0;border-block:1px solid #e5cf9638}
+.detail-page .digital-experience h2{font-size:29px;letter-spacing:-.4px}
+.detail-page .digital-experience p{font-size:17px;line-height:1.75;color:#cbd7c4;max-width:56ch;margin:14px 0 0}
+.detail-page .digital-experience .button{flex-shrink:0;background:#edcc89;color:#173b30;font-size:16px;border-radius:12px;gap:24px;min-height:58px}
+@media(max-width:700px){.detail-page .digital-experience{display:block;margin-top:30px}.detail-page .digital-experience .button{margin-top:24px;width:100%}.detail-page .culture h2{font-size:29px}.detail-page .detail-copy .media-peek{font-size:15px}.detail-page .detail-visual{height:320px}}
+/* The game is one clear action away from the introduction. */
+.detail-page .detail-copy .primary-play{display:inline-flex;margin-top:26px;min-height:66px;min-width:260px;padding:20px 30px;font-size:20px;background:#f5d796;color:#173b30;box-shadow:0 5px 0 #a97e43;transition:transform .2s,box-shadow .2s,background .2s}
+.detail-page .detail-copy .primary-play:hover{background:#ffe7b3;transform:translateY(-3px);box-shadow:0 8px 0 #a97e43}
+.detail-page .detail-copy .primary-play:active{transform:translateY(3px);box-shadow:0 2px 0 #a97e43}
+@media(max-width:700px){.detail-page .detail-copy .primary-play{width:100%;margin-top:24px;min-height:62px;font-size:19px}}
+/* Photography and film carry the story. */
+.detail-page .detail-layout{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);align-items:center;margin-top:30px}
+.detail-page .detail-visual{height:auto;min-height:0;max-height:none;aspect-ratio:4/3}
+.detail-page .detail-copy h1{font-size:clamp(64px,6.6vw,96px)}
+.detail-page .detail-copy>#description{font-size:20px;line-height:1.75}
+.detail-page .detail-copy .media-peek{margin-top:26px}
+.detail-page .photo-story{margin-top:64px}
+.detail-page .photo-story h2{font-size:clamp(30px,3.3vw,46px);line-height:1.2}
+.detail-page .gallery-intro{font-size:18px;line-height:1.75;color:#cbd7c4;max-width:60ch;margin:16px 0 30px}
+.detail-page .photo-gallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+.detail-page .photo-gallery figure{margin:0;min-width:0}
+.detail-page .photo-gallery figure:first-child:last-child{grid-column:1/-1}
+.detail-page .photo-gallery figure:nth-child(3){grid-column:1/-1}
+.detail-page .photo-gallery figure>a{display:block;border-radius:20px;overflow:hidden;background:#244737}
+.detail-page .photo-gallery img{width:100%;aspect-ratio:3/2;object-fit:cover;transition:transform .4s}
+.detail-page .photo-gallery figure:nth-child(3) img{aspect-ratio:21/9}
+.detail-page .photo-gallery figure>a:hover img{transform:scale(1.025)}
+.detail-page .photo-gallery figcaption{padding:16px 2px 0}
+.detail-page .photo-gallery figcaption p{font-size:18px;line-height:1.5;margin:0 0 8px;color:#f6ecd5}
+.detail-page .photo-gallery figcaption a{font-size:12px;line-height:1.6;color:#bdcdb5;text-decoration:underline;text-underline-offset:4px}
+.detail-page .culture{padding:32px 0;background:none;border:0;border-top:1px solid #e5cf9638;border-radius:0}
+.detail-page .culture>.quick-guide{margin:0 0 40px;padding:0 0 32px;border:0;border-bottom:1px solid #e5cf9638}
+.detail-page .culture>.quick-guide ol{grid-template-columns:1fr 1fr;gap:40px}
+.detail-page .culture>.quick-guide h2{font:700 22px/1.4 'Trebuchet MS',Arial,sans-serif;letter-spacing:0;margin-bottom:24px}
+.detail-page .culture .quick-guide p{font-size:17px;margin:0;line-height:1.7}
+.detail-page .culture .video-heading{margin-top:40px;font-size:32px}
+.detail-page .culture .video-wrap{max-width:none;aspect-ratio:16/9;border-radius:20px;background:#102f29;overflow:hidden}
+.detail-page .video-wrap iframe{display:block;border:0;width:100%;height:100%}
+@media(max-width:900px){.detail-page .detail-layout{gap:30px}.detail-page .detail-copy h1{font-size:64px}.detail-page .detail-copy>#description{font-size:18px}}
+@media(max-width:700px){.detail-page .detail-layout{grid-template-columns:minmax(0,1fr)}.detail-page .detail-visual{height:auto;aspect-ratio:4/3}.detail-page .detail-copy h1{font-size:clamp(58px,15vw,78px)}.detail-page .detail-copy>#description{font-size:19px}.detail-page .photo-story{margin-top:40px}.detail-page .photo-gallery{grid-template-columns:minmax(0,1fr);gap:28px}.detail-page .photo-gallery figure:nth-child(3){grid-column:auto}.detail-page .photo-gallery figure:nth-child(3) img{aspect-ratio:3/2}.detail-page .gallery-intro{font-size:17px}.detail-page .culture>.quick-guide ol{grid-template-columns:1fr;gap:24px}.detail-page .culture .video-heading{font-size:28px}.detail-page .culture .video-wrap{border-radius:12px}}

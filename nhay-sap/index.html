@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Nhảy Sạp Vùng Cao - Trò Chơi Dân Gian Tây Bắc</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="nhay-sap.css">
+</head>
+<body>
+  <div id="game-app">
+    <!-- TOP HUD -->
+    <header id="hud-top">
+      <!-- Left Controls -->
+      <div class="hud-left">
+        <a href="../index.html" class="btn-wood btn-home-nav" title="Trở về Trang Chủ">
+          <img src="../assets/ui/icon_home.png" alt="Trang chủ">
+          <span class="btn-text">Trang Chủ</span>
+        </a>
+        <button id="btn-restart" class="btn-wood btn-icon-sq" title="Chơi lại từ đầu">
+          <img src="../assets/ui/icon_replay.png" alt="Chơi lại">
+        </button>
+      </div>
+
+      <!-- Center Title Plaque -->
+      <div class="hud-title-plaque">
+        <h1 class="hud-title-text">NHẢY SẠP VÙNG CAO</h1>
+        <span class="hud-sub-badge">🎋 ĐIỆU MÚA HỘI XUỐNG ĐỒNG · 103 BPM</span>
+      </div>
+
+      <!-- Right Stats & Audio -->
+      <div class="hud-stats">
+        <div class="stat-card">
+          <span class="stat-label">ĐIỂM</span>
+          <span id="stat-score" class="stat-value">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">COMBO</span>
+          <span id="stat-combo" class="stat-value">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">KỶ LỤC</span>
+          <span id="stat-highscore" class="stat-value">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">MẠNG</span>
+          <div class="hearts-container">
+            <span class="heart-icon">❤️</span>
+            <span class="heart-icon">❤️</span>
+            <span class="heart-icon">❤️</span>
+          </div>
+        </div>
+
+        <button id="btn-audio" class="btn-wood btn-icon-sq" title="Bật/Tắt âm thanh">
+          <img src="../assets/ui/icon_sound_on.png" id="audio-icon-img" alt="Âm thanh">
+        </button>
+        <button id="btn-guide" class="btn-wood btn-icon-sq" title="Hướng dẫn cách chơi">
+          <img src="../assets/ui/icon_help.png" alt="Hướng dẫn">
+        </button>
+        <button id="btn-culture" class="btn-wood btn-icon-sq" title="Tìm hiểu văn hóa Nhảy Sạp">
+          <img src="../assets/ui/icon_book.png" alt="Văn hóa">
+        </button>
+      </div>
+    </header>
+
+    <!-- STAGE WRAPPER -->
+    <main id="stage-wrap">
+      <canvas id="game-canvas"></canvas>
+      <div id="stage-overlay">
+        <div id="beat-status-banner" class="beat-status-banner">SẴN SÀNG!</div>
+      </div>
+    </main>
+
+    <!-- BOTTOM CONTROLS & TIMING RAIL -->
+    <footer id="hud-bottom">
+      <div class="timing-rail-wrap">
+        <!-- Beat Pips -->
+        <div class="beat-pip-row">
+          <div class="beat-pip" id="pip-0"><div class="pip-dot"></div><span>NHỊP 1 · MỞ</span></div>
+          <div class="beat-pip" id="pip-1"><div class="pip-dot"></div><span>NHỊP 2 · MỞ</span></div>
+          <div class="beat-pip" id="pip-2"><div class="pip-dot"></div><span>NHỊP 3 · MỞ</span></div>
+          <div class="beat-pip close-pip" id="pip-3"><div class="pip-dot"></div><span>NHỊP 4 · SẠP ĐÓNG!</span></div>
+        </div>
+
+        <!-- Moving Timing Bar -->
+        <div class="timing-bar-container">
+          <div class="timing-target-zone">
+            <div class="timing-target-marker"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Touch Buttons -->
+      <div class="action-buttons-wrap">
+        <button id="btn-key-left" class="control-key-btn" title="Bước sang trái (Phím A hoặc Mũi tên Trái)">
+          <span class="key-symbol">◀</span>
+          <span class="key-label">TRÁI (A)</span>
+        </button>
+        <button id="btn-key-jump" class="control-key-btn btn-jump-action" title="Nhảy lên thoát sạp khép (Phím W / Space / Mũi tên Lên)">
+          <span class="key-symbol">▲ NHẢY</span>
+          <span class="key-label">SPACE / W</span>
+        </button>
+        <button id="btn-key-right" class="control-key-btn" title="Bước sang phải (Phím D hoặc Mũi tên Phải)">
+          <span class="key-symbol">▶</span>
+          <span class="key-label">PHẢI (D)</span>
+        </button>
+        <button id="btn-key-down" class="control-key-btn" title="Dậm nhịp giữ chỗ (Phím S hoặc Mũi tên Xuống)">
+          <span class="key-symbol">▼</span>
+          <span class="key-label">DẬM (S)</span>
+        </button>
+      </div>
+
+      <div class="help-guide-text">
+        💡 <em>Mẹo:</em> Nhịp 1, 2, 3 di chuyển thoải mái. Đến nhịp 4 tiếng <strong>"CHÁCH"</strong> sạp khép — Hãy bấm <strong>NHẢY</strong> để bay qua an toàn!
+      </div>
+    </footer>
+  </div>
+
+  <!-- MODAL: HƯỚNG DẪN CHƠI -->
+  <div class="modal-overlay" id="modal-guide">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2>🎯 HƯỚNG DẪN CHƠI NHẢY SẠP</h2>
+        <button class="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <h3>1. Quy luật 4 nhịp cơ bản ("Cộp - Cộp - Cộp - Chách!")</h3>
+        <p>Đội gõ sạp gồm 4 cặp trai gái ngồi hai bên đòn kê, điều khiển các cây tre theo nhịp điệu rộn ràng của tiếng khèn.</p>
+        <p><strong>Nhịp 1, 2, 3 (Sạp Mở):</strong> Hai cây tre mở rộng ra hai bên. Đây là thời điểm an toàn để người nhảy bước chân vào các luống sạp, khoe những bước nhảy uyển chuyển.</p>
+        <p><strong>Nhịp 4 (Sạp Đóng):</strong> Hai cây tre đập mạnh vào nhau tạo âm thanh <em>"CHÁCH!"</em> đanh giòn. Bạn <strong>BẮT BUỘC PHẢI NHẢY BẬT LÊN</strong> (hoặc né ra hai bên bờ an toàn) để không bị tre kẹp chân!</p>
+
+        <h3>2. Phím điều khiển</h3>
+        <p><strong>Di chuyển Trái/Phải:</strong> Dùng phím <code>A</code> / <code>D</code> hoặc <code>←</code> / <code>→</code> (hoặc bấm nút Trái/Phải trên màn hình) để đổi luống sạp.</p>
+        <p><strong>Nhảy Thoát Sạp:</strong> Bấm phím <code>Space</code> (Phím cách) hoặc <code>W</code> / <code>↑</code> đúng nhịp 4 để bay bổng trên không trung, nhận trọn điểm thưởng vượt sạp!</p>
+        <p><strong>Dậm Nhịp:</strong> Bấm phím <code>S</code> / <code>↓</code> để dậm chân tại chỗ theo nhịp điệu.</p>
+
+        <h3>3. Tính điểm & Combo</h3>
+        <p>Căn nhịp càng chuẩn xác theo vạch canh nhịp (Timing Rail), bạn sẽ đạt danh hiệu <strong>"HOÀN HẢO!"</strong> (+100 điểm) và chuỗi Combo x2, x3, x4 nhân đôi niềm vui ngày hội!</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-wood btn-modal-close">ĐÃ HIỂU · VÀO HỘI NGAY</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: KHÁM PHÁ VĂN HÓA -->
+  <div class="modal-overlay" id="modal-culture">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2>🌾 VĂN HÓA ĐIỆU MÚA SẠP TÂY BẮC</h2>
+        <button class="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <h3>1. Nguồn gốc & Ý nghĩa điệu múa Sạp</h3>
+        <p>Múa sạp (hay Nhảy Sạp) là nét sinh hoạt văn hóa dân gian truyền thống độc đáo, gắn liền với đồng bào các dân tộc Thái, Mường, Tày vùng Tây Bắc Việt Nam.</p>
+        <p>Điệu múa thường được tổ chức vào các dịp lễ hội lớn như Lễ hội Lồng Tồng (Xuống đồng), Tết hoa ban, mừng lúa mới hay những đêm trăng thanh bên bếp lửa nhà sàn.</p>
+
+        <h3>2. Đạo cụ & Tiết tấu</h3>
+        <p>Đạo cụ gồm hai cây tre lớn làm đòn kê (sạp cái) đặt song song, bên trên gác các cặp tre nứa nhỏ hơn (sạp con). Người gõ sạp ngồi đối diện nhau, tay cầm đầu sạp nứa gõ xuống đòn kê và đập vào nhau theo nhịp điệu dồn dập, vui tươi.</p>
+
+        <h3>3. Trang phục & Tinh thần đoàn kết</h3>
+        <p>Các cô gái Thái duyên dáng trong chiếc áo cóm bó sát, hàng khuy bạc lấp lánh cùng chiếc váy lụa đen chấm gót và dải thắt lưng xanh thắm. Nhảy sạp không chỉ đòi hỏi sự khéo léo, nhanh nhẹn mà còn là nhịp cầu giao duyên, gắn kết tình làng nghĩa bản thắm thiết qua từng bước chân hội xuân.</p>
+      </div>
+      <div class="modal-footer">
+        <a href="../tro-choi/?game=nhay-sap" class="btn-wood" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px; color:#edc35b;">📖 Xem Tư Liệu Ảnh & Video ↗</a>
+        <button class="btn-wood btn-modal-close">ĐÓNG</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: KẾT THÚC / KỶ LỤC -->
+  <div class="modal-overlay" id="modal-gameover">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2>🎋 KẾT THÚC HỘI SẠP</h2>
+        <button class="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body" style="text-align: center;">
+        <p style="font-size: 16px; color: var(--wood); margin-bottom: 6px;">ĐIỂM SỐ CỦA BẠN</p>
+        <h2 id="final-score-val" style="font-size: 48px; color: var(--gold); margin-bottom: 8px;">0</h2>
+        <p style="font-size: 14px; margin-bottom: 16px;">Chuỗi nhịp cao nhất: <strong id="final-max-combo" style="color: var(--safe-green);">0</strong></p>
+        <p style="font-size: 13px; color: var(--ink);">Bạn đã thể hiện những bước nhảy vô cùng uyển chuyển và nhịp nhàng giữa tiếng tre vang vọng núi rừng Tây Bắc!</p>
+      </div>
+      <div class="modal-footer" style="justify-content: center; gap: 16px;">
+        <button id="btn-gameover-replay" class="btn-wood" style="padding: 10px 20px;">
+          <img src="../assets/ui/icon_replay.png" alt="Chơi lại">
+          <span>CHƠI LẠI</span>
+        </button>
+        <a href="../index.html" class="btn-wood" style="padding: 10px 20px;">
+          <img src="../assets/ui/icon_home.png" alt="Trang chủ">
+          <span>VỀ TRANG CHỦ</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script src="nhay-sap.js"></script>
+</body>
+</html>

@@ -1,0 +1,6 @@
+(function(root){'use strict';const TARGET_Z=-18,CENTER_Y=2.4,RADIUS=.9,GRAVITY=4;
+function charge(t){return Math.min(1,Math.max(0,t)/.7);}
+function create(direction,hold,options={}){const speed=9+charge(hold)*29,len=Math.hypot(direction.x,direction.y,direction.z);return{x:options.origin?.x??0,y:options.origin?.y??1.65,z:options.origin?.z??0,vx:direction.x/len*speed,vy:direction.y/len*speed,vz:direction.z/len*speed,targetZ:options.targetZ??TARGET_Z,wind:options.wind??0,time:0,done:false,score:0,hit:false};}
+function score(x,y){const r=Math.hypot(x,y-CENTER_Y);if(r>RADIUS)return 0;return Math.min(10,Math.max(2,Math.ceil((1-r/RADIUS)*5)*2));}
+function step(s,dt){if(s.done)return;s.time+=dt;const ox=s.x,oy=s.y,oz=s.z;s.x+=s.vx*dt+.5*s.wind*dt*dt;s.vx+=s.wind*dt;s.y+=s.vy*dt-.5*GRAVITY*dt*dt;s.z+=s.vz*dt;s.vy-=GRAVITY*dt;if(oz>s.targetZ&&s.z<=s.targetZ){const f=(s.targetZ-oz)/(s.z-oz);s.x=ox+(s.x-ox)*f;s.y=oy+(s.y-oy)*f;s.z=s.targetZ;s.score=score(s.x,s.y);s.hit=s.score>0;s.done=s.hit;}else if(s.y<0||s.time>4){s.y=Math.max(0,s.y);s.done=true;}}
+const api={TARGET_Z,CENTER_Y,RADIUS,GRAVITY,charge,create,score,step};if(typeof module!=='undefined')module.exports=api;else root.CrossbowEngine=api;})(typeof window!=='undefined'?window:this);

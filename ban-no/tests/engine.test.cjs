@@ -1,0 +1,13 @@
+const{test}=require('node:test'),assert=require('node:assert/strict'),E=require('../engine.js');
+function run(s){for(let i=0;i<1000&&!s.done;i++)E.step(s,1/120);return s;}
+test('Rings score correctly',()=>{assert.equal(E.score(0,2.4),10);assert.equal(E.score(.88,2.4),2);assert.equal(E.score(2,2.4),0);});
+test('Draw increases speed until 0.7 seconds then stays capped',()=>{const direction={x:0,y:0,z:-1};const speed=t=>-E.create(direction,t).vz;assert.ok(speed(.1)<speed(.35));assert.ok(speed(.35)<speed(.7));assert.equal(speed(.7),38);assert.equal(speed(3),speed(.7));assert.equal(E.charge(.7),1);});
+test('Gravity drops an uncompensated shot',()=>{const s=run(E.create({x:0,y:0,z:-1},1));assert.ok(s.y<1.65);assert.ok(s.done);});
+test('A compensated shot can hit center',()=>{const v=38,t=18/v,dy=2.4-1.65+2*t*t;const s=run(E.create({x:0,y:dy,z:-18},1));assert.equal(s.score,10);});
+test('Miss ends and completed shot does not move',()=>{const s=run(E.create({x:4,y:1,z:-18},1));assert.equal(s.score,0);const saved=JSON.stringify(s);E.step(s,.05);assert.equal(JSON.stringify(s),saved);});
+test('UI IDs and engine references resolve for game startup',()=>{const fs=require('node:fs'),path=require('node:path'),base=path.join(__dirname,'..'),html=fs.readFileSync(path.join(base,'index.html'),'utf8'),js=fs.readFileSync(path.join(base,'game.js'),'utf8');for(const m of js.matchAll(/\$\('([^']+)'\)/g))assert.ok(html.includes('id="'+m[1]+'"'),m[1]);for(const m of js.matchAll(/\bE\.([A-Za-z_]+)/g))assert.notEqual(E[m[1]],undefined,m[1]);});
+test('Wind bends trajectory sideways; farther targets amplify drift',()=>{const near=E.create({x:0,y:.15,z:-1},1,{targetZ:-14,wind:2}),far=E.create({x:0,y:.15,z:-1},1,{targetZ:-30,wind:2});for(const shot of [near,far]){for(let i=0;i<1000&&shot.z>shot.targetZ&&!shot.done;i++)E.step(shot,1/120);}assert.ok(near.x>0);assert.ok(far.x>near.x*2);const left=run(E.create({x:0,y:.15,z:-1},1,{targetZ:-14,wind:-2}));assert.ok(left.x<0);});
+test('Arrow starts at crossbow muzzle when supplied',()=>{const s=E.create({x:0,y:0,z:-1},1,{origin:{x:.12,y:1.3,z:-1.5},targetZ:-22});assert.equal(s.x,.12);assert.equal(s.y,1.3);assert.equal(s.z,-1.5);assert.equal(s.targetZ,-22);});
+
+test('Quick release drops more than a fully drawn shot',()=>{const dir={x:0,y:.07,z:-1};const weak=E.create(dir,.1),strong=E.create(dir,.7);for(const shot of [weak,strong]){for(let i=0;i<1000&&!shot.done&&shot.z>shot.targetZ;i++)E.step(shot,1/120);}assert.ok(weak.y<strong.y);});
+test('Minimum force has short range while max keeps full speed',()=>{const min=E.create({x:0,y:0,z:-1},0),max=E.create({x:0,y:0,z:-1},.7);assert.equal(-min.vz,9);assert.equal(-max.vz,38);run(min);assert.ok(min.z>-14);assert.equal(min.score,0);});

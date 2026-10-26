@@ -1633,7 +1633,8 @@
       this.playerProfile = this.loadPlayerProfile();
       this.lastThrowData = null;
       this.aoAnhPoles = null;
-      this.throwDifficulty = localStorage.getItem('nemcon_throw_difficulty') || 'medium';
+      const savedThrowDifficulty = localStorage.getItem('nemcon_throw_difficulty');
+      this.throwDifficulty = Object.hasOwn(window.NEMCON_DIFFICULTY, savedThrowDifficulty) ? savedThrowDifficulty : 'medium';
       this.botDifficulty = this.throwDifficulty;
       this.windDirectionMultiplier = 1; // 1: thuận, -1: nghịch (cho chiêu Gió Mạnh)
       this.windShiftTimer = 0;
@@ -2065,6 +2066,8 @@
       this.ui.btnReset.addEventListener('click', () => {
         this.resetGame();
       });
+
+      document.getElementById('btn-reset-footer')?.addEventListener('click', () => this.resetGame());
 
       // Modal tab switching
       const switchTab = (tab) => {
@@ -3363,11 +3366,7 @@
         const isHeavyRain = (this.activeDebuff[curThrower] === 'mua_nang_hat' || this.activeDebuff[curThrower] === 'phat_kep');
         let spinChargeGainMult = isHeavyRain ? 0.65 : 1.0; // Waterlogged quả còn charges slower
         const curDiff = this.throwDifficulty || 'medium';
-        if (curDiff === 'easy') {
-          spinChargeGainMult *= 1.35; // Dễ: Tích đà nhanh và mượt mà hơn
-        } else if (curDiff === 'hard') {
-          spinChargeGainMult *= 0.88; // Khó: Cần xoay đà kỹ thuật, chuẩn chỉ hơn
-        }
+        spinChargeGainMult *= window.NEMCON_DIFFICULTY[curDiff].charge;
         if (this.skillUsedThisTurn[curThrower] === 'chiem_nhip') {
           spinChargeGainMult *= 1.5; // Chiếm Nhịp 1.5x wrist spin charging speed!
         }
@@ -3622,7 +3621,7 @@
         const charge = Math.min(1.0, Math.max(0, this.spinCharge, this.recentSpinCharge));
 
         const curDiff = this.throwDifficulty || 'medium';
-        const stopLimit = (curDiff === 'easy') ? 0.45 : (curDiff === 'hard' ? 0.20 : 0.30);
+        const stopLimit = window.NEMCON_DIFFICULTY[curDiff].stop;
         const isStoppedOnAir = (this.pauseHoldTimer && this.pauseHoldTimer > stopLimit);
         if (charge <= 0.08 || isStoppedOnAir) {
           // DỪNG TAY TRÊN KHÔNG HOẶC CHƯA ĐỦ LỰC ĐÀ:
@@ -3955,7 +3954,7 @@
 
         // A. INNER HOLE PASS-THROUGH
         const diff = this.throwDifficulty || 'medium';
-        const toleranceMultiplier = (diff === 'easy') ? 1.45 : (diff === 'hard' ? 1.15 : 1.30);
+        const toleranceMultiplier = window.NEMCON_DIFFICULTY[diff].tolerance;
         const hitMarginY = Math.round(RING_INNER_RY * (pole.scale / POLE_SCALE) * toleranceMultiplier);
 
         if (dyHole <= hitMarginY) {
@@ -4355,6 +4354,10 @@
     }
 
     setThrowDifficulty(diff) {
+      if (this.state === STATE.SWINGING || this.state === STATE.FLYING) {
+        this.showAnnouncement('CHỜ HẾT LƯỢT NÉM', 'Đổi độ khó khi quả còn đã hạ đất');
+        return;
+      }
       if (!['easy', 'medium', 'hard'].includes(diff)) diff = 'medium';
       this.throwDifficulty = diff;
       this.botDifficulty = diff;
@@ -4391,6 +4394,15 @@
 
     updateThrowDifficultyUI() {
       const diff = this.throwDifficulty || 'medium';
+
+      const balance = window.NEMCON_DIFFICULTY[diff];
+      document.querySelectorAll('[data-difficulty-summary]').forEach(el => { el.textContent = balance.summary; });
+      document.querySelectorAll('[data-diff]').forEach(el => {
+        el.setAttribute('aria-pressed', String(el.dataset.diff === diff));
+        el.title = window.NEMCON_DIFFICULTY[el.dataset.diff]?.summary || '';
+      });
+      const badge = document.getElementById('difficulty-status');
+      if (badge) badge.textContent = balance.label;
 
       // 1. Update Modal Buttons & Menu Pills
       const modalBtns = document.querySelectorAll('.bot-diff-selector .btn-diff');
@@ -5681,18 +5693,9 @@
         }
       }
 
-      // 3. TRÌNH ĐỘ BOT TỰ ĐỘNG THÍCH ỨNG THEO XÁC SUẤT THỜI GIAN THỰC CỦA NGƯỜI CHƠI:
-      let hitChance;
-      if (botDiff === 'easy') {
-        // DỄ: Bot đánh dưới cơ người chơi ở thời gian thực (~20-25% thấp hơn), kẹp sàn 16% và trần 46%
-        hitChance = Math.min(0.46, Math.max(0.16, contextHitRate * 0.70 - 0.05)) + (Math.random() * 0.04 - 0.02);
-      } else if (botDiff === 'hard') {
-        // KHÓ: Bot đánh trên cơ người chơi ở thời gian thực (~15-25% cao hơn), kẹp sàn 68% và trần 94%
-        hitChance = Math.min(0.94, Math.max(0.68, contextHitRate * 1.20 + 0.15)) + (Math.random() * 0.04 - 0.02);
-      } else {
-        // VỪA: Bot bám sát phong độ thời gian thực của người chơi, thi đấu cân tài cân sức
-        hitChance = Math.min(0.80, Math.max(0.35, contextHitRate * 0.98 + 0.01)) + (Math.random() * 0.04 - 0.02);
-      }
+      // Adapt within separate bands so difficulty remains predictable.
+      const balance = window.NEMCON_DIFFICULTY[botDiff];
+      let hitChance = balance.botMin + (balance.botMax - balance.botMin) * Math.max(0, Math.min(1, contextHitRate));
 
       // 4. BUFF KỸ NĂNG HỖ TRỢ CỦA BOT:
       if (botUsed === 'vat_ly_an_do') {
@@ -5994,10 +5997,14 @@
     }
 
     drawAimAssist() {
+      const balance = window.NEMCON_DIFFICULTY[this.throwDifficulty];
       const curThrower = (this.isMultiplayerMode) ? (this.currentTurn === 1 ? 'p1' : 'p2') : 'p1';
       const activeRig = (this.isMultiplayerMode && this.currentTurn === 2) ? this.rigP2 : (this.isMultiplayerMode ? this.rigP1 : this.rig);
       const ballPos = this.cord.getEndPosition();
       if (!ballPos || isNaN(ballPos.x) || isNaN(ballPos.y) || !activeRig) return;
+
+      const hasTargetSkill = this.skillUsedThisTurn[curThrower] === 'tam_nham';
+      if (!balance.preview && !hasTargetSkill) return;
 
       // 1. Xác định vận tốc phóng thời gian thực nếu người chơi bấm THẢ NGAY TẠI THỜI ĐIỂM NÀY
       let vx = 0, vy = 0;
@@ -6058,7 +6065,7 @@
         const rawSpeed = Math.hypot(ballVel.vx, ballVel.vy);
         const charge = Math.min(1.0, Math.max(0, this.spinCharge, this.recentSpinCharge));
 
-        const isStoppedOnAir = (this.pauseHoldTimer && this.pauseHoldTimer > 0.20);
+        const isStoppedOnAir = (this.pauseHoldTimer && this.pauseHoldTimer > balance.stop);
         if (charge <= 0.08 || isStoppedOnAir) {
           isDrop = true;
           simLaunchVx = dirX * 50;
@@ -6122,7 +6129,7 @@
       let predictedCrossingY = null;
       let predictedLandingX = null;
 
-      for (let i = 0; i < 90; i++) {
+      for (let i = 0; i < (hasTargetSkill ? 90 : balance.preview); i++) {
         prevSimX = simX;
         prevSimY = simY;
 
@@ -6162,7 +6169,7 @@
         }
       }
 
-      const hitMarginY = 52;
+      const hitMarginY = Math.round(RING_INNER_RY * balance.tolerance);
       const willScore = (predictedCrossingY !== null && Math.abs(predictedCrossingY - RING_CENTER_Y) <= hitMarginY);
       const isRimClack = (predictedCrossingY !== null && !willScore && Math.abs(predictedCrossingY - RING_CENTER_Y) <= 74);
 
@@ -6628,6 +6635,24 @@
       const drawH = this.assets.pole.height * POLE_SCALE;
 
       this.ctx.drawImage(this.assets.pole, drawX, drawY, drawW, drawH);
+
+      // Gold brackets show the exact vertical scoring window for this level.
+      const gate = Math.round(RING_INNER_RY * window.NEMCON_DIFFICULTY[this.throwDifficulty].tolerance);
+      this.ctx.save();
+      this.ctx.strokeStyle = '#edc35b';
+      this.ctx.lineWidth = 3;
+      this.ctx.shadowColor = '#3b1d0d';
+      this.ctx.shadowBlur = 3;
+      for (const side of [-1, 1]) {
+        const y = RING_CENTER_Y + side * gate;
+        this.ctx.beginPath();
+        this.ctx.moveTo(RING_CENTER_X - 22, y - side * 8);
+        this.ctx.lineTo(RING_CENTER_X - 22, y);
+        this.ctx.lineTo(RING_CENTER_X + 22, y);
+        this.ctx.lineTo(RING_CENTER_X + 22, y - side * 8);
+        this.ctx.stroke();
+      }
+      this.ctx.restore();
 
       // Golden ring glow when scored
       if (this.ringGlowTimer > 0) {
