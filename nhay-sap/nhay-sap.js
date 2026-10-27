@@ -274,22 +274,60 @@
     }
   }
 
-  // --- GAME CONSTANTS ---
-  const CANVAS_WIDTH = 1672;
-  const CANVAS_HEIGHT = 941;
+  // --- GAME CONSTANTS & CONFIGURATION ---
+  let cfg = window.NHAY_SAP_CONFIG;
+  try {
+    const local = localStorage.getItem('nhay_sap_editor_config');
+    if (local) {
+      const parsed = JSON.parse(local);
+      if (Array.isArray(parsed?.stage?.lanes) && parsed.stage.lanes.length >= 1 && (!cfg?.lastModified || parsed.lastModified >= cfg.lastModified)) {
+        cfg = parsed;
+      }
+    }
+  } catch (e) {}
 
-  // 4 Bamboo Lanes (positions in canvas coordinates)
-  const LANE_X_POSITIONS = [
-    500,  // Lane 0: Giữa cặp sạp 1 & 2
-    720,  // Lane 1: Giữa cặp sạp 2 & 3
-    950,  // Lane 2: Giữa cặp sạp 3 & 4
-    1170  // Lane 3: Giữa cặp sạp 4 & 5
+  const CANVAS_WIDTH = cfg?.stage?.canvasWidth || 1672;
+  const CANVAS_HEIGHT = cfg?.stage?.canvasHeight || 941;
+
+  // Bamboo Lanes (positions in canvas coordinates - 4 cặp sạp cách đều 180px tạo thành 3 luống)
+  let LANE_X_POSITIONS = cfg?.stage?.lanes || [
+    657,  // Lane 0: Giữa cặp sạp 1 & 2
+    837,  // Lane 1: Giữa cặp sạp 2 & 3 (Tâm sàn khấu)
+    1017  // Lane 2: Giữa cặp sạp 3 & 4
   ];
-  const SAFE_LEFT_X = 330;   // Bờ an toàn bên trái
-  const SAFE_RIGHT_X = 1340; // Bờ an toàn bên phải
+  let SAFE_LEFT_X = cfg?.stage?.safeLeftX || 477;   // Bờ an toàn bên trái
+  let SAFE_RIGHT_X = cfg?.stage?.safeRightX || 1197; // Bờ an toàn bên phải
 
-  const FLOOR_Y = 550;
-  const JUMP_Y_OFFSET = -110;
+  let FLOOR_Y = cfg?.stage?.floorY || 550;
+  let JUMP_Y_OFFSET = cfg?.stage?.jumpYOffset || -90;
+
+  // Cắt sprite chính xác từng frame (Zero bleed & Neo gót chân chuẩn xác)
+  const SPRITE_FRAMES = cfg?.objects?.dancer?.frames || {
+    dancer_forward: [
+      { sx: 0, sy: 4, sw: 292, sh: 690, footX: 156.1, footY: 690.0 },
+      { sx: 305, sy: 19, sw: 371, sh: 674, footX: 203.5, footY: 674.0 },
+      { sx: 676, sy: 23, sw: 350, sh: 680, footX: 175.0, footY: 680.0 },
+      { sx: 1026, sy: 51, sw: 409, sh: 642, footX: 195.1, footY: 642.0 },
+      { sx: 1435, sy: 43, sw: 330, sh: 650, footX: 178.6, footY: 650.0 },
+      { sx: 1765, sy: 41, sw: 375, sh: 653, footX: 246.3, footY: 653.0 }
+    ],
+    dancer_back: [
+      { sx: 0, sy: 55, sw: 284, sh: 634, footX: 157.2, footY: 634.0 },
+      { sx: 341, sy: 55, sw: 324, sh: 634, footX: 196.7, footY: 634.0 },
+      { sx: 714, sy: 43, sw: 341, sh: 631, footX: 197.4, footY: 631.0 },
+      { sx: 1075, sy: 42, sw: 346, sh: 603, footX: 202.8, footY: 603.0 },
+      { sx: 1453, sy: 55, sw: 340, sh: 634, footX: 212.9, footY: 634.0 },
+      { sx: 1843, sy: 55, sw: 287, sh: 634, footX: 163.8, footY: 634.0 }
+    ],
+    dancer_trip: [
+      { sx: 14, sy: 21, sw: 338, sh: 657, footX: 124.1, footY: 657.0 },
+      { sx: 352, sy: 25, sw: 372, sh: 673, footX: 186.0, footY: 673.0 },
+      { sx: 724, sy: 39, sw: 349, sh: 659, footX: 174.5, footY: 659.0 },
+      { sx: 1073, sy: 39, sw: 372, sh: 624, footX: 112.6, footY: 624.0 },
+      { sx: 1445, sy: 126, sw: 379, sh: 536, footX: 180.0, footY: 536.0 },
+      { sx: 1824, sy: 126, sw: 332, sh: 536, footX: 174.8, footY: 536.0 }
+    ]
+  };
 
   // --- GAME APPLICATION ---
   class NhaySapGame {
@@ -317,10 +355,11 @@
       this.lastTimestamp = 0;
 
       // Dancer state
-      this.currentLane = 1; // 0..3 (1 or 2 is center)
+      this.currentLane = 1; // 0..2 (1 is exact center)
       this.targetX = LANE_X_POSITIONS[this.currentLane];
       this.dancerX = this.targetX;
       this.dancerY = FLOOR_Y;
+      this.jumpStartX = this.dancerX;
       this.isAirborne = false;
       this.jumpProgress = 0; // 0..1
       this.isTripped = false;
@@ -505,8 +544,25 @@
       this.score = 0;
       this.combo = 0;
       this.hearts = this.maxHearts;
-      this.currentLane = 1;
-      this.targetX = LANE_X_POSITIONS[this.currentLane];
+
+      // Reload any customized lanes from local storage
+      try {
+        const local = localStorage.getItem('nhay_sap_editor_config');
+        if (local) {
+          const parsed = JSON.parse(local);
+          if (Array.isArray(parsed?.stage?.lanes)) {
+            cfg = parsed;
+          }
+        }
+      } catch (e) {}
+
+      LANE_X_POSITIONS = cfg?.stage?.lanes || [657, 837, 1017];
+      SAFE_LEFT_X = cfg?.stage?.safeLeftX || 477;
+      SAFE_RIGHT_X = cfg?.stage?.safeRightX || 1197;
+      FLOOR_Y = cfg?.stage?.floorY || 550;
+
+      this.currentLane = Math.min(1, LANE_X_POSITIONS.length - 1);
+      this.targetX = LANE_X_POSITIONS[this.currentLane] || 837;
       this.dancerX = this.targetX;
       this.dancerY = FLOOR_Y;
       this.isAirborne = false;
@@ -523,36 +579,63 @@
 
       this.updateHUD();
       this.showAnnouncement('HỘI BẮT ĐẦU!', 'safe');
+
+      // Check collision immediately on start if standing on bamboo
+      this.checkContinuousPoleCollision();
     }
 
-    // --- STEP ACTIONS ---
+    // --- STEP & LEAP ACTIONS (Nhảy dứt khoát chuẩn khoảng cách giữa các cặp sạp) ---
+    performJumpTo(targetX, facing) {
+      this.jumpStartX = this.dancerX;
+      this.targetX = targetX;
+      this.isAirborne = true;
+      this.jumpProgress = 0;
+      this.dancerFacing = facing;
+      this.audio.playJumpSound();
+    }
+
     handleStepLeft() {
       if (!this.isPlaying || this.isTripped) return;
       if (this.currentLane > -1) {
         this.currentLane--;
-        this.targetX = (this.currentLane === -1) ? SAFE_LEFT_X : LANE_X_POSITIONS[this.currentLane];
-        this.dancerFacing = -1;
-        this.audio.playBambooTap(0.4);
+        const nextX = (this.currentLane === -1) ? SAFE_LEFT_X : LANE_X_POSITIONS[this.currentLane];
+        this.performJumpTo(nextX, -1);
         this.checkRhythmHit('left');
       }
     }
 
     handleStepRight() {
       if (!this.isPlaying || this.isTripped) return;
-      if (this.currentLane < 4) {
+      const maxLane = LANE_X_POSITIONS.length;
+      if (this.currentLane < maxLane) {
         this.currentLane++;
-        this.targetX = (this.currentLane === 4) ? SAFE_RIGHT_X : LANE_X_POSITIONS[this.currentLane];
-        this.dancerFacing = 1;
-        this.audio.playBambooTap(0.4);
+        const nextX = (this.currentLane === maxLane) ? SAFE_RIGHT_X : LANE_X_POSITIONS[this.currentLane];
+        this.performJumpTo(nextX, 1);
         this.checkRhythmHit('right');
       }
     }
 
     handleJump() {
-      if (!this.isPlaying || this.isTripped || this.isAirborne) return;
-      this.isAirborne = true;
-      this.jumpProgress = 0;
-      this.audio.playJumpSound();
+      if (!this.isPlaying || this.isTripped) return;
+      const jRules = cfg?.rules?.jump;
+      if (jRules) {
+        if (jRules.requireGrounded !== false && this.isAirborne && !jRules.allowDoubleJump) return;
+        if (!jRules.allowAnytime) {
+          const isAllowedBeat = jRules.allowedBeats ? jRules.allowedBeats[this.currentBeat] : true;
+          const beatPct = this.beatTimeTracker / this.beatDuration;
+          const isAllowedWin = beatPct >= (jRules.windowStartPercent ?? 0.0) && beatPct <= (jRules.windowEndPercent ?? 1.0);
+          if (!isAllowedBeat || !isAllowedWin) {
+            this.showAnnouncement('CHƯA ĐƯỢC NHẢY!', 'danger');
+            this.audio.playBambooTap(0.2);
+            return;
+          }
+        }
+      } else {
+        if (this.isAirborne) return;
+      }
+
+      // Nhảy vọt lên trên không tại luống hiện tại để tránh sạp kẹp nhịp 4
+      this.performJumpTo(this.dancerX, this.dancerFacing);
       this.checkRhythmHit('jump');
     }
 
@@ -637,31 +720,97 @@
       }
     }
 
-    checkClapperDanger() {
-      // Danger zone: Standing inside active lanes (0, 1, 2, 3) while grounded
-      const isInLanes = this.currentLane >= 0 && this.currentLane <= 3;
-      const isSafe = this.isAirborne || !isInLanes;
+    // --- VA CHẠM SẠP LIÊN TỤC & SÁT THƯƠNG TỨC THÌ (CHỈ MẤT MÁU KHI ĐÓNG SẠP - NHỊP 4) ---
+    checkContinuousPoleCollision() {
+      if (!this.isPlaying || this.isAirborne || this.isTripped || this.invincibleTimer > 0) return;
 
-      if (!isSafe && this.invincibleTimer <= 0) {
-        // TRIPPED!
-        this.isTripped = true;
-        this.tripProgress = 0;
-        this.hearts--;
-        this.combo = 0;
-        this.invincibleTimer = 1800; // 1.8s invulnerable
+      // CHỈ MẤT MÁU KHI ĐÓNG SẠP (Nhịp 4 / Beat 3): Khi sạp mở (nhịp 1, 2, 3), nhân vật đứng an toàn!
+      const dmgRules = cfg?.rules?.damage;
+      const isHarmfulBeat = dmgRules?.activeBeats ? dmgRules.activeBeats[this.currentBeat] : (this.currentBeat === 3);
+      if (!isHarmfulBeat) return;
 
-        this.audio.playTripSound();
-        this.showAnnouncement('SẠP KẸP CHÂN!', 'danger');
-        this.addFloatingText('ÔI CHAO!', this.dancerX, this.dancerY - 80, 'danger');
-        this.updateHUD();
+      const clapperScale = cfg?.objects?.clappers?.scale || 0.50;
+      const clapperX = (CANVAS_WIDTH - CANVAS_WIDTH * clapperScale) / 2 + (cfg?.objects?.clappers?.offsetX || 0);
+      const ratio = clapperScale / 0.50;
 
-        if (this.hearts <= 0) {
-          this.onGameOver();
+      // 4 cặp sạp tre khi khép chặt ở nhịp 4
+      const hazardZones = [
+        { min: Math.round(clapperX + 90 * ratio),  max: Math.round(clapperX + 183 * ratio), name: 'Cặp Sạp 1' },
+        { min: Math.round(clapperX + 280 * ratio), max: Math.round(clapperX + 370 * ratio), name: 'Cặp Sạp 2' },
+        { min: Math.round(clapperX + 470 * ratio), max: Math.round(clapperX + 559 * ratio), name: 'Cặp Sạp 3' },
+        { min: Math.round(clapperX + 656 * ratio), max: Math.round(clapperX + 750 * ratio), name: 'Cặp Sạp 4' }
+      ];
+
+      const footRadius = cfg?.objects?.dancer?.footHitboxRadius || 14;
+      const footLeft = this.dancerX - footRadius;
+      const footRight = this.dancerX + footRadius;
+
+      for (const hz of hazardZones) {
+        if (footRight >= hz.min && footLeft <= hz.max) {
+          this.triggerDamage(`SẠP ĐÓNG KẸP CHÂN TẠI ${hz.name.toUpperCase()}!`);
+          break;
         }
-      } else if (isSafe && this.isPlaying) {
-        // Leap bonus on Beat 4
+      }
+    }
+
+    triggerDamage(reason = 'CHẠM PHẢI SẠP!') {
+      if (this.invincibleTimer > 0) return;
+
+      this.isTripped = true;
+      this.tripProgress = 0;
+      const dmgRules = cfg?.rules?.damage;
+      const loss = dmgRules?.damageAmount || 1;
+      this.hearts = Math.max(0, this.hearts - loss);
+      this.combo = 0;
+      this.invincibleTimer = dmgRules?.invincibilityDuration || 1800;
+
+      this.audio.playTripSound();
+      this.showAnnouncement(reason, 'danger');
+      this.addFloatingText(`ÔI CHAO! -${loss} ❤️`, this.dancerX, this.dancerY - 80, 'danger');
+      this.updateHUD();
+
+      if (this.hearts <= 0) {
+        this.onGameOver();
+      }
+    }
+
+    checkClapperDanger() {
+      const dmgRules = cfg?.rules?.damage;
+      const isHarmfulBeat = dmgRules?.activeBeats ? dmgRules.activeBeats[this.currentBeat] : (this.currentBeat === 3);
+      if (!isHarmfulBeat) return;
+
+      // Nhịp 4: Sạp khép đập vào nhau
+      // CHỈ KẸP CHÂN NẾU ĐANG Ở VỊ TRÍ TRÚNG CẶP SẠP TRE (Vị trí đỏ / sạp dập)!
+      // Ở VỊ TRÍ XANH (giữa các cặp sạp như Luống 1, bờ an toàn) THÌ KHÔNG BỊ KẸP CHÂN!
+      const clapperScale = cfg?.objects?.clappers?.scale || 0.50;
+      const clapperX = (CANVAS_WIDTH - CANVAS_WIDTH * clapperScale) / 2 + (cfg?.objects?.clappers?.offsetX || 0);
+      const ratio = clapperScale / 0.50;
+
+      const hazardZones = [
+        { min: Math.round(clapperX + 90 * ratio),  max: Math.round(clapperX + 183 * ratio), name: 'Cặp Sạp 1' },
+        { min: Math.round(clapperX + 280 * ratio), max: Math.round(clapperX + 370 * ratio), name: 'Cặp Sạp 2' },
+        { min: Math.round(clapperX + 470 * ratio), max: Math.round(clapperX + 559 * ratio), name: 'Cặp Sạp 3' },
+        { min: Math.round(clapperX + 656 * ratio), max: Math.round(clapperX + 750 * ratio), name: 'Cặp Sạp 4' }
+      ];
+
+      const footRadius = cfg?.objects?.dancer?.footHitboxRadius || 14;
+      const footLeft = this.dancerX - footRadius;
+      const footRight = this.dancerX + footRadius;
+      const isOverBamboo = hazardZones.some(hz => footRight >= hz.min && footLeft <= hz.max);
+
+      // Nếu đang ở vị trí xanh (không chạm sạp): hoàn toàn an toàn, KHÔNG BỊ KẸP CHÂN!
+      if (!isOverBamboo) {
+        return;
+      }
+
+      // Nếu đang ở vị trí sạp dập vào nhau:
+      if (!this.isAirborne && this.invincibleTimer <= 0) {
+        this.triggerDamage('SẠP ĐÓNG KẸP CHÂN!');
+      } else if (this.isAirborne && this.isPlaying) {
+        // Thưởng nhảy vượt sạp thành công ở nhịp 4
         this.score += 150;
         this.combo++;
+        if (this.combo > this.maxCombo) this.maxCombo = this.combo;
         this.addFloatingText('VƯỢT SẠP! +150', this.dancerX, this.dancerY - 100, 'perfect');
         this.audio.playScoreChime('perfect');
         this.updateHUD();
@@ -776,21 +925,29 @@
         }
       }
 
-      // 2. Dancer X movement interpolation
-      this.dancerX += (this.targetX - this.dancerX) * 0.18;
-
-      // 3. Jump physics
+      // 2 & 3. Dancer Leap & Jump Arc Physics (Vòng cung nhảy vượt qua sạp chính xác)
       if (this.isAirborne) {
-        this.jumpProgress += dt / 450; // Jump lasts 450ms
+        const jDur = cfg?.stage?.jumpDuration || 400;
+        const jLift = cfg?.stage?.jumpYOffset || -90;
+        this.jumpProgress += dt / jDur;
         if (this.jumpProgress >= 1) {
           this.isAirborne = false;
           this.jumpProgress = 0;
+          this.dancerX = this.targetX;
           this.dancerY = FLOOR_Y;
+          this.checkContinuousPoleCollision();
         } else {
-          // Parabolic jump arc
-          const arc = Math.sin(this.jumpProgress * Math.PI);
-          this.dancerY = FLOOR_Y + JUMP_Y_OFFSET * arc;
+          // Bước nhảy vòng cung: X lướt đều sang luống đích, Y đạt đỉnh cao nhất đúng ngay trên thân sạp
+          const t = this.jumpProgress;
+          this.dancerX = this.jumpStartX + (this.targetX - this.jumpStartX) * t;
+          const arc = Math.sin(t * Math.PI);
+          this.dancerY = FLOOR_Y + jLift * arc;
         }
+      } else {
+        // Định vị gót chân vững trên mặt sàn
+        this.dancerX += (this.targetX - this.dancerX) * 0.25;
+        this.dancerY = FLOOR_Y;
+        this.checkContinuousPoleCollision();
       }
 
       // 4. Tripped recovery animation
@@ -866,12 +1023,23 @@
         this.ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
       }
 
-      // 2. Draw Horizontal Cross-Beams (Cây Đòn Kê)
+      // 2. Draw Horizontal Cross-Beams & 3. Draw Clappers Animation (Thu nhỏ 50% toàn bộ hoạt ảnh)
+      const clapperScale = cfg?.objects?.clappers?.scale || 0.50;
+      const clapperW = CANVAS_WIDTH * clapperScale;
+      const clapperH = CANVAS_HEIGHT * clapperScale;
+      const clapperX = (CANVAS_WIDTH - clapperW) / 2 + (cfg?.objects?.clappers?.offsetX || 0);
+      const clapperY = (cfg?.objects?.clappers?.offsetY !== undefined) ? cfg.objects.clappers.offsetY : 280;
+
+      // 2. Cross-beams (cặp đòn kê thu nhỏ cùng tỉ lệ và vị trí với hoạt ảnh sạp)
       if (this.assets.beams) {
-        this.ctx.drawImage(this.assets.beams, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        if (clapperScale >= 0.98) {
+          this.ctx.drawImage(this.assets.beams, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        } else {
+          this.ctx.drawImage(this.assets.beams, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, clapperX, clapperY, clapperW, clapperH);
+        }
       }
 
-      // 3. Draw Clappers & Bamboo Poles (4 states based on rhythm)
+      // 3. Draw Clappers & Bamboo Poles (4 states based on rhythm) - Nguyên vẹn toàn bộ hoạt ảnh sạp thu nhỏ 50%
       let clapperImg = this.assets.clappers_mo_ha;
       if (this.currentBeat === 0) {
         clapperImg = this.assets.clappers_mo_ha;
@@ -884,7 +1052,11 @@
       }
 
       if (clapperImg) {
-        this.ctx.drawImage(clapperImg, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        if (clapperScale >= 0.98) {
+          this.ctx.drawImage(clapperImg, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+        } else {
+          this.ctx.drawImage(clapperImg, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT, clapperX, clapperY, clapperW, clapperH);
+        }
       }
 
       // 4. Draw Dancer
@@ -908,44 +1080,50 @@
         return;
       }
 
+      let animKey = 'dancer_forward';
       let spriteSheet = this.assets.dancer_forward;
       let frameIdx = this.dancerAnimFrame;
 
       if (this.isTripped) {
+        animKey = 'dancer_trip';
         spriteSheet = this.assets.dancer_trip;
         frameIdx = Math.min(5, Math.floor(this.tripProgress * 6));
+      } else if (this.isAirborne) {
+        // Hoạt ảnh nhảy uốn lượn trên không: tiến độ nhảy 0..1 tương ứng 6 frame chuẩn
+        animKey = (this.dancerFacing === -1) ? 'dancer_back' : 'dancer_forward';
+        spriteSheet = (this.dancerFacing === -1) ? (this.assets.dancer_back || this.assets.dancer_forward) : this.assets.dancer_forward;
+        frameIdx = Math.min(5, Math.floor(this.jumpProgress * 6));
       } else if (this.dancerFacing === -1) {
+        animKey = 'dancer_back';
         spriteSheet = this.assets.dancer_back || this.assets.dancer_forward;
       }
 
       if (!spriteSheet) return;
 
-      const frameWidth = 362;
-      const frameHeight = 724;
-      const sx = frameIdx * frameWidth;
-      const sy = 0;
+      const framesList = SPRITE_FRAMES[animKey] || SPRITE_FRAMES.dancer_forward;
+      const fDef = framesList[frameIdx] || framesList[0];
 
-      // Scale dancer proportionally to fit perspective of the courtyard
-      const scale = 0.38;
-      const dw = frameWidth * scale;
-      const dh = frameHeight * scale;
-      const dx = this.dancerX - dw / 2;
-      const dy = this.dancerY - dh + 20;
+      // Tỉ lệ scale chuẩn xác 0.20
+      const scale = cfg?.objects?.dancer?.scale || 0.20;
+      const dw = fDef.sw * scale;
+      const dh = fDef.sh * scale;
+      const dx = this.dancerX - fDef.footX * scale;
+      const dy = this.dancerY - fDef.footY * scale;
 
-      // Draw subtle shadow
+      // Vẽ bóng đổ dưới sàn (bóng luôn nằm trên sàn FLOOR_Y kể cả khi nhân vật nhảy bổng lên)
       this.ctx.save();
       this.ctx.beginPath();
-      const shadowW = dw * 0.5;
-      const shadowH = 16;
-      this.ctx.ellipse(this.dancerX, FLOOR_Y + 12, shadowW / 2, shadowH / 2, 0, 0, Math.PI * 2);
+      const shadowW = dw * (cfg?.objects?.dancer?.shadowWidthRatio || 0.50);
+      const shadowH = cfg?.objects?.dancer?.shadowHeight || 10;
+      this.ctx.ellipse(this.dancerX, FLOOR_Y + 4, shadowW / 2, shadowH / 2, 0, 0, Math.PI * 2);
       this.ctx.fillStyle = 'rgba(25, 15, 8, 0.45)';
       this.ctx.fill();
       this.ctx.restore();
 
-      // Draw dancer sprite frame
+      // Vẽ sprite frame cắt chuẩn từng pixel (Zero bleed)
       this.ctx.drawImage(
         spriteSheet,
-        sx, sy, frameWidth, frameHeight,
+        fDef.sx, fDef.sy, fDef.sw, fDef.sh,
         dx, dy, dw, dh
       );
     }

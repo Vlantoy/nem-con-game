@@ -1,0 +1,8 @@
+const{test}=require('node:test'),assert=require('node:assert/strict'),E=require('../endless.js');
+test('Difficulty grows gradually and remains playable at late rounds',()=>{const a=E.config(1),b=E.config(20),c=E.config(500);assert.equal(a.length,3);assert.ok(b.length>a.length);assert.ok(b.duration/b.length<a.duration/a.length);assert.equal(c.length,10);assert.ok(c.secondsPerKey>=.17&&c.settle>=.4&&c.good>=.075);assert.ok(a.duration<2);});
+test('Sequence uses all four directions and rejects wrong order with reset',()=>{let n=0;const s=E.create(4,0,()=>n++%4/4);assert.deepEqual(s.sequence,[0,1,2,3]);assert.equal(E.input(s,0),'correct');assert.equal(E.input(s,3),'wrong');assert.equal(s.index,0);});
+test('Complete phrase plus accurate Space gives perfect',()=>{const s=E.create(1,2,()=>0);s.sequence.forEach(k=>E.input(s,k));assert.equal(E.commit(s,s.target),'perfect');assert.equal(E.commit(s,s.target),'ignored');});
+test('Incomplete phrase or early Space loses the turn',()=>{const a=E.create();assert.equal(E.commit(a,a.target),'miss');const b=E.create();b.sequence.forEach(k=>E.input(b,k));assert.equal(E.commit(b,b.target-1),'miss');});
+test('Good boundary accepts timing and outside misses',()=>{const s=E.create();s.sequence.forEach(k=>E.input(s,k));assert.equal(E.commit(s,s.target+s.good-.001),'good');});
+
+test('Adding a direction grants time while per-key budget tightens',()=>{for(const r of [4,7,10,13,16,19,22]){const before=E.config(r-1),after=E.config(r);assert.equal(after.length,before.length+1);assert.ok(after.duration>before.duration);assert.ok(after.secondsPerKey<=before.secondsPerKey);} });

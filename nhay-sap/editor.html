@@ -1,0 +1,1781 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Sạp Studio · Bộ Biên Tập Spike, Kích Thước & Vùng Nhảy Từng Frame</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    :root {
+      --bg: #0b0f17;
+      --bg-panel: #131b26;
+      --bg-card: #1c2636;
+      --bg-card-hover: #223044;
+      --bg-input: #0f1722;
+      --border: #2b394f;
+      --border-focus: #f59e0b;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --accent: #f59e0b;
+      --accent-hover: #fbbf24;
+      --accent-green: #10b981;
+      --accent-green-bg: rgba(16, 185, 129, 0.2);
+      --accent-red: #ef4444;
+      --accent-red-bg: rgba(239, 68, 68, 0.25);
+      --accent-blue: #38bdf8;
+      --accent-purple: #a855f7;
+      --gold: #edc35b;
+      --gold-glow: #ffe285;
+      --wood-shadow: #3b1d0d;
+      --wood: #71380f;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Be Vietnam Pro', -apple-system, sans-serif;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* TOP HEADER */
+    header {
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border);
+      height: 52px;
+      padding: 0 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      z-index: 50;
+      flex-shrink: 0;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-icon {
+      font-size: 22px;
+    }
+    .brand-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .badge {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    button {
+      background: var(--bg-card);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+      font-family: inherit;
+    }
+    button:hover {
+      background: var(--bg-card-hover);
+      border-color: #3e506d;
+      color: #fff;
+    }
+    button.btn-primary {
+      background: var(--accent);
+      color: #0f172a;
+      border-color: var(--accent);
+      font-weight: 700;
+    }
+    button.btn-primary:hover {
+      background: var(--accent-hover);
+      box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+    }
+    button.btn-playtest {
+      background: rgba(16, 185, 129, 0.18);
+      color: #34d399;
+      border-color: rgba(16, 185, 129, 0.45);
+      font-weight: 700;
+    }
+    button.btn-playtest.active {
+      background: var(--accent-green);
+      color: #064e3b;
+      box-shadow: 0 0 14px rgba(16, 185, 129, 0.6);
+    }
+    button.btn-danger {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border-color: rgba(239, 68, 68, 0.35);
+    }
+    button.btn-danger:hover {
+      background: rgba(239, 68, 68, 0.25);
+    }
+    button.btn-nav {
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      border-color: rgba(56, 189, 248, 0.35);
+    }
+
+    /* MAIN WORKSPACE */
+    .app-main {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* LEFT SIDEBAR */
+    .sidebar {
+      width: 440px;
+      background: var(--bg-panel);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      flex-shrink: 0;
+      z-index: 20;
+    }
+
+    /* SIDEBAR TABS */
+    .sidebar-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      background: #0d131c;
+      overflow-x: auto;
+    }
+    .s-tab {
+      flex: 1;
+      padding: 10px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      text-align: center;
+      color: var(--text-muted);
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .s-tab:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.03);
+    }
+    .s-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+      background: var(--bg-panel);
+    }
+
+    /* SIDEBAR CONTENT AREA */
+    .sidebar-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px;
+    }
+    .tab-pane {
+      display: none;
+    }
+    .tab-pane.active {
+      display: block;
+    }
+
+    /* SECTIONS & FORM CONTROLS */
+    .panel-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .sec-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .sec-title {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .form-group {
+      margin-bottom: 10px;
+    }
+    .form-group:last-child {
+      margin-bottom: 0;
+    }
+    label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    .lbl-val {
+      color: var(--accent);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+    }
+    select, input[type="text"], input[type="number"] {
+      width: 100%;
+      background: var(--bg-input);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 6px 9px;
+      font-size: 12px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    select:focus, input:focus {
+      border-color: var(--border-focus);
+    }
+
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .slider-row input[type="range"] {
+      flex: 1;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+    .num-val {
+      width: 64px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 4px 6px;
+      font-size: 12px;
+      color: #fff;
+      font-family: 'JetBrains Mono', monospace;
+      text-align: right;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+
+    /* ZONE CARDS */
+    .zone-card {
+      background: #131b26;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 10px;
+      margin-bottom: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .zone-card:hover {
+      border-color: #4b5d78;
+      background: #172230;
+    }
+    .zone-card.active {
+      border-color: var(--accent);
+      background: #1e2c3e;
+      box-shadow: 0 0 8px rgba(245, 158, 11, 0.2);
+    }
+    .zone-card.jumpable {
+      border-left: 4px solid var(--accent-green);
+    }
+    .zone-card.non-jumpable {
+      border-left: 4px solid var(--accent-red);
+    }
+    .zc-left {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .zc-name {
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .zc-coords {
+      font-size: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-muted);
+    }
+    .zc-actions {
+      display: flex;
+      gap: 4px;
+    }
+    .btn-icon-xs {
+      padding: 3px 6px;
+      font-size: 10px;
+      border-radius: 3px;
+    }
+
+    /* CENTER VIEWPORT */
+    .viewport-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #070a0f;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* VIEWPORT TOOLBAR */
+    .viewport-toolbar {
+      height: 38px;
+      background: #0d131c;
+      border-bottom: 1px solid var(--border);
+      padding: 0 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      z-index: 10;
+      flex-shrink: 0;
+    }
+    .tool-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .tool-btn {
+      padding: 4px 8px;
+      font-size: 11px;
+      border-radius: 4px;
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+    }
+    .tool-btn:hover {
+      background: var(--bg-card);
+      color: #fff;
+    }
+    .tool-btn.active {
+      background: var(--bg-card);
+      border-color: var(--accent);
+      color: var(--accent);
+      font-weight: 700;
+    }
+    .tool-sep {
+      width: 1px;
+      height: 18px;
+      background: var(--border);
+      margin: 0 4px;
+    }
+    .toggle-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+    }
+    .toggle-label input {
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    /* CANVAS AREA */
+    .canvas-stage {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      cursor: default;
+      background-image: 
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 32px 32px;
+    }
+    .canvas-stage.panning {
+      cursor: grabbing;
+    }
+    .canvas-stage.drawing {
+      cursor: crosshair;
+    }
+
+    #editor-canvas {
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+      border: 1px solid #1e293b;
+      transform-origin: center center;
+      transition: transform 0.05s ease-out;
+    }
+
+    /* PLAYTEST OVERLAY HUD */
+    .playtest-hud {
+      position: absolute;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.92);
+      border: 1px solid var(--gold);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+      border-radius: 8px;
+      padding: 8px 18px;
+      display: none;
+      align-items: center;
+      gap: 16px;
+      z-index: 40;
+      backdrop-filter: blur(8px);
+    }
+    .playtest-hud.active {
+      display: flex;
+    }
+    .hud-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .status-pill {
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .status-pill.safe {
+      background: rgba(16, 185, 129, 0.2);
+      color: #34d399;
+      border: 1px solid #10b981;
+    }
+    .status-pill.danger {
+      background: rgba(239, 68, 68, 0.25);
+      color: #f87171;
+      border: 1px solid #ef4444;
+      animation: pulseAlert 0.4s infinite alternate;
+    }
+    .status-pill.airborne {
+      background: rgba(56, 189, 248, 0.2);
+      color: #38bdf8;
+      border: 1px solid #38bdf8;
+    }
+    @keyframes pulseAlert {
+      from { transform: scale(1); box-shadow: 0 0 0 rgba(239, 68, 68, 0); }
+      to { transform: scale(1.05); box-shadow: 0 0 12px rgba(239, 68, 68, 0.6); }
+    }
+
+    /* PLAYTEST BOTTOM CONTROLS */
+    .playtest-keys {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: none;
+      gap: 10px;
+      z-index: 40;
+      background: rgba(15, 23, 42, 0.9);
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    .playtest-keys.active {
+      display: flex;
+    }
+    .pt-btn {
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+    .pt-btn.jump {
+      background: var(--accent);
+      color: #0f172a;
+      border-color: var(--accent);
+    }
+    .pt-btn:hover {
+      background: var(--accent-hover);
+      color: #0f172a;
+    }
+    .key-sub {
+      font-size: 9px;
+      opacity: 0.7;
+    }
+
+    /* BOTTOM TIMELINE */
+    .timeline-bar {
+      height: 130px;
+      background: #0e141f;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      z-index: 20;
+    }
+
+    /* TIMELINE HEADER CONTROLS */
+    .timeline-ctrls {
+      height: 38px;
+      background: #090e16;
+      border-bottom: 1px solid var(--border);
+      padding: 0 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .anim-select-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .anim-select {
+      background: var(--bg-input);
+      color: #fff;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      outline: none;
+    }
+    .playback-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-play-ctrl {
+      padding: 4px 8px;
+      font-size: 11px;
+      border-radius: 4px;
+      min-width: 28px;
+      justify-content: center;
+    }
+    .btn-play-ctrl.active {
+      background: var(--accent);
+      color: #0f172a;
+      border-color: var(--accent);
+    }
+
+    /* TIMELINE FRAMES STRIP */
+    .timeline-strip {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      overflow-x: auto;
+      overflow-y: hidden;
+    }
+    .timeline-strip::-webkit-scrollbar {
+      height: 6px;
+    }
+    .timeline-strip::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
+    }
+
+    /* FRAME ITEM CARD */
+    .frame-card {
+      min-width: 90px;
+      height: 74px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+    .frame-card:hover {
+      border-color: #486581;
+      transform: translateY(-2px);
+    }
+    .frame-card.active {
+      border-color: var(--accent);
+      background: #202d3f;
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.35);
+    }
+    .frame-card.hazard-frame {
+      border-color: rgba(239, 68, 68, 0.6);
+    }
+    .frame-card.hazard-frame.active {
+      border-color: var(--accent-red);
+      box-shadow: 0 0 10px rgba(239, 68, 68, 0.45);
+    }
+    .fc-header {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 2px 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 9px;
+      font-weight: 800;
+      color: var(--text-muted);
+    }
+    .fc-preview {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .fc-preview canvas {
+      max-height: 100%;
+      max-width: 100%;
+      object-fit: contain;
+    }
+    .fc-badge {
+      font-size: 8px;
+      padding: 1px 4px;
+      border-radius: 2px;
+      font-weight: 700;
+    }
+    .fc-badge.safe { background: rgba(16, 185, 129, 0.25); color: #34d399; }
+    .fc-badge.warning { background: rgba(245, 158, 11, 0.25); color: #fbbf24; }
+    .fc-badge.danger { background: rgba(239, 68, 68, 0.3); color: #f87171; }
+
+    /* TOAST NOTIFICATION */
+    .toast-msg {
+      position: fixed;
+      bottom: 140px;
+      right: 20px;
+      background: rgba(19, 27, 38, 0.95);
+      border: 1px solid var(--accent);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+      color: #fff;
+      padding: 10px 16px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 100;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.25s ease;
+      pointer-events: none;
+    }
+    .toast-msg.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* MODAL */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+    .modal-overlay.open {
+      display: flex;
+    }
+    .modal-box {
+      width: 580px;
+      max-width: 90vw;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .modal-header {
+      padding: 12px 18px;
+      background: #0d131c;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-header h3 {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .modal-body {
+      padding: 16px;
+      max-height: 70vh;
+      overflow-y: auto;
+    }
+    .modal-footer {
+      padding: 10px 18px;
+      background: #0d131c;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+    textarea.json-area {
+      width: 100%;
+      height: 280px;
+      background: var(--bg-input);
+      color: #38bdf8;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      line-height: 1.5;
+      outline: none;
+      resize: vertical;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOP HEADER -->
+  <header>
+    <div class="brand">
+      <span class="brand-icon">🎋</span>
+      <div class="brand-title">
+        SẠP STUDIO
+        <span class="badge">BỘ BIÊN TẬP SPIKE & ANIMATION FRAME</span>
+      </div>
+    </div>
+
+    <!-- PRESET SELECTOR -->
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Cấu hình mẫu:</span>
+      <select id="preset-select" style="width: 210px; padding: 4px 8px; font-size: 11px;">
+        <option value="default">🎋 Mặc Định Lễ Hội Tây Bắc</option>
+        <option value="hardcore">⚡ Sạp Khép Siêu Nhanh & Spike Gai</option>
+        <option value="six_lanes">🌾 Sân Khấu Rộng (Expanded)</option>
+        <option value="custom">🛠️ Tùy Chỉnh Hiện Tại (Custom)</option>
+      </select>
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="header-actions">
+      <button id="btn-toggle-playtest" class="btn-playtest" title="Bật/Tắt chế độ nhảy thử trực tiếp trên sàn sạp">
+        <i class="fa-solid fa-gamepad"></i> Chơi Thử (Playtest)
+      </button>
+      <button id="btn-save-server" class="btn-primary" title="Lưu cấu hình trực tiếp vào file nhay-sap-config.js và nhay-sap-config.json trên server">
+        <i class="fa-solid fa-cloud-arrow-up"></i> Lưu Lên Server
+      </button>
+      <button id="btn-export-json" title="Xuất file cấu hình JSON">
+        <i class="fa-solid fa-file-export"></i> Xuất JSON
+      </button>
+      <button id="btn-import-json" title="Nhập cấu hình JSON">
+        <i class="fa-solid fa-file-import"></i> Nạp JSON
+      </button>
+      <button id="btn-reset-default" class="btn-danger" title="Khôi phục toàn bộ thông số ban đầu">
+        <i class="fa-solid fa-rotate-left"></i> Đặt Lại
+      </button>
+      <a href="index.html" class="btn-nav" style="text-decoration: none;" title="Vào trải nghiệm game thực tế">
+        <button class="btn-nav"><i class="fa-solid fa-play"></i> Vào Chơi Game</button>
+      </a>
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE -->
+  <main class="app-main">
+
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar">
+      <!-- SIDEBAR TABS -->
+      <div class="sidebar-tabs">
+        <div class="s-tab" data-tab="tab-landing">
+          <i class="fa-solid fa-shoe-prints"></i> Vị Trí Rơi (Landing)
+        </div>
+        <div class="s-tab active" data-tab="tab-spikes">
+          <i class="fa-solid fa-bars-staggered"></i> Sạp & Spikes
+        </div>
+        <div class="s-tab" data-tab="tab-clappers">
+          <i class="fa-solid fa-people-group"></i> Người Cầm Sạp
+        </div>
+        <div class="s-tab" data-tab="tab-objects">
+          <i class="fa-solid fa-shapes"></i> Kích Thước Vật Thể
+        </div>
+        <div class="s-tab" data-tab="tab-zones">
+          <i class="fa-solid fa-crosshairs"></i> Vùng Nhảy Frame
+        </div>
+        <div class="s-tab" data-tab="tab-rules">
+          <i class="fa-solid fa-bolt"></i> Sát Thương & Nhảy
+        </div>
+      </div>
+
+      <!-- SIDEBAR CONTENT -->
+      <div class="sidebar-content">
+
+        <!-- TAB LANDING: VỊ TRÍ RƠI CỦA NHÂN VẬT (TÙY CHỈNH ĐIỂM RƠI) -->
+        <div id="tab-landing" class="tab-pane">
+          
+          <div class="panel-section" style="border-color: rgba(56, 189, 248, 0.4); background: rgba(56, 189, 248, 0.05);">
+            <div class="sec-header">
+              <span class="sec-title" style="color: #38bdf8;">
+                <i class="fa-solid fa-location-dot"></i> Tùy Chỉnh Vị Trí Rơi (Landing Positions)
+              </span>
+              <button id="btn-realign-lanes" style="padding: 2px 8px; font-size: 10px; background: rgba(56, 189, 248, 0.15); color: #38bdf8; border-color: rgba(56, 189, 248, 0.4);">
+                <i class="fa-solid fa-arrows-split-up-and-left"></i> Cân Bằng Đều
+              </button>
+            </div>
+            <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">
+              💡 <em>Cách dùng:</em> Bạn có thể chỉnh tọa độ X ở các ô bên dưới, <strong>HOẶC dùng chuột click kéo trực tiếp các ghim điểm rơi (🎯) trên màn hình Canvas</strong>!
+            </p>
+          </div>
+
+          <!-- BỜ TRÁI AN TOÀN -->
+          <div class="panel-section">
+            <div class="sec-header">
+              <span class="sec-title"><i class="fa-solid fa-arrow-left"></i> Bờ Trái Ngoài Sạp (Safe Left)</span>
+              <span id="badge-landing-safe-l" class="fc-badge safe">🟢 AN TOÀN</span>
+            </div>
+            <div class="form-group">
+              <label>Tọa độ X điểm rơi (px): <span class="lbl-val" id="lbl-landing-safe-l">477px</span></label>
+              <div class="slider-row">
+                <input type="range" id="rng-landing-safe-l" min="200" max="650" step="1" value="477">
+                <input type="number" id="num-landing-safe-l" class="num-val" value="477">
+              </div>
+            </div>
+          </div>
+
+          <!-- CÁC LUỐNG NHẢY CỦA NHÂN VẬT -->
+          <div class="panel-section">
+            <div class="sec-header">
+              <span class="sec-title"><i class="fa-solid fa-road"></i> Danh Sách Các Luống Nhảy (Lanes)</span>
+              <button id="btn-add-landing-lane" style="padding: 2px 8px; font-size: 10px; background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: rgba(16, 185, 129, 0.4);">
+                <i class="fa-solid fa-plus"></i> Thêm Luống
+              </button>
+            </div>
+            <div id="landing-lanes-container">
+              <!-- Rendered dynamically by JS -->
+            </div>
+          </div>
+
+          <!-- BỜ PHẢI AN TOÀN -->
+          <div class="panel-section">
+            <div class="sec-header">
+              <span class="sec-title"><i class="fa-solid fa-arrow-right"></i> Bờ Phải Ngoài Sạp (Safe Right)</span>
+              <span id="badge-landing-safe-r" class="fc-badge safe">🟢 AN TOÀN</span>
+            </div>
+            <div class="form-group">
+              <label>Tọa độ X điểm rơi (px): <span class="lbl-val" id="lbl-landing-safe-r">1197px</span></label>
+              <div class="slider-row">
+                <input type="range" id="rng-landing-safe-r" min="1050" max="1500" step="1" value="1197">
+                <input type="number" id="num-landing-safe-r" class="num-val" value="1197">
+              </div>
+            </div>
+          </div>
+
+          <!-- ĐỘ CAO SÀN & BƯỚC NHẢY VÒNG CUNG -->
+          <div class="panel-section">
+            <div class="sec-header">
+              <span class="sec-title"><i class="fa-solid fa-arrows-up-down"></i> Sàn Đất & Độ Cao Bật Nhảy</span>
+            </div>
+            <div class="form-group">
+              <label>Độ cao mặt sàn (Floor Y): <span class="lbl-val" id="lbl-landing-floor-y">550px</span></label>
+              <div class="slider-row">
+                <input type="range" id="rng-landing-floor-y" min="400" max="750" step="2" value="550">
+                <input type="number" id="num-landing-floor-y" class="num-val" value="550">
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Độ cao vòng cung nhảy (Jump Arc Lift): <span class="lbl-val" id="lbl-landing-jump-lift">-90px</span></label>
+              <div class="slider-row">
+                <input type="range" id="rng-landing-jump-lift" min="-220" max="-30" step="5" value="-90">
+                <input type="number" id="num-landing-jump-lift" class="num-val" value="-90">
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Thời gian nhảy 1 bước (ms): <span class="lbl-val" id="lbl-landing-jump-dur">400ms</span></label>
+              <div class="slider-row">
+                <input type="range" id="rng-landing-jump-dur" min="200" max="800" step="20" value="400">
+                <input type="number" id="num-landing-jump-dur" class="num-val" value="400">
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- TAB 1: SẠP & SPIKES -->
+        <div id="tab-spikes" class="tab-pane active">
+          
+          <div class="panel-section">
+            <div class="sec-header">
+              <span class="sec-title"><i class="fa-solid fa-bullseye"></i> Kích thước Cây Sạp & Khoảng Hở</span>
+            </div>
+            
+            <div class="form-group">
+              <label>Độ dày thân tre / Spike Width: <span class="lbl-val" id="lbl-pole-width">36px</span></label>
+              <div class="slider-row">
+                <input type="range" id="rng-pole-width" min="16" max="90" step="1" value="36">
+                <input type="number" id="num-pole-width" class="num-val" value="36">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Chiều dài thanh tre / Height: <span class="lbl-val" id="lbl-pole-height">460px</span></label>
+              <div class="slider-row">
+                <input type="range" id="rng-pole-height" min="200" max="800" step="5" value="460">
+                <input type="number" id="num-pole-height" class="num-val" value="460">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Khoảng mở sạp (Nhịp 1, 2, 3): <span class="lbl-val" id="lbl-open-gap">160px</span></label>
+              <div class="slider-row">
+                <input type="range" id="rng-open-gap" min="60" max="320" step="5" value="160">
+                <input type="number" id="num-open-gap" class="num-val" value="160">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Khoảng khép sạp kẹp chân (Nhịp 4): <span class="lbl-val" id="lbl-closed-gap">24px</span></label>
+              <div class="slider-row">
+                <input type="range" id="rng-closed-gap" min="0" max="80" step="2" value="24">
+                <input type="number" id="num-closed-gap" class="num-val" value="24">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Bề rộng vùng kẹp chân / Danger Width: <span class="lbl-val" id="lbl-danger-width">50px</span></label>
+              <div class="slider-row">
+                <input type="range" id="rng-danger-width" min="20" max="120" step="2" value="50">
+                <input type="number" id="num-danger-width" class="num-val" value="50">
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-section">
+            <div class="sec-header">
+              <span class="sec-title"><i class="fa-solid fa-triangle-exclamation"></i> Hiệu ứng Gai Spike & Màu Sắc</span>
+            </div>
+
+            <div class="form-group" style="display: flex; align-items: center; justify-content: space-between;">
+              <span style="font-size: 11px; font-weight: 600; color: var(--text);">Hiển thị răng cưa Spike cảnh báo:</span>
+              <input type="checkbox" id="chk-show-spiketeeth" style="accent-color: var(--accent); width: 18px; height: 18px;">
+            </div>
+
+            <div class="grid-2" style="margin-top: 8px;">
+              <div class="form-group">
+                <label>Màu Vùng Nguy Hiểm (Spike):</label>
+                <input type="color" id="col-hazard" value="#ef4444" style="height: 32px; padding: 2px; cursor: pointer;">
+              </div>
+              <div class="form-group">
+                <label>Màu Vùng An Toàn (Safe):</label>
+                <input type="color" id="col-safe" value="#10b981" style="height: 32px; padding: 2px; cursor: pointer;">
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-section">
+            <div class="sec-header">
+              <span class="sec-title"><i class="fa-solid fa-layer-group"></i> 5 Cặp Sạp Trên Sàn Khấu</span>
+              <button id="btn-realign-poles" style="padding: 2px 8px; font-size: 10px;">Cân Bằng Đều</button>
+            </div>
+            <div id="poles-list-container">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+        </div>
+
+        <!-- TAB 2: NGƯỜI CẦM SẠP (CLAPPERS) -->
+        <div id="tab-clappers" class="tab-pane">
+          <div class="panel-section">
+            <div class="sec-header">
+              <span class="sec-title"><i class="fa-solid fa-people-group"></i> Chọn Bên Người Cầm Sạp</span>
+              <button id="btn-reset-clappers-pos" style="padding: 2px 8px; font-size: 10px;">Vị Trí Chuẩn</button>
+            </div>
+            
+            <div style="display: flex; gap: 6px; margin-bottom: 12px;">
+              <button id="btn-side-left" class="btn-primary" style="flex: 1; justify-content: center; font-size: 11px;">
+                <i class="fa-solid fa-person"></i> Bên Trái (Left)
+              </button>
+              <button id="btn-side-right" style="flex: 1; justify-content: center; font-size: 11px;">
+                <i class="fa-solid fa-person"></i> Bên Phải (Right)
+              </button>
+            </div>
+
+            <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">
+              💡 <em>Mẹo:</em> Bạn có thể click trực tiếp vào người cầm sạp bên Trái hoặc bên Phải trên Canvas để kéo di chuyển hoặc kéo 8 chốt để co giãn kích thước!
+            </p>
+
+            <div class="form-group" style="display: flex; align-items: center; justify-content: space-between;">
+              <span style="font-size: 11px; font-weight: 600; color: #fff;">Hiển thị người cầm sạp bên này:</span>
+              <input type="checkbox" id="chk-clapper-visible" checked style="accent-color: var(--accent); width: 16px; height: 16px;">
+            </div>
+          </div>
+
+          <!-- POSITION & OFFSET -->
+          <div class="panel-section">
+            <div class="sec-header">
+              <span class="sec-title" id="lbl-clapper-side-title"><i class="fa-solid fa-arrows-up-down-left-right"></i> Tọa Độ & Vị Trí Bên Trái</span>
+            </div>
+
+            <div class="grid-2">
+              <div class="form-group">
+                <label>Tọa độ X (Gốc px):</label>
+                <input type="number" id="num-clapper-x" value="0">
+              </div>
+              <div class="form-group">
+                <label>Tọa độ Y (Gốc px):</label>
+                <input type="number" id="num-clapper-y" value="0">
+              </div>
+            </div>
+
+            <div class="grid-2">
+              <div class="form-group">
+                <label>Độ lệch Dời X (Offset X):</label>
+                <input type="number" id="num-clapper-ox" value="0">
+              </div>
+              <div class="form-group">
+                <label>Độ lệch Dời Y (Offset Y):</label>
+                <input type="number" id="num-clapper-oy" value="0">
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 6px;">
+              <label>Tỉ lệ phóng to/thu nhỏ (Scale): <span class="lbl-val" id="lbl-clapper-scale">0.500</span></label>
+              <div class="slider-row">
+                <input type="range" id="rng-clapper-scale" min="0.20" max="2.20" step="0.01" value="0.50">
+                <input type="number" id="num-clapper-scale" class="num-val" step="0.01" value="0.50">
+              </div>
+            </div>
+
+            <div class="grid-2">
+              <div class="form-group">
+                <label>Tỉ lệ Scale X (Ngang): <span class="lbl-val" id="lbl-clapper-scalex">1.00</span></label>
+                <input type="number" id="num-clapper-scalex" class="num-val" step="0.05" value="1.0" style="width: 100%;">
+              </div>
+              <div class="form-group">
+                <label>Tỉ lệ Scale Y (Dọc): <span class="lbl-val" id="lbl-clapper-scaley">1.00</span></label>
+                <input type="number" id="num-clapper-scaley" class="num-val" step="0.05" value="1.0" style="width: 100%;">
+              </div>
+            </div>
+          </div>
+
+          <!-- SOURCE SIZING & SYMMETRY -->
+          <div class="panel-section">
+            <div class="sec-header">
+              <span class="sec-title"><i class="fa-solid fa-crop-simple"></i> Khung Cắt & Đối Xứng</span>
+            </div>
+
+            <div class="grid-2">
+              <div class="form-group">
+                <label>Bề Rộng Khung (W):</label>
+                <input type="number" id="num-clapper-w" value="836">
+              </div>
+              <div class="form-group">
+                <label>Chiều Cao Khung (H):</label>
+                <input type="number" id="num-clapper-h" value="941">
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 6px; margin-top: 8px;">
+              <button id="btn-mirror-clapper" style="flex: 1; justify-content: center; font-size: 11px;">
+                <i class="fa-solid fa-arrows-split-up-and-left"></i> Sao Chép Sang Bên Kia
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- TAB 3: KÍCH THƯỚC VẬT THỂ -->
+        <div id="tab-objects" class="tab-pane">
+
+          <div class="panel-section">
+            <div class="sec-header">
+              <span class="sec-title"><i class="fa-solid fa-cubes"></i> Chọn Vật Thể Muốn Cân Chỉnh</span>
+            </div>
+            <div class="form-group">
+              <select id="sel-target-object">
+                <option value="dancer">💃 Nhân Vật Nhảy Sạp (Dancer)</option>
+                <option value="clappers">👥 Đội Gõ Sạp 2 Đầu (Clappers)</option>
+                <option value="beams">🪵 Cặp Đòn Kê Bằng Gỗ (Cross Beams)</option>
+                <option value="background">🌄 Bối Cảnh Thung Lũng Tây Bắc</option>
+                <option value="stage">📐 Sân Khấu & Mặt Sàn Nhảy (Floor & Lanes)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- DANCER OBJECT CONTROLS -->
+          <div id="obj-ctrl-dancer" class="obj-subpanel">
+            <div class="panel-section">
+              <div class="sec-header">
+                <span class="sec-title"><i class="fa-solid fa-person-running"></i> Tỉ lệ & Kích Thước Nhân Vật</span>
+              </div>
+
+              <div class="form-group">
+                <label>Tỉ lệ thu phóng (Scale): <span class="lbl-val" id="lbl-dancer-scale">0.380</span></label>
+                <div class="slider-row">
+                  <input type="range" id="rng-dancer-scale" min="0.15" max="0.90" step="0.005" value="0.38">
+                  <input type="number" id="num-dancer-scale" class="num-val" step="0.005" value="0.38">
+                </div>
+              </div>
+
+              <div class="grid-2">
+                <div class="form-group">
+                  <label>Chiều Rộng Gốc (px):</label>
+                  <input type="number" id="num-dancer-w" value="362">
+                </div>
+                <div class="form-group">
+                  <label>Chiều Cao Gốc (px):</label>
+                  <input type="number" id="num-dancer-h" value="724">
+                </div>
+              </div>
+
+              <div class="grid-2">
+                <div class="form-group">
+                  <label>Độ lệch Dời X (Offset X):</label>
+                  <input type="number" id="num-dancer-ox" value="0">
+                </div>
+                <div class="form-group">
+                  <label>Độ lệch Dời Y (Offset Y):</label>
+                  <input type="number" id="num-dancer-oy" value="20">
+                </div>
+              </div>
+
+              <div class="form-group" style="margin-top: 6px;">
+                <label>Độ cao bật nhảy tối đa (Jump Y Lift): <span class="lbl-val" id="lbl-jump-lift">-110px</span></label>
+                <div class="slider-row">
+                  <input type="range" id="rng-jump-lift" min="-220" max="-40" step="5" value="-110">
+                  <input type="number" id="num-jump-lift" class="num-val" value="-110">
+                </div>
+              </div>
+            </div>
+
+            <div class="panel-section">
+              <div class="sec-header">
+                <span class="sec-title"><i class="fa-solid fa-shoe-prints"></i> Điểm Neo Chân Tiếp Đất (Foot Anchor)</span>
+                <button id="btn-pick-foot-anchor" style="padding: 2px 8px; font-size: 10px; background: rgba(245, 158, 11, 0.15); color: var(--accent);">
+                  <i class="fa-solid fa-location-crosshairs"></i> Chấm Điểm Chân
+                </button>
+              </div>
+
+              <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">
+                Vị trí bàn chân chạm đất trên frame ảnh để kiểm tra va chạm với các thanh sạp spike.
+              </p>
+
+              <div class="grid-2">
+                <div class="form-group">
+                  <label>Tọa độ Chân X (Frame):</label>
+                  <input type="number" id="num-foot-x" value="181">
+                </div>
+                <div class="form-group">
+                  <label>Tọa độ Chân Y (Frame):</label>
+                  <input type="number" id="num-foot-y" value="710">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Bán kính va chạm bàn chân (Radius): <span class="lbl-val" id="lbl-foot-radius">26px</span></label>
+                <div class="slider-row">
+                  <input type="range" id="rng-foot-radius" min="10" max="60" step="1" value="26">
+                  <input type="number" id="num-foot-radius" class="num-val" value="26">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- STAGE / LANES OBJECT CONTROLS -->
+          <div id="obj-ctrl-stage" class="obj-subpanel" style="display: none;">
+            <div class="panel-section">
+              <div class="sec-header">
+                <span class="sec-title"><i class="fa-solid fa-road"></i> Mặt Sàn & Luống Nhảy (Lanes)</span>
+              </div>
+
+              <div class="form-group">
+                <label>Độ cao mặt sàn sạp (Floor Y): <span class="lbl-val" id="lbl-floor-y">550px</span></label>
+                <div class="slider-row">
+                  <input type="range" id="rng-floor-y" min="400" max="750" step="2" value="550">
+                  <input type="number" id="num-floor-y" class="num-val" value="550">
+                </div>
+              </div>
+
+              <div class="grid-2">
+                <div class="form-group">
+                  <label>Bờ an toàn Trái (X):</label>
+                  <input type="number" id="num-safe-l" value="330">
+                </div>
+                <div class="form-group">
+                  <label>Bờ an toàn Phải (X):</label>
+                  <input type="number" id="num-safe-r" value="1340">
+                </div>
+              </div>
+
+              <div class="sec-header" style="margin-top: 10px;">
+                <span class="sec-title" style="font-size: 10px;">Tọa độ 4 Luống Sạp (X)</span>
+              </div>
+              <div class="grid-4">
+                <div class="form-group">
+                  <label>Luống 0:</label>
+                  <input type="number" id="num-lane-0" value="500">
+                </div>
+                <div class="form-group">
+                  <label>Luống 1:</label>
+                  <input type="number" id="num-lane-1" value="720">
+                </div>
+                <div class="form-group">
+                  <label>Luống 2:</label>
+                  <input type="number" id="num-lane-2" value="950">
+                </div>
+                <div class="form-group">
+                  <label>Luống 3:</label>
+                  <input type="number" id="num-lane-3" value="1170">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- OTHER OBJECT CONTROLS (CLAPPERS, BEAMS, BG) -->
+          <div id="obj-ctrl-general" class="obj-subpanel" style="display: none;">
+            <div class="panel-section">
+              <div class="sec-header">
+                <span class="sec-title"><i class="fa-solid fa-sliders"></i> Tỉ Lệ & Tọa Độ Vật Thể</span>
+              </div>
+              <div class="form-group">
+                <label>Scale: <span class="lbl-val" id="lbl-gen-scale">1.00</span></label>
+                <div class="slider-row">
+                  <input type="range" id="rng-gen-scale" min="0.2" max="2.0" step="0.02" value="1.0">
+                  <input type="number" id="num-gen-scale" class="num-val" step="0.02" value="1.0">
+                </div>
+              </div>
+              <div class="grid-2">
+                <div class="form-group">
+                  <label>Dời Offset X:</label>
+                  <input type="number" id="num-gen-ox" value="0">
+                </div>
+                <div class="form-group">
+                  <label>Dời Offset Y:</label>
+                  <input type="number" id="num-gen-oy" value="0">
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- TAB 3: VÙNG NHẢY TỪNG FRAME -->
+        <div id="tab-zones" class="tab-pane">
+
+          <!-- FRAME HEADER INFO -->
+          <div class="panel-section" style="background: rgba(245, 158, 11, 0.08); border-color: rgba(245, 158, 11, 0.3);">
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <div>
+                <span style="font-size: 10px; color: var(--accent); font-weight: 800; text-transform: uppercase;">Đang cấu hình:</span>
+                <h4 id="cur-frame-title" style="font-size: 13px; color: #fff; margin-top: 2px;">Frame 0 · Chuẩn Bị Nhún Đà</h4>
+              </div>
+              <span id="cur-frame-hazard-badge" class="fc-badge safe">🟢 AN TOÀN</span>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
+              <label class="toggle-label" style="font-weight: 700; color: #fff;">
+                <input type="checkbox" id="chk-frame-airborne"> Frame này đang bay trên không (Airborne)
+              </label>
+            </div>
+          </div>
+
+          <!-- JUMPABLE ZONES GROUP -->
+          <div class="panel-section">
+            <div class="sec-header">
+              <span class="sec-title" style="color: var(--accent-green);">
+                <i class="fa-solid fa-circle-check"></i> Vị Trí Nhảy Được (Safe Jump)
+              </span>
+              <button id="btn-add-jumpable-zone" style="background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: rgba(16, 185, 129, 0.4); padding: 3px 8px; font-size: 11px;">
+                <i class="fa-solid fa-plus"></i> Thêm Vùng Xanh
+              </button>
+            </div>
+            <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">
+              Khi chân nhân vật chạm vào các vùng này ở frame hiện tại: Được tính là <strong>TIẾP ĐẤT AN TOÀN</strong>.
+            </p>
+            <div id="jumpable-zones-list">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- NON-JUMPABLE / SPIKE ZONES GROUP -->
+          <div class="panel-section">
+            <div class="sec-header">
+              <span class="sec-title" style="color: var(--accent-red);">
+                <i class="fa-solid fa-triangle-exclamation"></i> Vị Trí Cấm Nhảy / Spike (Danger)
+              </span>
+              <button id="btn-add-danger-zone" style="background: rgba(239, 68, 68, 0.15); color: #f87171; border-color: rgba(239, 68, 68, 0.4); padding: 3px 8px; font-size: 11px;">
+                <i class="fa-solid fa-plus"></i> Thêm Vùng Spike
+              </button>
+            </div>
+            <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">
+              Nếu chân nhân vật chạm vào các vùng này ở frame hiện tại: <strong>BỊ KẸP CHÂN & VẤP NGÃ</strong>.
+            </p>
+            <div id="danger-zones-list">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+
+          <!-- SELECTED ZONE INSPECTOR -->
+          <div id="selected-zone-inspector" class="panel-section" style="display: none; border-color: var(--accent);">
+            <div class="sec-header">
+              <span class="sec-title"><i class="fa-solid fa-pen-ruler"></i> Chi Tiết Vùng Đang Chọn</span>
+              <div style="display: flex; gap: 4px;">
+                <button id="btn-duplicate-zone" style="padding: 2px 6px; font-size: 10px;">Nhân Bản</button>
+                <button id="btn-delete-zone" style="padding: 2px 6px; font-size: 10px; color: #f87171;">Xóa</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Tên / Nhãn Vùng:</label>
+              <input type="text" id="inp-zone-label" value="Luống Sạp 1">
+            </div>
+
+            <div class="grid-2">
+              <div class="form-group">
+                <label>Tọa độ X:</label>
+                <input type="number" id="inp-zone-x" value="440">
+              </div>
+              <div class="form-group">
+                <label>Tọa độ Y:</label>
+                <input type="number" id="inp-zone-y" value="440">
+              </div>
+            </div>
+
+            <div class="grid-2">
+              <div class="form-group">
+                <label>Chiều Rộng W:</label>
+                <input type="number" id="inp-zone-w" value="140">
+              </div>
+              <div class="form-group">
+                <label>Chiều Cao H:</label>
+                <input type="number" id="inp-zone-h" value="210">
+              </div>
+            </div>
+          </div>
+
+          <!-- QUICK ACTIONS FOR FRAME -->
+          <div class="panel-section">
+            <div class="sec-header">
+              <span class="sec-title"><i class="fa-solid fa-bolt"></i> Thao Tác Nhanh Cho Frame</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <button id="btn-auto-gen-zones" style="justify-content: center;">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Tự Động Tạo Vùng Theo Cặp Sạp
+              </button>
+              <button id="btn-copy-zones-next" style="justify-content: center;">
+                <i class="fa-solid fa-copy"></i> Sao Chép Vùng Sang Frame Sau
+              </button>
+              <button id="btn-apply-zones-all" style="justify-content: center;">
+                <i class="fa-solid fa-share-nodes"></i> Áp Dụng Vùng Này Cho TẤT CẢ Frame
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- TAB 5: SÁT THƯƠNG & QUY TẮC NHẢY (RULES) -->
+        <div id="tab-rules" class="tab-pane">
+
+          <!-- SECTION 1: DAMAGE RULES -->
+          <div class="panel-section" style="border-color: rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.05);">
+            <div class="sec-header">
+              <span class="sec-title" style="color: #f87171;"><i class="fa-solid fa-heart-crack"></i> 1. Lúc Nào Thì Mất Damage?</span>
+            </div>
+
+            <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">
+              Chọn nhịp và thời điểm mà sạp tre gây sát thương lên nhân vật:
+            </p>
+
+            <label style="color: #fff; font-weight: 700;">Nhịp nào gây sát thương:</label>
+            <div class="grid-4" style="margin-bottom: 10px;">
+              <label class="toggle-label" style="font-size: 10px;">
+                <input type="checkbox" id="chk-dmg-beat-0"> N1 (Mở)
+              </label>
+              <label class="toggle-label" style="font-size: 10px;">
+                <input type="checkbox" id="chk-dmg-beat-1"> N2 (Mở)
+              </label>
+              <label class="toggle-label" style="font-size: 10px;">
+                <input type="checkbox" id="chk-dmg-beat-2"> N3 (Mở)
+              </label>
+              <label class="toggle-label" style="font-size: 10px; color: #f87171; font-weight: 800;">
+                <input type="checkbox" id="chk-dmg-beat-3" checked> N4 (Khép)
+              </label>
+            </div>
+
+            <div class="form-group">
+              <label>Bắt đầu gây damage từ: <span class="lbl-val" id="lbl-dmg-win-start">65% nhịp</span></label>
+              <div class="slider-row">
+                <input type="range" id="rng-dmg-win-start" min="0" max="95" step="5" value="65">
+                <input type="number" id="num-dmg-win-start" class="num-val" value="65">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Kết thúc gây damage lúc: <span class="lbl-val" id="lbl-dmg-win-end">100% nhịp</span></label>
+              <div class="slider-row">
+                <input type="range" id="rng-dmg-win-end" min="5" max="100" step="5" value="100">
+                <input type="number" id="num-dmg-win-end" class="num-val" value="100">
+              </div>
+            </div>
+
+            <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06);">
+              <label style="color: #fff; font-weight: 700; margin-bottom: 6px;">Điều kiện kích hoạt sát thương:</label>
+              <div style="display: flex; flex-direction: column; gap: 6px;">
+                <label class="toggle-label">
+                  <input type="checkbox" id="chk-dmg-on-spike" checked> Chân chạm vào cọc Spike (Bất kỳ lúc nào)
+                </label>
+                <label class="toggle-label">
+                  <input type="checkbox" id="chk-dmg-on-grounded" checked> Chân chạm sàn khi sạp đang khép
+                </label>
+                <label class="toggle-label">
+                  <input type="checkbox" id="chk-dmg-on-wrong-lane"> Bước chân ra ngoài giới hạn sân khấu
+                </label>
+              </div>
+            </div>
+
+            <div class="grid-2" style="margin-top: 10px;">
+              <div class="form-group">
+                <label>Lượng máu mất:</label>
+                <select id="sel-dmg-amount">
+                  <option value="1">❤️ 1 Tim (Mặc định)</option>
+                  <option value="2">💔 2 Tim (Nặng)</option>
+                  <option value="3">💀 3 Tim (Chết Ngay)</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Bất tử sau va chạm:</label>
+                <input type="number" id="num-dmg-invincible" value="1800">
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 6px;">
+              <label>Thời gian vấp ngã nằm sàn (ms):</label>
+              <input type="number" id="num-dmg-trip" value="1200">
+            </div>
+
+            <div style="margin-top: 10px; padding: 8px; background: rgba(0,0,0,0.3); border-radius: 6px;">
+              <span style="font-size: 10px; font-weight: 800; color: var(--accent); text-transform: uppercase;">Áp dụng cho Frame hiện tại:</span>
+              <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 4px;">
+                <label class="toggle-label" style="font-size: 11px;">
+                  <input type="checkbox" id="chk-frame-dmg-spike" checked> Frame này nhận damage nếu chạm Spike
+                </label>
+                <label class="toggle-label" style="font-size: 11px;">
+                  <input type="checkbox" id="chk-frame-dmg-ground" checked> Frame này nhận damage nếu tiếp đất lúc sạp khép
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION 2: JUMP RULES -->
+          <div class="panel-section" style="border-color: rgba(56, 189, 248, 0.4); background: rgba(56, 189, 248, 0.05);">
+            <div class="sec-header">
+              <span class="sec-title" style="color: #38bdf8;"><i class="fa-solid fa-person-arrow-up-from-line"></i> 2. Lúc Nào Nhân Vật Được Nhảy?</span>
+            </div>
+
+            <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">
+              Cấu hình quyền bật nhảy và cửa sổ thời gian cho phép nhân vật bay lên:
+            </p>
+
+            <div class="form-group" style="margin-bottom: 8px;">
+              <label class="toggle-label" style="font-size: 12px; font-weight: 800; color: #fff;">
+                <input type="checkbox" id="chk-jump-anytime" checked> Cho phép Nhảy Tự Do mọi lúc (Free Jump)
+              </label>
+            </div>
+
+            <div id="panel-restricted-jump" style="opacity: 0.6; pointer-events: none; transition: all 0.2s; margin-bottom: 10px;">
+              <label style="color: #fff; font-weight: 700;">Nhịp nào được phép bấm nhảy:</label>
+              <div class="grid-4" style="margin-bottom: 8px;">
+                <label class="toggle-label" style="font-size: 10px;">
+                  <input type="checkbox" id="chk-jump-beat-0" checked> Nhịp 1
+                </label>
+                <label class="toggle-label" style="font-size: 10px;">
+                  <input type="checkbox" id="chk-jump-beat-1" checked> Nhịp 2
+                </label>
+                <label class="toggle-label" style="font-size: 10px;">
+                  <input type="checkbox" id="chk-jump-beat-2" checked> Nhịp 3
+                </label>
+                <label class="toggle-label" style="font-size: 10px; color: #38bdf8; font-weight: 800;">
+                  <input type="checkbox" id="chk-jump-beat-3" checked> Nhịp 4
+                </label>
+              </div>
+
+              <div class="grid-2">
+                <div class="form-group">
+                  <label>Từ % nhịp:</label>
+                  <input type="number" id="num-jump-win-start" value="0" min="0" max="90">
+                </div>
+                <div class="form-group">
+                  <label>Đến % nhịp:</label>
+                  <input type="number" id="num-jump-win-end" value="100" min="10" max="100">
+                </div>
+              </div>
+            </div>
+
+            <div class="grid-2">
+              <div class="form-group">
+                <label>Độ cao nhảy (Jump Lift px):</label>
+                <input type="number" id="num-rule-jump-height" value="-110">
+              </div>
+              <div class="form-group">
+                <label>Thời gian bay (ms):</label>
+                <input type="number" id="num-rule-jump-duration" value="450">
+              </div>
+            </div>
+
+            <div class="grid-2">
+              <div class="form-group">
+                <label>Hồi chiêu Cooldown (ms):</label>
+                <input type="number" id="num-jump-cooldown" value="0">
+              </div>
+              <div class="form-group">
+                <label>Bộ đệm Coyote (ms):</label>
+                <input type="number" id="num-jump-coyote" value="140">
+              </div>
+            </div>
+
+            <div style="margin-top: 8px; display: flex; flex-direction: column; gap: 6px;">
+              <label class="toggle-label">
+                <input type="checkbox" id="chk-jump-require-ground" checked> Bắt buộc chạm đất mới được nhảy (Không nhảy giữa không trung)
+              </label>
+              <label class="toggle-label">
+                <input type="checkbox" id="chk-jump-double"> Cho phép Nhảy Đôi trên không (Double Jump)
+              </label>
+            </div>
+
+            <div style="margin-top: 10px; padding: 8px; background: rgba(0,0,0,0.3); border-radius: 6px;">
+              <span style="font-size: 10px; font-weight: 800; color: var(--accent); text-transform: uppercase;">Áp dụng cho Frame hiện tại:</span>
+              <div style="margin-top: 4px;">
+                <label class="toggle-label" style="font-size: 11px;">
+                  <input type="checkbox" id="chk-frame-can-jump" checked> Cho phép nhận lệnh Nhảy ở Frame này
+                </label>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </aside>
+
+    <!-- CENTER VIEWPORT -->
+    <div class="viewport-container">
+
+      <!-- VIEWPORT TOOLBAR -->
+      <div class="viewport-toolbar">
+        <div class="tool-group">
+          <button id="tool-select" class="tool-btn active" title="Công cụ chọn & kéo nắn chỉnh Bounding Box"><i class="fa-solid fa-arrow-pointer"></i> Chọn (V)</button>
+          <button id="tool-draw-jumpable" class="tool-btn" title="Vẽ Vùng Nhảy Được (Xanh)"><i class="fa-solid fa-square-plus" style="color: #34d399;"></i> Vẽ Vùng Nhảy</button>
+          <button id="tool-draw-danger" class="tool-btn" title="Vẽ Vùng Cấm Nhảy / Spike (Đỏ)"><i class="fa-solid fa-square-plus" style="color: #f87171;"></i> Vẽ Vùng Spike</button>
+          <button id="tool-pan" class="tool-btn" title="Công cụ bàn tay di chuyển canvas (Giữ Phím Cách + Kéo)"><i class="fa-solid fa-hand"></i> Di Chuyển (H)</button>
+          <div class="tool-sep"></div>
+          <span style="font-size: 11px; color: var(--text-muted);">Thu Phóng:</span>
+          <button id="btn-zoom-out" class="tool-btn"><i class="fa-solid fa-minus"></i></button>
+          <span id="lbl-zoom-val" style="font-size: 11px; font-family: 'JetBrains Mono', monospace; font-weight: 700; width: 44px; text-align: center;">65%</span>
+          <button id="btn-zoom-in" class="tool-btn"><i class="fa-solid fa-plus"></i></button>
+          <button id="btn-zoom-fit" class="tool-btn" title="Vừa khít màn hình">Fit</button>
+          <button id="btn-zoom-100" class="tool-btn" title="100% Kích thước chuẩn">100%</button>
+        </div>
+
+        <div class="tool-group">
+          <label class="toggle-label" title="Hiện vùng màu xanh tiếp đất an toàn">
+            <input type="checkbox" id="chk-view-jumpable" checked> Vùng Nhảy
+          </label>
+          <label class="toggle-label" title="Hiện vùng màu đỏ cấm nhảy / spike kẹp chân">
+            <input type="checkbox" id="chk-view-danger" checked> Vùng Spike
+          </label>
+          <label class="toggle-label" title="Hiện điểm chạm chân & bán kính va chạm">
+            <input type="checkbox" id="chk-view-foot" checked> Chân
+          </label>
+          <label class="toggle-label" title="Hiện 4 luống sạp và bờ an toàn">
+            <input type="checkbox" id="chk-view-lanes" checked> Luống
+          </label>
+          <label class="toggle-label" title="Hiện các ghim điểm rơi nhân vật (kéo thả được)">
+            <input type="checkbox" id="chk-view-landing" checked> Ghim Điểm Rơi
+          </label>
+          <label class="toggle-label" title="Hiện lưới tọa độ">
+            <input type="checkbox" id="chk-view-grid"> Lưới
+          </label>
+        </div>
+      </div>
+
+      <!-- CANVAS STAGE -->
+      <div id="canvas-stage" class="canvas-stage">
+        <canvas id="editor-canvas" width="1672" height="941"></canvas>
+
+        <!-- PLAYTEST OVERLAY HUD -->
+        <div id="playtest-hud" class="playtest-hud">
+          <div class="hud-chip">
+            <span style="color: var(--text-muted);">MÁU:</span>
+            <span id="pt-hearts-display" style="font-size: 13px; letter-spacing: 2px;">❤️❤️❤️</span>
+          </div>
+          <div class="hud-chip">
+            <span style="color: var(--text-muted);">NHỊP:</span>
+            <span id="pt-frame-idx" style="color: var(--accent); font-family: 'JetBrains Mono', monospace; font-weight: 800;">Nhịp 1 · Mở</span>
+          </div>
+          <div class="hud-chip">
+            <span style="color: var(--text-muted);">TIẾP ĐẤT:</span>
+            <span id="pt-landing-status" class="status-pill safe">🟢 AN TOÀN</span>
+          </div>
+          <div class="hud-chip">
+            <span style="color: var(--text-muted);">CHÂN X:</span>
+            <span id="pt-foot-x" style="color: #fff; font-family: 'JetBrains Mono', monospace;">500px</span>
+          </div>
+          <!-- LIVE RHYTHM TIMING RAIL IN PLAYTEST -->
+          <div class="hud-chip" style="flex-direction: column; align-items: flex-start; gap: 2px;">
+            <div style="display: flex; justify-content: space-between; width: 150px; font-size: 9px; color: var(--text-muted);">
+              <span>TIẾN TRÌNH NHỊP</span>
+              <span id="pt-beat-pct" style="color: var(--accent); font-family: 'JetBrains Mono', monospace;">0%</span>
+            </div>
+            <div style="width: 150px; height: 8px; background: #070d18; border-radius: 4px; position: relative; overflow: hidden; border: 1px solid var(--border);">
+              <div id="pt-damage-bar-segment" style="position: absolute; right: 0; width: 35%; height: 100%; background: rgba(239, 68, 68, 0.6);" title="Cửa sổ gây sát thương"></div>
+              <div id="pt-beat-needle" style="position: absolute; left: 0%; width: 4px; height: 100%; background: #ffe285; box-shadow: 0 0 6px #ffe285;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PLAYTEST BUTTONS OVERLAY -->
+        <div id="playtest-keys" class="playtest-keys">
+          <button id="pt-key-left" class="pt-btn"><i class="fa-solid fa-arrow-left"></i> TRÁI <span class="key-sub">A / ◀</span></button>
+          <button id="pt-key-jump" class="pt-btn jump"><i class="fa-solid fa-arrow-up"></i> NHẢY QUA SẠP <span class="key-sub">SPACE / W</span></button>
+          <button id="pt-key-right" class="pt-btn"><i class="fa-solid fa-arrow-right"></i> PHẢI <span class="key-sub">D / ▶</span></button>
+          <button id="pt-key-down" class="pt-btn"><i class="fa-solid fa-arrow-down"></i> DẬM NHỊP <span class="key-sub">S / ▼</span></button>
+        </div>
+      </div>
+
+      <!-- BOTTOM TIMELINE BAR -->
+      <div class="timeline-bar">
+        
+        <!-- TIMELINE CONTROLS -->
+        <div class="timeline-ctrls">
+          <div class="anim-select-group">
+            <span style="font-size: 11px; font-weight: 700; color: var(--accent);"><i class="fa-solid fa-film"></i> Animation:</span>
+            <select id="sel-animation-clip" class="anim-select">
+              <option value="dancer_forward">💃 dancer_forward (Nhân vật nhảy tới - 6 frames)</option>
+              <option value="dancer_back">💃 dancer_back (Nhân vật nhảy lùi - 6 frames)</option>
+              <option value="dancer_trip">⚠️ dancer_trip (Vấp ngã / Kẹp sạp - 6 frames)</option>
+              <option value="bamboo_cycle">🎋 bamboo_cycle (Chu kỳ 4 nhịp gõ tre - 4 beats)</option>
+            </select>
+          </div>
+
+          <!-- PLAYBACK BUTTONS -->
+          <div class="playback-group">
+            <button id="btn-frame-first" class="btn-play-ctrl" title="Về Frame đầu (Home)"><i class="fa-solid fa-backward-step"></i></button>
+            <button id="btn-frame-prev" class="btn-play-ctrl" title="Frame trước (Mũi tên trái)"><i class="fa-solid fa-chevron-left"></i></button>
+            <button id="btn-play-pause" class="btn-play-ctrl" title="Chạy / Dừng xem trước (Space)"><i class="fa-solid fa-play"></i></button>
+            <button id="btn-frame-next" class="btn-play-ctrl" title="Frame tiếp theo (Mũi tên phải)"><i class="fa-solid fa-chevron-right"></i></button>
+            <button id="btn-frame-last" class="btn-play-ctrl" title="Đến Frame cuối (End)"><i class="fa-solid fa-forward-step"></i></button>
+            
+            <div class="tool-sep"></div>
+
+            <span style="font-size: 11px; color: var(--text-muted); font-weight: 600;">Tốc độ:</span>
+            <input type="range" id="rng-fps" min="1" max="24" step="1" value="9" style="width: 80px; accent-color: var(--accent);">
+            <span id="lbl-fps-val" style="font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--accent); font-weight: 700; width: 48px;">9 FPS</span>
+
+            <label class="toggle-label" style="margin-left: 6px;">
+              <input type="checkbox" id="chk-anim-loop" checked> Lặp
+            </label>
+          </div>
+
+          <div style="display: flex; gap: 6px;">
+            <button id="btn-add-frame" style="padding: 3px 8px; font-size: 10px;"><i class="fa-solid fa-plus"></i> Thêm Frame</button>
+            <button id="btn-duplicate-frame" style="padding: 3px 8px; font-size: 10px;"><i class="fa-solid fa-clone"></i> Nhân Bản</button>
+            <button id="btn-delete-frame" style="padding: 3px 8px; font-size: 10px; color: #f87171;"><i class="fa-solid fa-trash"></i> Xóa</button>
+          </div>
+        </div>
+
+        <!-- TIMELINE FRAMES STRIP -->
+        <div id="timeline-strip" class="timeline-strip">
+          <!-- Rendered via JS -->
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast-msg" class="toast-msg">
+    <i class="fa-solid fa-circle-check" style="color: var(--accent-green); font-size: 16px;"></i>
+    <span id="toast-text">Thông báo...</span>
+  </div>
+
+  <!-- JSON MODAL (IMPORT / EXPORT) -->
+  <div id="json-modal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="modal-title"><i class="fa-solid fa-code"></i> Dữ Liệu Cấu Hình JSON</h3>
+        <button id="btn-close-modal" style="background: transparent; border: none; font-size: 16px; color: var(--text-muted);">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p id="modal-desc" style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">
+          Sao chép nội dung JSON bên dưới hoặc dán cấu hình mới để nạp vào editor:
+        </p>
+        <textarea id="modal-json-text" class="json-area" spellcheck="false"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-copy-json" class="btn-primary"><i class="fa-solid fa-copy"></i> Sao Chép</button>
+        <button id="btn-apply-json" style="display: none; background: var(--accent-green); color: #064e3b; font-weight: 700;"><i class="fa-solid fa-check"></i> Nạp Dữ Liệu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOAD BASE CONFIG -->
+  <script src="nhay-sap-config.js"></script>
+  <!-- LOAD EDITOR LOGIC -->
+  <script src="editor.js"></script>
+
+</body>
+</html>

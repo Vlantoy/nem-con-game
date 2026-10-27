@@ -1,0 +1,117 @@
+{
+  "stage": {
+    "canvasWidth": 1672,
+    "canvasHeight": 941,
+    "floorY": 550,
+    "safeLeftX": 643,
+    "safeRightX": 1019,
+    "lanes": [
+      742,
+      837,
+      932
+    ],
+    "bpm": 103,
+    "jumpYOffset": -90,
+    "jumpDuration": 400
+  },
+  "spikes": {
+    "poleWidth": 22,
+    "poleHeight": 220,
+    "openGap": 160,
+    "closedGap": 24,
+    "dangerWidth": 50,
+    "hazardColor": "#ef4444",
+    "safeColor": "#10b981",
+    "showSpikeTeeth": false,
+    "poles": []
+  },
+  "objects": {
+    "dancer": {
+      "scale": 0.2,
+      "width": 362,
+      "height": 724,
+      "offsetX": 0,
+      "offsetY": 5,
+      "footAnchor": {
+        "x": 181,
+        "y": 710
+      },
+      "footHitboxRadius": 14
+    },
+    "clappers": {
+      "name": "Đội Gõ Sạp 2 Đầu",
+      "splitMode": false,
+      "scale": 0.5,
+      "offsetX": 0,
+      "offsetY": 280,
+      "left": {
+        "x": 0,
+        "y": 0,
+        "offsetX": 0,
+        "offsetY": 0,
+        "scale": 1,
+        "scaleX": 1,
+        "scaleY": 1,
+        "width": 836,
+        "height": 941,
+        "sourceX": 0,
+        "sourceY": 0,
+        "sourceW": 836,
+        "sourceH": 941,
+        "visible": true
+      },
+      "right": {
+        "x": 836,
+        "y": 0,
+        "offsetX": 0,
+        "offsetY": 0,
+        "scale": 1,
+        "scaleX": 1,
+        "scaleY": 1,
+        "width": 836,
+        "height": 941,
+        "sourceX": 836,
+        "sourceY": 0,
+        "sourceW": 836,
+        "sourceH": 941,
+        "visible": true
+      }
+    }
+  },
+  "rules": {
+    "damage": {
+      "activeBeats": [
+        false,
+        false,
+        false,
+        true
+      ],
+      "windowStartPercent": 0.65,
+      "windowEndPercent": 1,
+      "triggerOnSpikeTouch": true,
+      "triggerOnClosedSạpGrounded": true,
+      "triggerOnWrongLane": false,
+      "damageAmount": 1,
+      "invincibilityDuration": 1800,
+      "tripFallDuration": 1200
+    },
+    "jump": {
+      "allowAnytime": true,
+      "allowedBeats": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "windowStartPercent": 0,
+      "windowEndPercent": 1,
+      "jumpHeight": -110,
+      "jumpDuration": 450,
+      "jumpCooldown": 0,
+      "coyoteBufferTime": 140,
+      "allowDoubleJump": false,
+      "requireGrounded": true
+    }
+  },
+  "animations": {}
+}

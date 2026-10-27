@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#28160f">
+  <title>Nhảy Sạp · Hội bản vùng cao</title>
+  <link rel="stylesheet" href="style.css?v=20261027_hd">
+  <script src="../shared/game-loader.js?v=1"></script>
+</head>
+<body>
+<main class="game-shell">
+  <header>
+    <a class="brand" href="../index.html" title="Về hội bản">
+      <small>← VỀ HỘI BẢN</small>
+      <strong>Nhảy Sạp<span>✦</span></strong>
+    </a>
+    <div class="stats">
+      <div><small id="phase">LƯỢT 1 · ♥♥♥</small></div>
+      <div><small>ĐIỂM</small><b id="score">00000</b></div>
+      <div><small>COMBO</small><b id="combo">×0</b></div>
+      <div><small>KỶ LỤC</small><b id="best">00000</b></div>
+    </div>
+    <nav>
+      <button id="help">Cách chơi</button>
+      <button id="sound" aria-label="Tắt âm thanh" aria-pressed="false">Âm: Bật</button>
+      <button id="pause" disabled>Tạm dừng</button>
+    </nav>
+  </header>
+
+  <section class="stage" aria-label="Sân nhảy sạp">
+    <canvas id="scene" width="1672" height="941" aria-label="Nhập chuỗi bốn hướng rồi bấm Space đúng nhịp. Có các nút cảm ứng bên dưới."></canvas>
+    <div class="stage-label"><span class="live-dot"></span> LỄ HỘI BẢN LÀNG <i id="tempo">84 BPM</i></div>
+
+    <div id="feedback" aria-hidden="true"></div>
+
+    <section class="panel" id="menu">
+      <h1>Nhảy sạp</h1>
+      <p class="intro">Nhập chuỗi ← ↑ ↓ → theo thứ tự.<br>Bấm Space khi vạch sáng chạm vùng vàng.<br>Sai mất một tim · Có 3 tim.<br>Càng lâu chuỗi càng dài, nhịp càng nhanh.</p>
+      <button class="primary" id="start">BẮT ĐẦU →</button>
+    </section>
+
+    <section class="panel hidden" id="paused">
+      <p class="eyebrow">NGHỈ CHÂN MỘT CHÚT</p>
+      <h2>Điệu múa đang đợi.</h2>
+      <p>Nhịp và thời gian đã được dừng lại.</p>
+      <button class="primary" id="resume">TIẾP TỤC →</button>
+      <button class="text-button" id="back">Về sân</button>
+    </section>
+
+    <section class="panel hidden" id="result">
+      <p class="eyebrow">KHÉP LẠI MỘT ĐIỆU MÚA</p>
+      <h2 id="rank">Vui hội!</h2>
+      <strong class="result-score" id="final-score">0</strong>
+      <p id="summary"></p>
+      <button class="primary" id="retry">NHẢY LẠI →</button>
+      <button class="text-button" id="choose">Về sân</button>
+    </section>
+  </section>
+
+  <section class="controls">
+    <button id="in" aria-label="Hướng trái" class="step" disabled><span>←</span></button>
+    <button id="out" aria-label="Hướng phải" class="step out" disabled><span>→</span></button>
+    <button id="up" class="step" disabled aria-label="Hướng lên">↑</button>
+    <button id="down" class="step" disabled aria-label="Hướng xuống">↓</button>
+    <button id="commit" class="step" disabled>SPACE · CHỐT</button>
+  </section>
+
+  <p class="sr-only" id="announcement" role="status" aria-live="polite"></p>
+</main>
+
+<dialog id="help-dialog">
+  <button class="close" id="close-help" aria-label="Đóng">×</button>
+  <h2>Cách chơi</h2>
+  <p>Nhập chuỗi ← ↑ ↓ → theo thứ tự, rồi bấm Space khi vạch sáng chạm vùng vàng. Sai hướng được nhập lại; chốt sai hoặc hết giờ mất một tim. Có 3 tim, hết tim kết thúc. Chuỗi dài hơn và thời gian ngắn hơn theo lượt.</p>
+  <p class="settings-note">Giai điệu tổng hợp cho phiên bản game.</p>
+  <a href="../tro-choi/?game=nhay-sap">Xem hướng dẫn & câu chuyện ↗</a>
+</dialog>
+
+<script src="rhythm.js?v=20261018-1"></script>
+<script src="endless.js?v=pacing-2"></script>
+<script src="game.js?v=20261027_clean"></script>
+</body>
+</html>
